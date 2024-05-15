@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+	<title>Alta de voluntario</title>
+	<meta charset="UTF-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<link href="../bootstrap-5.3.3-dist/css/bootstrap.min.css" rel="stylesheet">
+	<script src="../bootstrap-5.3.3-dist/js/bootstrap.bundle.min.js"></script>
+	<link type="text/css" rel="stylesheet" href="/css/formatoGeneral.css">
+	<script src="/js/altaVoluntario.js"></script>
+	<script src="/js/general.js"></script>
+</head>
+<body>
+	<div id="alertas"></div>
+	<div class="container">
+		<button type="button" class="btn btn-secondary mt-3"><a href="login.html" style="color: white;">Cancelar</a></button>
+		<form action="#" class="mt-3" method="post" id="formAltaVoluntario" onsubmit="return validarAltaVoluntario()">
+            <div class="row">
+                <div class="form-floating col">
+                    <input type="text" class="shadow form-control" id="nombresV" placeholder="Ingrese su nombre" name="nombresV" required autocomplete="off" maxlength="30">
+                    <label for="nombres" class="ms-2">Nombre(s) del voluntario:</label>
+                </div>
+                <div class="form-floating col">
+                    <input type="text" class="shadow form-control" id="apPatV" placeholder="Ingrese su apellido paterno" name="apPatV" required autocomplete="off" maxlength="30">
+                    <label for="apPat" class="ms-2">Apellido paterno del voluntario:</label>
+                </div>
+                <div class="form-floating col">
+                    <input type="text" class="shadow form-control" id="apMatV" placeholder="Ingrese su apellido materno" name="apMatV" required autocomplete="off" maxlength="30">
+                    <label for="apMat" class="ms-2">Apellido materno del voluntario:</label>
+                </div>
+            </div>
+            <div class="row mt-4">
+                <div class="form-floating col">
+                    <input type="text" class="shadow form-control" id="nombresV" placeholder="Ingrese su nombre" name="nombresV" required autocomplete="off" maxlength="30">
+                    <label for="nombres" class="ms-2">DNI / NIE / Pasaporte:</label>
+                </div>
+                <div class="form-floating col">
+                    <input type="date" class="shadow form-control" id="fechaNacimientoV" placeholder="Ingrese su fecha de nacimiento" name="fechaNacimiento" required autocomplete="off">
+                    <label for="fechaNacimiento" class="ms-2">Fecha de nacimiento:</label>
+                </div>
+                <div class="form-floating col">
+                    <input type="number" class="shadow form-control" id="telefonoV" placeholder="Ingrese su apellido materno" name="apMatV" required autocomplete="off" maxlength="10" min="1111111111">
+                    <label for="apMat" class="ms-2">Teléfono:</label>
+                </div>
+                <div class="form-floating col">
+                    <input type="email" class="shadow form-control" id="correoV" placeholder="Ingrese su apellido materno" name="apMatV" required autocomplete="off" maxlength="30">
+                    <label for="apMat" class="ms-2">Correo electrónico:</label>
+                </div>
+            </div>
+            <div class="row mt-4">
+                <div class="form-floating col" id="divOcupacion">
+                    <select class="form-select shadow" id="ocupacionV" name="ocupacion" required style="cursor: pointer;">
+                        <option value="" disabled selected>Selecciona una ocupación</option>
+                        <option value="estudiante">Estudiante (a recuperar de la BD)</option>
+                        <option value="empleado">Empleado</option>
+                        <option value="autonomo">Autónomo</option>
+                        <option value="desempleado">Desempleado</option>
+                    </select>
+                    <label for="ocupacionV" class="ms-2">Ocupación:</label>
+                    <div class="mt-1">
+                        <a href="" onclick="agregarOcupacion()" data-bs-toggle="modal" data-bs-target="#myModal">Añadir nueva ocupación</a>
+                    </div>
+                </div>
+                <div class="form-floating col">
+                    <input type="text" class="shadow form-control" id="presonaContactoV" placeholder="Ingrese su apellido materno" name="apMatV" required autocomplete="off" maxlength="70">
+                    <label for="apMat" class="ms-2">Persona de contacto:</label>
+                </div>
+                <div class="form-floating col">
+                    <input type="text" class="shadow form-control" id="voluntarioAsignado" placeholder="Ingrese su apellido materno" name="apMatV" required autocomplete="off" maxlength="70">
+                    <label for="apMat" class="ms-2">Voluntario interno asignado:</label>
+                </div>
+            </div>
+            <div class="row mt-4">
+                <div class="form-floating col" id="divInteres">
+                    <div class="dropdown">
+                        <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownIntereses" data-bs-toggle="dropdown" aria-expanded="false" style="width: 100%;">
+                            Seleccionar intereses
+                        </button>
+                        <ul id="listaIntereses" class="dropdown-menu" aria-labelledby="dropdownIntereses" style="width: 100%; max-height: 200px; overflow-y: auto; padding-left: 5px;" onclick="event.stopPropagation();">
+                            <li>
+                                <input class="form-check-input" type="checkbox" id="chkEstudiante" value="chkEstudiante" required>
+                                <label class="form-check-label" for="chkEstudiante">Estudiante (a recuperar de la BD)</label>
+                            </li>
+                            <li>
+                                <input class="form-check-input" type="checkbox" id="chkEmpleado" value="empleado" required>
+                                <label class="form-check-label" for="chkEmpleado">Empleado</label>
+                            </li>
+                            <li>
+                                <input class="form-check-input" type="checkbox" id="chkAutonomo" value="empleado" required>
+                                <label class="form-check-label" for="chkAutonomo">Autónomo</label>
+                            </li>
+                            <li>
+                                <input class="form-check-input" type="checkbox" id="chkDesempleado" value="empleado" required>
+                                <label class="form-check-label" for="chkDesempleado">Desempleado</label>
+                            </li>
+                            <div id="nvosIntereses"></div>
+                            <li><hr class="dropdown-divider"></li>
+                            <li>
+                                <div class="mt-1">
+                                    <a href="#" onclick="agregarInteres()" data-bs-toggle="modal" data-bs-target="#myModal">Añadir nuevo interés</a>
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+                    
+                </div>
+            </div>
+            <div class="row mt-4" style="border: 1px black solid; text-align: center;" id="valoracion">
+                <p class="h5">Valoración / Participación</p>
+                <div class="form-check col">
+                    <input class="form-check-input" type="checkbox" id="entrada" name="entrada" value="something">
+                    <label class="form-check-label" for="entrada">ENTRADA</label>
+                </div>
+                <div class="form-check col">
+                    <input class="form-check-input" type="checkbox" id="integra" name="integra" value="something">
+                    <label class="form-check-label" for="integra">INTEGRA</label>
+                </div>
+                <div class="form-check col">
+                    <input class="form-check-input" type="checkbox" id="das" name="das" value="something">
+                    <label class="form-check-label" for="das">D.A.S.</label>
+                </div>
+                <div class="form-check col">
+                    <input class="form-check-input" type="checkbox" id="cvc" name="cvc" value="something">
+                    <label class="form-check-label" for="cvc">C.V.C.</label>
+                </div>
+                <div class="form-check col">
+                    <input class="form-check-input" type="checkbox" id="proyecto" name="proyecto" value="something">
+                    <label class="form-check-label" for="proyecto">PROYECTO</label>
+                </div>
+            </div>
+            <div class="row mt-4" style="border: 1px black solid; text-align: center;">
+                <p class="h5">Primeros contactos</p>
+                <div class="form-check col">
+                    <input class="form-check-input" type="checkbox" id="tallerAcogida" name="tallerAcogida" value="something">
+                    <label class="form-check-label" for="tallerAcogida">Taller acogida</label>
+                </div>
+                <div class="form-check col">
+                    <input class="form-check-input" type="checkbox" id="entrevistaPersonal" name="entrevistaPersonal" value="something">
+                    <label class="form-check-label" for="entrevistaPersonal">1° entrevista personal</label>
+                </div>
+                <div class="form-check col">
+                    <input class="form-check-input" type="checkbox" id="formacionBasica" name="formacionBasica" value="something">
+                    <label class="form-check-label" for="formacionBasica">Formación básica</label>
+                </div>
+                <div class="form-check col">
+                    <input class="form-check-input" type="checkbox" id="formacionEspecifica" name="formacionEspecifica" value="something">
+                    <label class="form-check-label" for="formacionEspecifica">Formación específica</label>
+                </div>
+            </div>
+            <div class="row mt-4" style="border: 1px black solid; text-align: center;">
+                <p class="h5">Informe de valoración</p>
+                <div class="form-check col">
+                    <input class="form-check-input" type="checkbox" id="voluntarioInterno" name="voluntarioInterno" value="something">
+                    <label class="form-check-label" for="voluntarioInterno">Voluntario interno</label>
+                </div>
+                <div class="form-check col">
+                    <input class="form-check-input" type="checkbox" id="voluntarioExterno" name="voluntarioExterno" value="something">
+                    <label class="form-check-label" for="voluntarioExterno">Voluntario externo temporal</label>
+                </div>
+            </div>
+            <div class="row mt-4">
+                <div class="form-group">
+                <label for="comment">Observaciones:</label>
+                <textarea class="form-control" rows="4" id="comment" style="resize: none;" maxlength="500"></textarea>
+              </div>
+            </div>
+		  <button type="submit" class="btn btn-primary mt-3 mb-3" id="btn-recuperar" style="float: right;">Añadir nuevo voluntario</button>
+		</form>
+	</div>
+</body>
+</html>
