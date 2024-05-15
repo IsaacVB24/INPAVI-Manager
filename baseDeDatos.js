@@ -15,8 +15,8 @@ const db = new sqlite3.Database(dbPath, (err) => {
 // Crear tabla de roles si no existe
 db.serialize(() => {
   db.run(`CREATE TABLE IF NOT EXISTS roles (
-    id INTEGER PRIMARY KEY,
-    nombre TEXT NOT NULL
+    id_rol INTEGER PRIMARY KEY,
+    rol TEXT NOT NULL
   )`);
 
   // Insertar datos de roles si la tabla está vacía
@@ -26,19 +26,51 @@ db.serialize(() => {
     } else {
       if (row.count === 0) {
         const roles = [
-          { nombre: 'supervisor' },
-          { nombre: 'delegado' },
-          { nombre: 'coordinador DAS' },
-          { nombre: 'coordinador Entrada' },
-          { nombre: 'equipo directo DAS' },
-          { nombre: 'equipo directo Entrada' }
+          { rol: 'Supervisor' },
+          { rol: 'Delegado' },
+          { rol: 'Coordinador DAS' },
+          { rol: 'Coordinador Entrada' },
+          { rol: 'Equipo directo DAS' },
+          { rol: 'Equipo directo Entrada' }
         ];
-        const stmt = db.prepare("INSERT INTO roles (nombre) VALUES (?)");
+        const stmt = db.prepare("INSERT INTO roles (rol) VALUES (?)");
         roles.forEach((rol) => {
-          stmt.run(rol.nombre);
+          stmt.run(rol.rol);
         });
         stmt.finalize();
         console.log('Datos de roles insertados correctamente');
+      }
+    }
+  });
+});
+
+// Crear tabla de sedes si no existe
+db.serialize(() => {
+  db.run(`CREATE TABLE IF NOT EXISTS sedes (
+    id_sede INTEGER PRIMARY KEY,
+    sede TEXT NOT NULL
+  )`);
+
+  // Insertar datos de roles si la tabla está vacía
+  db.get("SELECT COUNT(*) AS count FROM sedes", (err, row) => {
+    if (err) {
+      console.error('Error al verificar tabla de sedes:', err);
+    } else {
+      if (row.count === 0) {
+        const sedes = [
+          { sede: 'Xola' },
+          { sede: 'Tultitlán' },
+          { sede: 'Ajusco' },
+          { sede: 'Atlacomulco' },
+          { sede: 'Cancún' },
+          { sede: 'León' }
+        ];
+        const stmt = db.prepare("INSERT INTO sedes (sede) VALUES (?)");
+        sedes.forEach((sede) => {
+          stmt.run(sede.sede);
+        });
+        stmt.finalize();
+        console.log('Datos de sedes insertados correctamente');
       }
     }
   });
@@ -55,7 +87,9 @@ db.serialize(() => {
     contraseña TEXT NOT NULL,
     nombre_usuario TEXT NOT NULL,
     id_rol INTEGER NOT NULL,
-    FOREIGN KEY (id_rol) REFERENCES roles(id)
+    id_sede INTEGER NOT NULL,
+    FOREIGN KEY (id_rol) REFERENCES roles(id_rol),
+    FOREIGN KEY (id_sede) REFERENCES roles(id_sede)
   )`);
 });
 

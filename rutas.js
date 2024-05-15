@@ -8,6 +8,16 @@ router.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'html', 'login.html'));
 });
 
+// Ruta para dar de alta usuarios
+router.get('/crearCuenta', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'html', 'crearCuenta.html'));
+});
+
+// Ruta para recuperar cuenta
+router.get('/recuperarCuenta', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'html', 'recuperarCuenta.html'));
+});
+
 // Ruta para verificar el inicio de sesión
 router.post('/login', (req, res) => {
   const { correo, contraseña } = req.body;
