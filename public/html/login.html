@@ -16,7 +16,7 @@
 		<link rel="stylesheet" type="text/css" href="/csslogin/util.css">
 		<link rel="stylesheet" type="text/css" href="/csslogin/main.css">
 		<!--===============================================================================================-->
-
+		<script type="text/javascript" src="/js/login.js"></script>
     </head>
 	<body>
 		<!-- HEADER -->
@@ -30,27 +30,27 @@
 						<!-- Header Modal -->
 						<li><a href="#escom" class="fa fa-map-marker" data-toggle="modal"> INPAVI</a></li>
 						<div class="modal fade" id="escom">
-								<div class="modal_dialog">
-									<div class="modal-content">
-										<div class="modal-header">
-											<button tyle="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-											<h4 class="modal-title">Ubicación											
-											</h4>
-										</div>
-										<!-- Header Body -->
-										<div class="modal-body">
-											<p>
-											
-											Dirección: Xola 86, Álamos, Benito Juárez, 03400 Ciudad de México, CDMX
-										<br>
-										<iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3763.3983198512733!2d-99.14959877469789!3d19.395188441874495!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x85d1fefd01d61aa3%3A0xceb3f4065886e3c6!2sINPAVI%20Comunidad%20Terap%C3%A9utica%20de%20Atenci%C3%B3n%20a%20las%20Adicciones!5e0!3m2!1ses-419!2smx!4v1706569546360!5m2!1ses-419!2smx" width="400" height="300" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
-									
+							<div class="modal_dialog">
+								<div class="modal-content">
+									<div class="modal-header">
+										<button tyle="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+										<h4 class="modal-title">Ubicación											
+										</h4>
+									</div>
+									<!-- Header Body -->
+									<div class="modal-body">
+										<p>
+										
+										Dirección: Xola 86, Álamos, Benito Juárez, 03400 Ciudad de México, CDMX
+									<br>
+									<iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3763.3983198512733!2d-99.14959877469789!3d19.395188441874495!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x85d1fefd01d61aa3%3A0xceb3f4065886e3c6!2sINPAVI%20Comunidad%20Terap%C3%A9utica%20de%20Atenci%C3%B3n%20a%20las%20Adicciones!5e0!3m2!1ses-419!2smx!4v1706569546360!5m2!1ses-419!2smx" width="400" height="300" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+								
+									</br>
 										</br>
-											</br>
-											</p>
-										</div>
+										</p>
 									</div>
 								</div>
+							</div>
 						</div>
 					</ul>
 				</div>
@@ -73,50 +73,18 @@
 							<span class="focus-input100"></span>
 						</div>
 						<div class="container-login100-form-btn">
-							<button id="login-button" class="login100-form-btn">
+							<button id="login-button" class="login100-form-btn" onclick="iniciarSesion()">
 								<a><i class="fa fa-user-o"></i> Iniciar sesión </a>
 							</button>
 						</div>
-
 						
-							
-								
-							
 						<div text-center>
 							<br> <a href="recuperarCuenta.html">Recuperar contraseña </a> 
 							<br><a href="crearCuenta.html">¿No tienes cuenta? ¡Regístrate! </a> </br>
 						</div>
-
-					</div>
-					</div>
-		<script>
-			document.getElementById('login-button').addEventListener('click', function(event) {
-			  event.preventDefault();
-		  
-			  var username = document.getElementById('correo').value;
-			  var password = document.getElementById('pass').value;
-		  
-			  // Enviar una solicitud POST al servidor para validar el inicio de sesión
-			  fetch('/login', {
-				method: 'POST',
-				headers: {
-				  'Content-Type': 'application/json'
-				},
-				body: JSON.stringify({ correo: username, contraseña: password })
-			  })
-			  .then(response => response.json())
-			  .then(data => {
-				if (data.mensaje === 'OK') {
-				  alert('Inicio de sesión exitoso');
-				} else {
-				  alert('El usuario no existe');
-				}
-			  })
-			  .catch(error => {
-				console.error('Error al iniciar sesión:', error);
-				alert('Error al iniciar sesión');
-			  });
-			});
-		  </script>		  
+					</form>
+				</div>
+			</div>
+		</header>
 	</body>
 </html>
