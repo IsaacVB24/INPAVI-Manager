@@ -5,15 +5,6 @@
 /*//////////////////////////////////////////////////////////////////
 [ FONT ]*/
 
-@font-face {
-  font-family: SourceSansPro-Regular;
-  src: url('../fonts/source-sans-pro/SourceSansPro-Regular.ttf'); 
-}
-
-@font-face {
-  font-family: SourceSansPro-Bold;
-  src: url('../fonts/source-sans-pro/SourceSansPro-Bold.ttf'); 
-}
 
 @font-face {
   font-family: SourceSansPro-SemiBold;
