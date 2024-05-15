@@ -58,7 +58,6 @@ function validarNuevaCuenta(){
 }
 
 function pruebaDatos(){
-    console.clear();
     const formulario = document.getElementById('nvaCuenta');
     const inputs = formulario.querySelectorAll('input');
     
