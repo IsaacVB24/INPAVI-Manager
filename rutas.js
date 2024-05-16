@@ -46,11 +46,9 @@ router.post('/login', async (req, res) => {
           if (match) {
             res.status(200).json({ mensaje: 'Inicio de sesión correcto' });
           } else {
-            console.log('Contraseña incorrecta');
             res.status(401).json({ mensaje: 'Contraseña incorrecta' });
           }
         } else {
-          console.log('Usuario no encontrado');
           res.status(404).json({ mensaje: 'Correo no encontrado' });
         }
       }
