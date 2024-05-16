@@ -44,14 +44,14 @@ router.post('/login', async (req, res) => {
           // Verificar si la contraseña proporcionada coincide con la contraseña almacenada
           const match = await bcrypt.compare(contraseña, row.contraseña);
           if (match) {
-            res.redirect('/altaVoluntario');
+            res.status(200).json({ mensaje: 'Inicio de sesión correcto' });
           } else {
             console.log('Contraseña incorrecta');
             res.status(401).json({ mensaje: 'Contraseña incorrecta' });
           }
         } else {
           console.log('Usuario no encontrado');
-          res.status(404).json({ mensaje: 'Usuario no encontrado' });
+          res.status(404).json({ mensaje: 'Correo no encontrado' });
         }
       }
     });

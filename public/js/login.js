@@ -1,32 +1,34 @@
-function iniciarSesion() {
-    var username = document.getElementById('correo').value;
-    var password = document.getElementById('contraseña').value;
+document.addEventListener('DOMContentLoaded', () => {
+    const loginForm = document.getElementById('loginForm');
+    loginForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
 
-    // Enviar una solicitud POST al servidor para validar el inicio de sesión
-    fetch('/login', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ correo: username, contraseña: password })
-    })
-    .then(response => {
-        return response.json().then(data => {
-            return { status: response.status, body: data };
-        });
-    })
-    .then(({ status, body }) => {
-        if (status === 200) {
-            alert('Usuario encontrado [después se implementará la redirección]');
-            window.location = 'altaVoluntario';
-        } else if (status === 404) {
-            alert('Credenciales incorrectas'); // Credenciales incorrectas
-        } else {
-            alert('Error al iniciar sesión: ' + (body.mensaje || 'Error desconocido'));
+        const correo = document.getElementById('correo').value;
+        const contraseña = document.getElementById('contraseña').value;
+
+        try {
+            const response = await fetch('/login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ correo, contraseña })
+            });
+
+            const result = await response.json();
+
+            if (response.ok) {
+                window.location.href = '/altaVoluntario'; // Redirigir a la página de inicio o a otra página después de iniciar sesión
+            } else {
+                const errorMessage = document.getElementById('error-message');
+                errorMessage.classList.remove('d-none');
+                errorMessage.textContent = result.mensaje || 'Error al iniciar sesión. Por favor, intenta de nuevo.';
+            }
+        } catch (error) {
+            console.error('Error al enviar la solicitud de inicio de sesión:', error);
+            const errorMessage = document.getElementById('error-message');
+            errorMessage.classList.remove('d-none');
+            errorMessage.textContent = 'Error al iniciar sesión. Por favor, intenta de nuevo.';
         }
-    })
-    .catch(error => {
-        console.error('Error al iniciar sesión:', error);
-        alert('Error al iniciar sesión');
     });
-}
+});
