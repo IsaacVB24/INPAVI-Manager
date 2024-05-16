@@ -14,7 +14,7 @@ function iniciarSesion() {
         if (response.status === 200) {
             alert('Inicio de sesión exitoso');
         } else if (response.status === 404) {
-            alert('El usuario no existe');
+            alert('Credenciales incorrectas');
         } else {
             alert('Error al iniciar sesión');
         }

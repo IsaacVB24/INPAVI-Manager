@@ -10,10 +10,10 @@
 	<script src="/js/crearCuenta.js"></script>
 	<script src="/js/general.js"></script>
 </head>
-<body onload="pruebaDatos()">
+<body onload="pruebaDatos(), cargarSedesYRoles()">
 	<div id="alertas"></div>
 	<div class="container mt-5" id="formCrearCuenta">
-		<form id="nvaCuenta" action="#" method="post" onsubmit="return validarNuevaCuenta()">
+		<div id="nvaCuenta">
 			<div class="form-floating mb-3 mt-3 mx-3">
 				<input type="text" class="shadow form-control" id="nombres" placeholder="Ingrese su nombre" name="nombres" required autocomplete="off" maxlength="30">
 				<label for="nombres">Nombre(s):</label>
@@ -47,25 +47,18 @@
 				<div class="col mt-1 mb-1 mx-3">
 					<p>Rol:</p>
 					<select class="form-select" id="rol" required>
-						<option>-Seleccionar rol-</option>
-						<option>Usuario tipo 0 (modificación de usuarios)</option>
-						<option>Usuario tipo 1</option>
-						<option>Usuario tipo 2</option>
-						<option>...</option>
+						<option selected>-Seleccionar rol-</option>
 					</select>
 				</div>
 				<div class="col mt-1 mb-1 mx-3">
 					<p>Sede:</p>
 					<select class="form-select" id="sede" required>
-						<option>-Seleccionar sede-</option>
-						<option>Xola (modificación de sedes)</option>
-						<option>León</option>
-						<option>...</option>
+						<option selected>-Seleccionar sede-</option>
 					</select>
 				</div>
 			</div>
-			<button type="submit" class="btn btn-primary mx-3 mt-3" style="float: right;">Generar token</button>
-		</form>
+			<button type="submit" class="btn btn-primary mx-3 mt-3" style="float: right;" onclick="validarNuevaCuenta()">Generar token</button>
+		</div>
 	</div>
 	<div class="container m-5" id="datosTrasValidacion" style="display: none;">
 		<div class="row">
