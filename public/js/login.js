@@ -11,12 +11,17 @@ function iniciarSesion() {
         body: JSON.stringify({ correo: username, contraseña: password })
     })
     .then(response => {
-        if (response.status === 200) {
-            alert('Inicio de sesión exitoso');
-        } else if (response.status === 404) {
-            alert('Credenciales incorrectas');
+        return response.json().then(data => {
+            return { status: response.status, body: data };
+        });
+    })
+    .then(({ status, body }) => {
+        if (status === 200) {
+            alert('Usuario encontrado [después se implementará la redirección]'); 
+        } else if (status === 404) {
+            alert('Credenciales incorrectas'); // Credenciales incorrectas
         } else {
-            alert('Error al iniciar sesión');
+            alert('Error al iniciar sesión: ' + (body.mensaje || 'Error desconocido'));
         }
     })
     .catch(error => {

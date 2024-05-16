@@ -28,14 +28,17 @@ router.post('/login', (req, res) => {
   const { correo, contraseña } = req.body;
 
   // Buscar el usuario en la base de datos por correo y contraseña
-  db.get('SELECT * FROM usuarios WHERE correo = ? AND contraseña = ?', [correo, contraseña], (err, row) => {
+  db.get('SELECT 1 FROM usuarios WHERE correo = ? AND contraseña = ?', [correo, contraseña], (err, row) => {
     if (err) {
       console.error('Error al buscar usuario:', err);
-      res.status(500);
+      res.status(500).json({ mensaje: 'Error al buscar usuario en la base de datos' });
     } else {
       if (row) {
         // Usuario encontrado, responder con "OK"
-        res.status(200);
+        res.status(200).json({ mensaje: 'Usuario encontrado', usuario: row });
+      } else {
+        // Usuario no encontrado
+        res.status(404).json({ mensaje: 'Usuario no encontrado' });
       }
     }
   });
