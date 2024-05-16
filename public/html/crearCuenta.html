@@ -37,10 +37,11 @@
 			<div class="form-floating mt-3 mb-3 mx-3">
 				<input type="password" class="shadow form-control" id="pwd" placeholder="Ingrese una contraseña" name="pswd" required autocomplete="off" minlength="8" maxlength="30">
 				<label for="pwd">Contraseña:</label>
+			<p id="cambio" style="cursor: pointer; color: blue; margin-top: 5px;" onclick="visibilidadDeContraseña()">Mostrar</p>
 			</div>
 			<div class="form-floating mt-3 mb-3 mx-3">
-				<input type="password" class="shadow form-control" id="pswd2" placeholder="Ingrese la misma contraseña" name="pswd2" required autocomplete="off" minlength="8" maxlength="30">
-				<label for="pswd2">Repetir contraseña:</label>
+				<input type="password" class="shadow form-control" id="pwd2" placeholder="Ingrese la misma contraseña" name="pswd2" required autocomplete="off" minlength="8" maxlength="30">
+				<label for="pwd2">Repetir contraseña:</label>
 				<div class="valid-feedback">Valid.</div>
 			</div>
 			<div class="row">
@@ -107,7 +108,7 @@
 			<button type="submit" class="btn btn-primary col-auto" onclick="validarToken()">Validar token</button>
 		</div>
 	</div>
-	<div class="container mt-2" id="yaTienesCuenta">
+	<div class="container mt-2 mb-3" id="yaTienesCuenta">
 		<span>¿Ya tienes una cuenta?</span>
 		<a href="/">Inicia sesión</a>
 	</div>

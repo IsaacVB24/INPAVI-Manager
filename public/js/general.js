@@ -26,3 +26,15 @@ function ocultar(idElemento){
 function mostrar(idElemento){
     document.getElementById(idElemento).style.display = 'block';
 }
+function get(id){
+    return document.getElementById(id);
+}
+function valorDe(id){
+    return document.getElementById(id).value;
+}
+
+function mostrarModal(titulo, mensaje, modal) {
+    document.getElementById(idHModal).innerHTML = titulo;
+    document.getElementById(idBModal).innerHTML = mensaje;
+    modal.show();
+}

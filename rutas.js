@@ -41,22 +41,28 @@ router.post('/login', (req, res) => {
   });
 });
 
-// Ruta para validar si un correo ya existe
+// Ruta para validar si un correo ya existe y dar de alta a un usuario
 router.post('/altaUsuario', (req, res) => {
-  const {correo} = req.body;
-  // Buscar el correo en la base de datos por correo y contraseña
-  db.get('SELECT 1 FROM usuarios WHERE correo = ?', [correo], (err, row) => {
+  const { correo, apellido_materno, apellido_paterno, telefono, contraseña, nombre_usuario, id_rol, id_sede } = req.body;
+
+  // Validar que todos los campos necesarios estén presentes
+  if (!correo || !apellido_materno || !apellido_paterno || !telefono || !contraseña || !nombre_usuario || !id_rol || !id_sede) {
+    return res.status(400).json({ mensaje: 'Todos los campos son obligatorios' });
+  }
+
+  // Intentar insertar el usuario en la base de datos
+  db.run('INSERT INTO usuarios (correo, apellido_materno, apellido_paterno, telefono, contraseña, nombre_usuario, id_rol, id_sede) VALUES (?, ?, ?, ?, ?, ?, ?, ?);', 
+  [correo, apellido_materno, apellido_paterno, telefono, contraseña, nombre_usuario, id_rol, id_sede], (err) => {
     if (err) {
-      console.error('Error al buscar el correo:', err);
-      res.status(500).json({ mensaje: 'Error al buscar correo en la base de datos' });
-    } else {
-      if (row) {
-        // Usuario encontrado, responder con "OK"
-        res.status(200).json({mensaje: 'OK'});
+      if (err.code === 'SQLITE_CONSTRAINT') {
+        // Manejar el caso donde el correo ya existe
+        res.status(409).json({ mensaje: 'El correo ya está registrado' });
       } else {
-        // Usuario no encontrado, responder con "El usuario no existe"
-        res.status(404).json({ mensaje: 'El correo no existe' });
+        console.error('Error al insertar el usuario:', err);
+        res.status(500).json({ mensaje: 'Error al insertar el usuario en la base de datos' });
       }
+    } else {
+      res.status(201).json({ mensaje: 'Usuario registrado correctamente' });
     }
   });
 });

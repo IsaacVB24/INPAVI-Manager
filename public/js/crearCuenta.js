@@ -12,34 +12,48 @@ function validarNuevaCuenta(){
     const sedes = document.getElementById(idSelectSede);
     const formulario = document.getElementById('formCrearCuenta');
     const datosIngresados = Array.from(formulario.querySelectorAll('input, select'));
+    var completo = true;
 
     // Insertar HTML de la ventana modal dentro del formulario
     document.getElementById('nvaCuenta').insertAdjacentHTML('beforeend', ventanaModal);
     const modal = new bootstrap.Modal(document.getElementById('myModal'));
     document.getElementById(idBotonModal).innerHTML = 'Entendido';
 
-    if(roles.selectedIndex === 0){
-        document.getElementById(idHModal).innerHTML = "Error en el rol";
-        document.getElementById(idBModal).innerHTML = "Se debe de seleccionar un rol.";
-        modal.show();
+    const inputs = document.querySelectorAll('input');
+    inputs.forEach((input, numeroInput) => {
+        if (input.value === '' && numeroInput < 7) completo = false;
+    });
+    
+    const nombre_usuario = valorDe('nombres');
+    const apellido_paterno = valorDe('apPat');
+    const apellido_materno = valorDe('apMat');
+    const telefono = valorDe('telefono');
+    const correo = valorDe('email');
+    const contraseña = valorDe('pwd');
+    const id_rol = roles.selectedIndex;
+    const id_sede = sedes.selectedIndex;
+    
+    if(!completo) {
+        mostrarModal('Formulario incompleto', 'Se deben completar todos los campos', modal);
+    } else if (valorDe('pwd') !== valorDe('pwd2')){
+        mostrarModal('Error en contraseña', 'Las contraseñas no coinciden', modal);
+    } else if(roles.selectedIndex === 0){
+        mostrarModal("Error en el rol", "Se debe de seleccionar un rol.", modal);
     } else if(sedes.selectedIndex === 0){
-        document.getElementById(idHModal).innerHTML = 'Error en la sede';
-        document.getElementById(idBModal).innerHTML = 'Se debe de seleccionar una sede.';
-        modal.show();
+        mostrarModal('Error en la sede', 'Se debe de seleccionar una sede.', modal);
     } else {
-        const correo = document.getElementById('email').value;
         // Validar si el correo no existe actualmente
         fetch('/altaUsuario', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify({ correo: correo })
+            body: JSON.stringify({ correo: correo, apellido_materno: apellido_materno, apellido_paterno: apellido_paterno, telefono: telefono, contraseña: contraseña, nombre_usuario: nombre_usuario, id_rol: id_rol, id_sede: id_sede })
         })
         .then(response => {
-            if (response.status === 200) {
-                alert('El correo ya existe, intente con otro o verifique con administración');
-            } else if (response.status !== 404) {
+            if (response.status === 409) {
+                mostrarModal('Correo registrado', 'Este correo no puede usarse ya que ya hay una cuenta asociada. Por favor <a href="/">inicie sesión</a>.', modal);
+            } else if (response.status === 500) {
                 alert('Error al consultar correo');
             } else {
                 document.getElementById(nombreForm).style.display = 'none';
@@ -62,8 +76,9 @@ function validarNuevaCuenta(){
                 inputsConDatos[6].value = roles.options[roles.selectedIndex].text;
                 inputsConDatos[7].value = sedes.options[sedes.selectedIndex].text;
 
-                document.getElementById('alertas').innerHTML = tokenEnviado + correoYaRegistrado;
+                document.getElementById('alertas').innerHTML = tokenEnviado;
             }
+            console.clear();
         })
         .catch(error => {
             console.error('Error al validar correo:', error);
@@ -144,4 +159,16 @@ function cargarSedesYRoles() {
         console.error('Error al cargar roles:', error);
         alert('Error al cargar roles');
     });
+}
+
+function visibilidadDeContraseña() {
+    const campoContraseña = get('pwd');
+    const textoParaCambio = get('cambio');
+    if(campoContraseña.type === 'password') {
+        campoContraseña.type = 'text';
+        textoParaCambio.innerHTML = 'Ocultar';
+    } else {
+        campoContraseña.type = 'password';
+        textoParaCambio.innerHTML = 'Mostrar';
+    }
 }
