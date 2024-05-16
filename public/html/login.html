@@ -2,89 +2,40 @@
 <html lang="en">
 	<head>
 		<title>INPAVI Manager</title>
-		<meta charset="utf-8">
+		<meta charset="UTF-8">
 		<meta http-equiv="X-UA-Compatible" content="IE=edge">
 		<meta name="viewport" content="width=device-width, initial-scale=1">
-
- 		<!-- Bootstrap -->
- 		<link type="text/css" rel="stylesheet" href="/css/bootstrap.min.css"/>
- 		<!-- Custom stlylesheet -->
- 		<link type="text/css" rel="stylesheet" href="/css/style.css"/>
-		<!--===============================================================================================-->
-		<link rel="stylesheet" type="text/css" href="/fontslogin/font-awesome-4.7.0/css/font-awesome.min.css">
-		<!--===============================================================================================-->
-		<link rel="stylesheet" type="text/css" href="/csslogin/util.css">
-		<link rel="stylesheet" type="text/css" href="/csslogin/main.css">
-		<!--===============================================================================================-->
+		<link href="../bootstrap-5.3.3-dist/css/bootstrap.min.css" rel="stylesheet">
+		<script src="../bootstrap-5.3.3-dist/js/bootstrap.bundle.min.js"></script>
 		<script type="text/javascript" src="/js/login.js"></script>
     </head>
 	<body>
-		<!-- HEADER -->
-		<header>
-			<!-- TOP HEADER -->
-			<div id="top-header">
-				<div class="container">
-					<ul class="header-links pull-left">
-						<li><a href="#"><i class="fa fa-phone"></i>555555555</a></li>
-						<li><a href="#"><i class="fa fa-envelope-o"></i> ayudainpavi@gmail.com</a></li>
-						<!-- Header Modal -->
-						<li><a href="#escom" class="fa fa-map-marker" data-toggle="modal"> INPAVI</a></li>
-						<div class="modal fade" id="escom">
-							<div class="modal_dialog">
-								<div class="modal-content">
-									<div class="modal-header">
-										<button tyle="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-										<h4 class="modal-title">Ubicación											
-										</h4>
-									</div>
-									<!-- Header Body -->
-									<div class="modal-body">
-										<p>
-										
-										Dirección: Xola 86, Álamos, Benito Juárez, 03400 Ciudad de México, CDMX
-									<br>
-									<iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3763.3983198512733!2d-99.14959877469789!3d19.395188441874495!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x85d1fefd01d61aa3%3A0xceb3f4065886e3c6!2sINPAVI%20Comunidad%20Terap%C3%A9utica%20de%20Atenci%C3%B3n%20a%20las%20Adicciones!5e0!3m2!1ses-419!2smx!4v1706569546360!5m2!1ses-419!2smx" width="400" height="300" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
-								
-									</br>
-										</br>
-										</p>
-									</div>
+		<div class="container">
+			<div class="row justify-content-center mt-5">
+				<div class="col-md-6">
+					<div class="card">
+						<div class="card-header bg-primary text-white">Inicio de sesión</div>
+						<div class="card-body">
+							<form action="/login" method="post" id="loginForm">
+								<div class="mb-3">
+									<label for="correo" class="form-label">Correo electrónico</label>
+									<input type="email" class="form-control" id="correo" name="correo" required>
 								</div>
+								<div class="mb-3">
+									<label for="contraseña" class="form-label">Contraseña</label>
+									<input type="password" class="form-control" id="contraseña" name="contraseña" required>
+								</div>
+								<button type="submit" class="btn btn-primary">Iniciar sesión</button>
+							</form>
+							<div class="mt-2">
+								<a href="/recuperarCuenta">Recuperar contraseña</a>
+								<br>
+								<p>¿No tienes una cuenta?</p><a href="/crearCuenta">¡Regístrate!</a>
 							</div>
 						</div>
-					</ul>
+					</div>
 				</div>
 			</div>
-			<!-- /TOP HEADER -->
-			<div class="container-login100">
-				<div class="wrap-login100 p-l-55 p-r-55 p-t-80 p-b-30">
-					<form class="login100-form validate-form">
-						<span class="login100-form-title p-b-37">
-							Iniciar sesión
-						</span>
-		
-						<div class="wrap-input100 validate-input m-b-20" data-validate="email">
-							<input class="input100" type="text" id="correo" name="correo" placeholder="Correo" value="correo@prueba.com">
-							<span class="focus-input100"></span>
-						</div>
-		
-						<div class="wrap-input100 validate-input m-b-25" data-validate = "password">
-							<input class="input100" type="password" id="pass" name="pass" placeholder="Contraseña" value="1234">
-							<span class="focus-input100"></span>
-						</div>
-						<div class="container-login100-form-btn">
-							<button id="login-button" class="login100-form-btn" onclick="iniciarSesion()">
-								<i class="fa fa-user-o">Iniciar sesión</i>
-							</button>
-						</div>
-						
-						<div text-center>
-							<br> <a href="recuperarCuenta">Recuperar contraseña </a> 
-							<br><a href="crearCuenta">¿No tienes cuenta? ¡Regístrate! </a> </br>
-						</div>
-					</form>
-				</div>
-			</div>
-		</header>
+		</div>
 	</body>
 </html>

@@ -1,6 +1,6 @@
 function iniciarSesion() {
     var username = document.getElementById('correo').value;
-    var password = document.getElementById('pass').value;
+    var password = document.getElementById('contraseña').value;
 
     // Enviar una solicitud POST al servidor para validar el inicio de sesión
     fetch('/login', {
@@ -17,7 +17,8 @@ function iniciarSesion() {
     })
     .then(({ status, body }) => {
         if (status === 200) {
-            alert('Usuario encontrado [después se implementará la redirección]'); 
+            alert('Usuario encontrado [después se implementará la redirección]');
+            window.location = 'altaVoluntario';
         } else if (status === 404) {
             alert('Credenciales incorrectas'); // Credenciales incorrectas
         } else {
