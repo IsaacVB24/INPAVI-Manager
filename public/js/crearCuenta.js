@@ -23,7 +23,7 @@ function validarNuevaCuenta(){
     inputs.forEach((input, numeroInput) => {
         if (input.value === '' && numeroInput < 7) completo = false;
     });
-    
+
     const nombre_usuario = valorDe('nombres');
     const apellido_paterno = valorDe('apPat');
     const apellido_materno = valorDe('apMat');
@@ -32,10 +32,12 @@ function validarNuevaCuenta(){
     const contraseña = valorDe('pwd');
     const id_rol = roles.selectedIndex;
     const id_sede = sedes.selectedIndex;
-    
+
     if(!completo) {
         mostrarModal('Formulario incompleto', 'Se deben completar todos los campos', modal);
-    } else if (valorDe('pwd') !== valorDe('pwd2')){
+    } else if(!validarContraseña(contraseña)) {
+        mostrarModal('Contraseña no válida', 'La contraseña debe tener al menos 8 caracteres de longitud, incluir al menos una letra mayúscula, un número y un carácter especial (>#$_.).', modal);
+    } else if (contraseña !== valorDe('pwd2')){
         mostrarModal('Error en contraseña', 'Las contraseñas no coinciden', modal);
     } else if(roles.selectedIndex === 0){
         mostrarModal("Error en el rol", "Se debe de seleccionar un rol.", modal);
@@ -170,5 +172,17 @@ function visibilidadDeContraseña() {
     } else {
         campoContraseña.type = 'password';
         textoParaCambio.innerHTML = 'Mostrar';
+    }
+}
+
+function validarContraseña(contraseña) {
+    // Expresión regular para validar la contraseña
+    const regex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[>#$_.]).{8,}$/;
+
+    // Verificar si la contraseña cumple con los criterios
+    if (regex.test(contraseña)) {
+        return true; // La contraseña es válida
+    } else {
+        return false; // La contraseña no cumple con los criterios
     }
 }
