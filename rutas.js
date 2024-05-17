@@ -5,7 +5,6 @@ const db = require('./baseDeDatos');
 const bcrypt = require('bcrypt');
 const nodemailer = require('nodemailer');
 const crypto = require('crypto');
-const passport = require('passport'); // Asegúrate de requerir passport aquí también
 
 // Configurar Nodemailer para Outlook
 const transporter = nodemailer.createTransport({
@@ -17,14 +16,6 @@ const transporter = nodemailer.createTransport({
     pass: '#Qwerty1234' // Tu contraseña de Outlook
   }
 });
-
-// Middleware para proteger rutas
-function requireLogin(req, res, next) {
-  if (!req.isAuthenticated()) {
-    return res.redirect('/');
-  }
-  next();
-}
 
 // Ruta inicial, muestra login.html
 router.get('/', (req, res) => {
@@ -41,33 +32,44 @@ router.get('/recuperarCuenta', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'html', 'recuperarCuenta.html'));
 });
 
-// Rutas protegidas
-router.get('/altaVoluntario', requireLogin, (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'html', 'altaVoluntario.html'));
-});
-
 // Ruta para pantalla de espera de verificación
-router.get('/verificacion', requireLogin, (req, res) => {
+router.get('/verificacion', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'html', 'verificacion.html'));
 });
 
-// Ruta para verificar el inicio de sesión
-router.post('/login', passport.authenticate('local', {
-  successRedirect: '/altaVoluntario',
-  failureRedirect: '/',
-  failureFlash: false
-}));
+// Ruta para pantalla de alta de voluntario
+router.get('/altaVoluntario', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'html', 'altaVoluntario.html'));
+});
 
-// Ruta para cerrar sesión
-router.get('/logout', (req, res) => {
-  req.logout(err => {
-    if (err) {
-      console.error('Error al cerrar sesión:', err);
-      res.status(500).json({ mensaje: 'Error al cerrar sesión' });
-    } else {
-      res.redirect('/');
-    }
-  });
+// Ruta para verificar el inicio de sesión
+router.post('/login', async (req, res) => {
+  const { correo, contraseña } = req.body;
+
+  try {
+    // Buscar el usuario en la base de datos por correo
+    db.get('SELECT contraseña FROM usuarios WHERE correo = ?', [correo], async (err, row) => {
+      if (err) {
+        console.error('Error al buscar usuario:', err);
+        res.status(500).json({ mensaje: 'Error al buscar usuario en la base de datos' });
+      } else {
+        if (row) {
+          // Verificar si la contraseña proporcionada coincide con la contraseña almacenada
+          const match = await bcrypt.compare(contraseña, row.contraseña);
+          if (match) {
+            res.status(200).json({ mensaje: 'Inicio de sesión correcto' });
+          } else {
+            res.status(401).json({ mensaje: 'Contraseña incorrecta' });
+          }
+        } else {
+          res.status(404).json({ mensaje: 'Correo no encontrado' });
+        }
+      }
+    });
+  } catch (error) {
+    console.error('Error al comparar contraseñas:', error);
+    res.status(500).json({ mensaje: 'Error al comparar contraseñas' });
+  }
 });
 
 // Ruta para validar si un correo ya existe y dar de alta a un usuario
