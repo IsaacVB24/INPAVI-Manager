@@ -98,6 +98,7 @@ db.serialize(() => {
   0 -> Usuario dado de baja
   1 -> Usuario dado de alta
   2 -> En espera de que el usuario escriba el token
+  3 -> En espera de que un delegado acepte la solicitud
 */
 
 // Crear tabla de tokens si no existe

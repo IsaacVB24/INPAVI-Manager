@@ -17,12 +17,66 @@ const transporter = nodemailer.createTransport({
   }
 });
 
-// Middleware para verificar si el usuario ha iniciado sesión
-const verificarSesion = (req, res, next) => {
-  if (req.session.usuario) {
-    next(); // Si el usuario ha iniciado sesión, continuar
-  } else {
+// Middleware para verificar si el usuario ha iniciado sesión y redirigir según el estado
+const verificarSesionYStatus = (req, res, next) => {
+  const usuario = req.session.usuario;
+
+  if (!usuario) {
+    // Si el usuario no ha iniciado sesión, redirigir al inicio
     res.redirect('/');
+    return;
+  }
+
+  // Obtener el estado y ruta a acceder del usuario
+  const status = usuario.status;
+  const ruta = req.path;
+
+  /*
+    0 -> Usuario dado de baja
+    1 -> Usuario dado de alta
+    2 -> En espera de que el usuario escriba el token
+    3 -> En espera de que un delegado acepte la solicitud
+  */
+
+  // Verificar el estado del usuario y redirigir según corresponda
+  switch (status) {
+    case 0:
+      // Estado 0: Usuario dado de baja
+      // Redirigir siempre al inicio y cerrar sesión
+      req.session.destroy(() => {
+        res.redirect('/');
+      });
+      break;
+    case 1:
+      // Estado 1: Usuario dado de alta
+      // Redirigir siempre al dashboard y bloquear acceso a otras rutas
+      if (ruta !== '/tablero') {
+        res.redirect('/tablero');
+        return;
+      }
+      next();
+      break;
+    case 2:
+      // Estado 2: En espera de que el usuario escriba el token
+      // Redirigir siempre a /crearCuenta y bloquear acceso a otras rutas
+      if (ruta !== '/ingresarToken') {
+        res.redirect('/ingresarToken');
+        return;
+      }
+      next();
+      break;
+    case 3:
+      // Estado 3: En espera de que un delegado acepte la solicitud
+      // Redirigir siempre a /verificacion y bloquear acceso a otras rutas
+      if (ruta !== '/verificacion') {
+        res.redirect('/verificacion');
+        return;
+      }
+      next();
+      break;
+    default:
+      // Cualquier otro estado desconocido
+      res.redirect('/');
   }
 };
 
@@ -42,22 +96,32 @@ router.get('/recuperarCuenta', (req, res) => {
 });
 
 // Ruta para pantalla de espera de verificación
-router.get('/verificacion', verificarSesion, (req, res) => {
+router.get('/verificacion', verificarSesionYStatus, (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'html', 'verificacion.html'));
 });
 
 // Ruta para pantalla de alta de voluntario
-router.get('/altaVoluntario', verificarSesion, (req, res) => {
+router.get('/altaVoluntario', verificarSesionYStatus, (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'html', 'altaVoluntario.html'));
 });
 
-// Ruta para verificar el inicio de sesión
+// Ruta para pantalla de para ingresar token (MODIFICAR HTML)
+router.get('/ingresarToken', verificarSesionYStatus, (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'html', 'ingresarToken.html'));
+});
+
+// Ruta para pantalla de dashboard
+router.get('/tablero', verificarSesionYStatus, (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'html', 'dashboard.html'));
+});
+
+// Ruta para el inicio de sesión
 router.post('/login', async (req, res) => {
   const { correo, contraseña } = req.body;
 
   try {
     // Buscar el usuario en la base de datos por correo
-    db.get('SELECT contraseña FROM usuarios WHERE correo = ?', [correo], async (err, row) => {
+    db.get('SELECT contraseña, status FROM usuarios WHERE correo = ?', [correo], async (err, row) => {
       if (err) {
         console.error('Error al buscar usuario:', err);
         res.status(500).json({ mensaje: 'Error al buscar usuario en la base de datos' });
@@ -67,8 +131,11 @@ router.post('/login', async (req, res) => {
           const match = await bcrypt.compare(contraseña, row.contraseña);
           if (match) {
             // Establecer la sesión del usuario
-            req.session.usuario = { correo }; // Puedes agregar más información del usuario si lo necesitas
-            res.status(200).json({ mensaje: 'Inicio de sesión correcto' });
+            req.session.usuario = { correo, status: row.status }; // Puedes agregar más información del usuario si lo necesitas
+            if(row.status === 0) res.status(404).json({ mensaje: 'Correo no encontrado' });
+            if(row.status === 1) res.status(200).json({ mensaje: 'Inicio de sesión correcto', ruta: '/tablero' });
+            if(row.status === 2) res.status(200).json({ mensaje: 'Inicio de sesión correcto', ruta: '/ingresarToken' });
+            if(row.status === 3) res.status(200).json({ mensaje: 'Inicio de sesión correcto', ruta: '/verificacion' });
           } else {
             res.status(401).json({ mensaje: 'Contraseña incorrecta' });
           }
@@ -222,7 +289,7 @@ router.post('/validarToken', async (req, res) => {
                 return res.status(500).json({ mensaje: 'Error al iniciar la transacción' });
               }
 
-              db.run('UPDATE usuarios SET status = ? WHERE correo = ?', [1, correo], (err) => {
+              db.run('UPDATE usuarios SET status = ? WHERE correo = ?', [3, correo], (err) => {
                 if (err) {
                   db.run('ROLLBACK', rollbackErr => {
                     if (rollbackErr) {

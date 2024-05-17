@@ -1,46 +1,54 @@
 const express = require('express');
 const session = require('express-session');
 const path = require('path');
-const rutas = require('./rutas');
+const rutas = require('./rutas'); // Asegúrate de que este archivo exista y esté configurado correctamente
 const https = require('https');
 const fs = require('fs');
 
-const puertoHTTPS = 8443; // Puerto HTTPS estándar
+const puertoHTTPS = 8443;
 
 const app = express();
 
-// Configurar el middleware de express-session
-app.use(session({
-  secret: 'secreto', // Se utiliza para firmar el ID de la sesión, puedes cambiarlo
-  resave: false,
-  saveUninitialized: false,
-  rolling: true, // Reinicia el temporizador de la sesión en cada solicitud, para que, después de 20 minutos de inactividad, se cierre la sesión
-  cookie: {
-    maxAge: 20 * 60 * 1000 // 20 minutos en milisegundos
-  }
-}));
-
-app.use(express.static(path.join(__dirname, 'public')));
-app.use(express.urlencoded({ extended: true }));
-app.use(express.json());
-
-app.use('/', rutas);
-
-const opcionesSSL = {
-  key: fs.readFileSync('clave_privada.pem'),
-  cert: fs.readFileSync('certificado_autofirmado.pem')
-};
-
-const servidorHTTPS = https.createServer(opcionesSSL, app);
-
-servidorHTTPS.listen(puertoHTTPS, () => {
-  console.log(`Servidor HTTPS iniciado en el puerto ${puertoHTTPS}`);
-  console.log(`Esperando conexión segura...`);
-});
-
+// Middleware para redirigir de HTTP a HTTPS
 app.use((req, res, next) => {
   if (!req.secure) {
     return res.redirect('https://' + req.headers.host + req.url);
   }
   next();
+});
+
+// Configurar el middleware de express-session
+app.use(session({
+  secret: 'secreto',
+  resave: false,
+  saveUninitialized: true,
+  rolling: true,
+  cookie: {
+    maxAge: 20 * 60 * 1000, // 20 minutos en milisegundos
+    secure: true
+  }
+}));
+
+// Middleware para servir archivos estáticos
+app.use(express.static(path.join(__dirname, 'public')));
+
+// Middleware para manejar datos de formularios y JSON
+app.use(express.urlencoded({ extended: true }));
+app.use(express.json());
+
+// Usar el archivo de rutas
+app.use('/', rutas);
+
+// Opciones de SSL
+const opcionesSSL = {
+  key: fs.readFileSync('clave_privada.pem'),
+  cert: fs.readFileSync('certificado_autofirmado.pem')
+};
+
+// Crear y iniciar el servidor HTTPS
+const servidorHTTPS = https.createServer(opcionesSSL, app);
+
+servidorHTTPS.listen(puertoHTTPS, () => {
+  console.log(`Servidor HTTPS iniciado en el puerto ${puertoHTTPS}`);
+  console.log('Esperando conexión segura...');
 });
