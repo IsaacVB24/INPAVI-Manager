@@ -2,8 +2,11 @@ const express = require('express');
 const session = require('express-session');
 const path = require('path');
 const rutas = require('./rutas');
+const https = require('https');
+const fs = require('fs');
 
-const puerto = 3000;
+const puertoHTTPS = 8443; // Puerto HTTPS estándar
+
 const app = express();
 
 // Configurar el middleware de express-session
@@ -23,6 +26,21 @@ app.use(express.json());
 
 app.use('/', rutas);
 
-app.listen(puerto, () => {
-  console.log(`Servidor en ejecución en el puerto ${puerto}`);
+const opcionesSSL = {
+  key: fs.readFileSync('clave_privada.pem'),
+  cert: fs.readFileSync('certificado_autofirmado.pem')
+};
+
+const servidorHTTPS = https.createServer(opcionesSSL, app);
+
+servidorHTTPS.listen(puertoHTTPS, () => {
+  console.log(`Servidor HTTPS iniciado en el puerto ${puertoHTTPS}`);
+  console.log(`Esperando conexión segura...`);
+});
+
+app.use((req, res, next) => {
+  if (!req.secure) {
+    return res.redirect('https://' + req.headers.host + req.url);
+  }
+  next();
 });
