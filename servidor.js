@@ -1,19 +1,22 @@
 const express = require('express');
+const session = require('express-session');
 const path = require('path');
-const rutas = require('./rutas'); // Importamos el módulo de rutas
-// Iniciar el servidor en el puerto 3000
-const puerto = 3000;
+const rutas = require('./rutas');
 
+const puerto = 3000;
 const app = express();
 
-// Configurar el middleware para servir archivos estáticos desde la carpeta 'public'
+// Configurar el middleware de express-session
+app.use(session({
+  secret: 'secreto', // Se utiliza para firmar el ID de la sesión, puedes cambiarlo
+  resave: false,
+  saveUninitialized: false
+}));
+
 app.use(express.static(path.join(__dirname, 'public')));
-
-// Middleware para analizar datos de formularios
 app.use(express.urlencoded({ extended: true }));
-app.use(express.json()); // Agrega soporte para JSON
+app.use(express.json());
 
-// Usar las rutas definidas en rutas.js
 app.use('/', rutas);
 
 app.listen(puerto, () => {

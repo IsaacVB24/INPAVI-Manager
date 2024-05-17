@@ -17,6 +17,15 @@ const transporter = nodemailer.createTransport({
   }
 });
 
+// Middleware para verificar si el usuario ha iniciado sesión
+const verificarSesion = (req, res, next) => {
+  if (req.session.usuario) {
+    next(); // Si el usuario ha iniciado sesión, continuar
+  } else {
+    res.redirect('/');
+  }
+};
+
 // Ruta inicial, muestra login.html
 router.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'html', 'login.html'));
@@ -33,12 +42,12 @@ router.get('/recuperarCuenta', (req, res) => {
 });
 
 // Ruta para pantalla de espera de verificación
-router.get('/verificacion', (req, res) => {
+router.get('/verificacion', verificarSesion, (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'html', 'verificacion.html'));
 });
 
 // Ruta para pantalla de alta de voluntario
-router.get('/altaVoluntario', (req, res) => {
+router.get('/altaVoluntario', verificarSesion, (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'html', 'altaVoluntario.html'));
 });
 
@@ -57,6 +66,8 @@ router.post('/login', async (req, res) => {
           // Verificar si la contraseña proporcionada coincide con la contraseña almacenada
           const match = await bcrypt.compare(contraseña, row.contraseña);
           if (match) {
+            // Establecer la sesión del usuario
+            req.session.usuario = { correo }; // Puedes agregar más información del usuario si lo necesitas
             res.status(200).json({ mensaje: 'Inicio de sesión correcto' });
           } else {
             res.status(401).json({ mensaje: 'Contraseña incorrecta' });
