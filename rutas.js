@@ -211,4 +211,9 @@ async function encriptar(contraseña) {
   }
 }
 
+// Middleware para manejar rutas no encontradas
+router.use((req, res) => {
+  res.status(404).sendFile(path.join(__dirname, 'public', 'html', 'recursoNoEncontrado.html'));
+});
+
 module.exports = router;
