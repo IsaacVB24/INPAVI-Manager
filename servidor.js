@@ -10,7 +10,11 @@ const app = express();
 app.use(session({
   secret: 'secreto', // Se utiliza para firmar el ID de la sesión, puedes cambiarlo
   resave: false,
-  saveUninitialized: false
+  saveUninitialized: false,
+  rolling: true, // Reinicia el temporizador de la sesión en cada solicitud, para que, después de 20 minutos de inactividad, se cierre la sesión
+  cookie: {
+    maxAge: 20 * 60 * 1000 // 20 minutos en milisegundos
+  }
 }));
 
 app.use(express.static(path.join(__dirname, 'public')));
