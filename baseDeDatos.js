@@ -88,8 +88,25 @@ db.serialize(() => {
     nombre_usuario TEXT NOT NULL,
     id_rol INTEGER NOT NULL,
     id_sede INTEGER NOT NULL,
+    status INTEGER NOT NULL,
     FOREIGN KEY (id_rol) REFERENCES roles(id_rol),
-    FOREIGN KEY (id_sede) REFERENCES roles(id_sede)
+    FOREIGN KEY (id_sede) REFERENCES sedes(id_sede)
+  )`);
+});
+
+/*
+  0 -> Usuario dado de baja
+  1 -> Usuario dado de alta
+  2 -> En espera de que el usuario escriba el token
+*/
+
+// Crear tabla de tokens si no existe
+db.serialize(() => {
+  db.run(`CREATE TABLE IF NOT EXISTS tokens (
+    id_token INTEGER PRIMARY KEY AUTOINCREMENT,
+    token TEXT NOT NULL,
+    id_usuario INTEGER NOT NULL,
+    FOREIGN KEY (id_usuario) REFERENCES usuarios(id_usuario)
   )`);
 });
 
