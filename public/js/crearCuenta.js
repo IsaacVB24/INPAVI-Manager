@@ -107,8 +107,34 @@ function pruebaDatos(){
     sedes.selectedIndex = 1;
 }
 
-function validarToken(){
-    document.getElementById('token').value === '' ? alert('Se debe de ingresar un código.') : window.location = 'verificacion';
+async function validarToken(){
+    const token = document.getElementById('token').value;
+    const correo = document.getElementById('email').value;
+
+    if(token === '') {
+        alert('Se debe ingresar el token que recibiste al correo ' + correo);
+    } else {
+        try {
+            const response = await fetch('/validarToken', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({ correo: correo, token: token })
+            });
+    
+            const data = await response.json();
+            alert(data.mensaje); // Mostrar mensaje de respuesta
+    
+            // Verificar el código de respuesta y redirigir si es 200 o 201
+            if (response.status === 201) {
+                window.location.href = '/verificacion';
+            }
+          } catch (error) {
+            console.error('Error:', error);
+            alert('Error al validar el token');
+          }
+    }
 }
 
 function cargarSedesYRoles() {

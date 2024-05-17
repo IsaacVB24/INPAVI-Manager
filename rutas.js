@@ -200,6 +200,73 @@ router.get('/obtenerRoles', (req, res) => {
   });
 });
 
+// Ruta para validar el token ingresado por el usuario
+router.post('/validarToken', async (req, res) => {
+  const { correo, token } = req.body;
+
+  try {
+    db.get('SELECT token FROM tokens WHERE id_usuario = (SELECT id_usuario FROM usuarios WHERE correo = ?)', [correo], async (err, row) => {
+      if (err) {
+        console.error('No se pudo buscar el token:', err);
+        return res.status(500).json({ mensaje: 'Error al buscar el token' });
+      }
+
+      if (row) {
+        const match = await bcrypt.compare(token, row.token);
+
+        if (match) {
+          db.serialize(() => {
+            db.run('BEGIN TRANSACTION', (err) => {
+              if (err) {
+                console.error('Error al iniciar la transacción:', err);
+                return res.status(500).json({ mensaje: 'Error al iniciar la transacción' });
+              }
+
+              db.run('UPDATE usuarios SET status = ? WHERE correo = ?', [1, correo], (err) => {
+                if (err) {
+                  db.run('ROLLBACK', rollbackErr => {
+                    if (rollbackErr) {
+                      console.error('Error al hacer rollback:', rollbackErr);
+                    }
+                    return res.status(500).json({ mensaje: 'Error al modificar el status del usuario en la base de datos' });
+                  });
+                } else {
+                  db.run('DELETE FROM tokens WHERE id_usuario = (SELECT id_usuario FROM usuarios WHERE correo = ?)', [correo], (err) => {
+                    if (err) {
+                      console.error('Error al borrar el token:', err);
+                      db.run('ROLLBACK', rollbackErr => {
+                        if (rollbackErr) {
+                          console.error('Error al hacer rollback:', rollbackErr);
+                        }
+                        return res.status(500).json({ mensaje: 'Error al borrar el token en la base de datos' });
+                      });
+                    } else {
+                      db.run('COMMIT', (commitErr) => {
+                        if (commitErr) {
+                          console.error('Error al hacer commit:', commitErr);
+                          return res.status(500).json({ mensaje: 'Error al hacer commit en la base de datos' });
+                        }
+                        res.status(201).json({ mensaje: 'Usuario dado de alta correctamente' });
+                      });
+                    }
+                  });
+                }
+              });
+            });
+          });
+        } else {
+          res.status(401).json({ mensaje: 'Token incorrecto' });
+        }
+      } else {
+        res.status(404).json({ mensaje: 'Correo no encontrado' });
+      }
+    });
+  } catch (error) {
+    console.error('Error al validar el token:', error);
+    res.status(500).json({ mensaje: 'Error al validar el token' });
+  }
+});
+
 // Función para encriptar la contraseña
 async function encriptar(contraseña) {
   try {
