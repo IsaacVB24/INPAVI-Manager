@@ -106,10 +106,17 @@ db.serialize(() => {
   db.run(`CREATE TABLE IF NOT EXISTS tokens (
     id_token INTEGER PRIMARY KEY AUTOINCREMENT,
     token TEXT NOT NULL,
+    tipo_token INT NOT NULL,
     id_usuario INTEGER NOT NULL,
     FOREIGN KEY (id_usuario) REFERENCES usuarios(id_usuario)
   )`);
 });
+
+/*
+  Tipo token
+  1 -> Token de creación de cuenta
+  2 -> Token de recuperación de cuenta
+*/
 
 // Exportar la conexión a la base de datos para ser utilizada en otros archivos
 module.exports = db;

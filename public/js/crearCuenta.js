@@ -36,7 +36,7 @@ function validarNuevaCuenta(){
     if(!completo) {
         mostrarModal('Formulario incompleto', 'Se deben completar todos los campos', modal);
     } else if(!validarContraseña(contraseña)) {
-        mostrarModal('Contraseña no válida', 'La contraseña debe tener al menos 8 caracteres de longitud, incluir al menos una letra mayúscula, un número y un carácter especial (>#$_.).', modal);
+        mostrarModal('Contraseña no válida', 'La contraseña debe tener al menos 8 caracteres de longitud, incluir al menos una letra mayúscula, minúscula, un número y un carácter especial (>#$_.).', modal);
     } else if (contraseña !== valorDe('pwd2')){
         mostrarModal('Error en contraseña', 'Las contraseñas no coinciden', modal);
     } else if(roles.selectedIndex === 0){
@@ -110,6 +110,7 @@ function pruebaDatos(){
 async function validarToken(){
     const token = document.getElementById('token').value;
     const correo = document.getElementById('email').value;
+    const tipoUsuario = 3;
 
     if(token === '') {
         alert('Se debe ingresar el token que recibiste al correo ' + correo);
@@ -120,7 +121,7 @@ async function validarToken(){
               headers: {
                 'Content-Type': 'application/json'
               },
-              body: JSON.stringify({ correo: correo, token: token })
+              body: JSON.stringify({ correo: correo, token: token, tipoUsuario: tipoUsuario })
             });
     
             const data = await response.json();
@@ -130,10 +131,10 @@ async function validarToken(){
             if (response.status === 201) {
                 window.location.href = '/verificacion';
             }
-          } catch (error) {
-            console.error('Error:', error);
-            alert('Error al validar el token');
-          }
+        } catch (error) {
+        console.error('Error:', error);
+        alert('Error al validar el token');
+        }
     }
 }
 
