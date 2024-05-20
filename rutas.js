@@ -135,7 +135,7 @@ router.post('/login', async (req, res) => {
             req.session.usuario = { correo, status: row.status }; // Puedes agregar más información del usuario si lo necesitas
             if(row.status === 0) res.status(404).json({ mensaje: 'Correo no encontrado' });
             if(row.status === 1) res.status(200).json({ mensaje: 'Inicio de sesión correcto', ruta: '/tablero' });
-            if(row.status === 2) res.status(200).json({ mensaje: 'Inicio de sesión correcto', ruta: '/ingresarToken' });
+            if(row.status === 2) res.status(200).json({ mensaje: 'Inicio de sesión correcto', ruta: '/ingresarToken', tipoUsuario: row.status });
             if(row.status === 3) res.status(200).json({ mensaje: 'Inicio de sesión correcto', ruta: '/verificacion' });
           } else {
             res.status(401).json({ mensaje: 'Contraseña incorrecta' });
@@ -411,6 +411,56 @@ router.post('/cambiarPwd', (req, res) => {
         res.status(404).json({ mensaje: 'Usuario no encontrado' });
       }
     }
+  });
+});
+
+// Ruta para obtener los datos del usuario
+router.post('/obtenerDatos', (req, res) => {
+  const { correo } = req.body;
+  const datos = {};
+
+  // Consultar la base de datos para obtener los datos del usuario
+  db.get('SELECT nombre_usuario, apellido_paterno, apellido_materno, telefono, correo, id_rol, id_sede FROM usuarios WHERE correo = ?', [correo], (err, row) => {
+    if (err) {
+      console.error('Error al obtener datos del usuario:', err);
+      return res.status(500).json({ mensaje: 'Error al obtener datos del usuario' });
+    }
+
+    if (!row) {
+      return res.status(404).json({ mensaje: 'Usuario no encontrado' });
+    }
+    datos.nombres = row.nombre_usuario;
+    datos.apPat = row.apellido_paterno;
+    datos.apMat = row.apellido_materno;
+    datos.telefono = row.telefono;
+    datos.correo = row.correo;
+    const id_rol = row.id_rol;
+    const id_sede = row.id_sede;
+    db.get('SELECT rol FROM roles WHERE id_rol = ?', [id_rol], (err, row) => {
+      if(err) {
+        res.status(500).json({ mensaje: 'Error al obtener el rol del usuario' });
+      } else {
+        if(row) {
+          datos.rol = row.rol;
+          db.get('SELECT sede FROM sedes WHERE id_sede = ?', [id_sede], (err, row) => {
+            if(err) {
+              res.status(500).json({ mensaje: 'Error al obtener la sede del usuario' });
+            } else {
+              if(row) {
+                datos.sede = row.sede;
+                //console.log(datos);
+                res.status(200).json(datos);
+              } else {
+                res.status(404).json({ mensaje: 'Sede no encontrado' });
+              }
+            }
+          });
+        } else {
+          res.status(404).json({ mensaje: 'Rol no encontrado' });
+        }
+      }
+    });
+    
   });
 });
 

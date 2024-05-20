@@ -22,7 +22,8 @@ document.addEventListener('DOMContentLoaded', () => {
           errorMessage.classList.remove('d-none');
           errorMessage.textContent = result.mensaje || 'Error al iniciar sesión. Por favor, intenta de nuevo.';
         } else {
-            window.location.href = result.ruta;
+          if(result.tipoUsuario === 2) localStorage.setItem('correo', correo);
+          window.location.href = result.ruta;
         }
       } catch (error) {
         console.error('Error al enviar la solicitud de inicio de sesión:', error);

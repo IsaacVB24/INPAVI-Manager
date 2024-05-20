@@ -1,14 +1,60 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-	<meta charset="UTF-8">
-	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<link href="../bootstrap-5.3.3-dist/css/bootstrap.min.css" rel="stylesheet">
-	<script src="../bootstrap-5.3.3-dist/js/bootstrap.bundle.min.js"></script>
-	<title>Ingresar token</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="../bootstrap-5.3.3-dist/css/bootstrap.min.css" rel="stylesheet">
+  <script src="../bootstrap-5.3.3-dist/js/bootstrap.bundle.min.js"></script>
+  <title>Ingresar token</title>
+  <script src="../js/crearCuenta.js"></script>
+  <script src="../js/ingresarToken.js" defer></script>
 </head>
-
 <body>
-	<p style="text-align: center; margin-top: 20px;">Formulario para ingresar token enviado por correo</p>
+  <div class="container m-5" id="datosTrasValidacion">
+    <div class="row">
+      <div class="form-floating col">
+        <input type="text" class="shadow form-control" id="nombres" placeholder="Ingrese su nombre" name="nombres" required autocomplete="off" maxlength="30" readonly>
+        <label for="nombres" class="ms-2">Nombre(s):</label>
+      </div>
+      <div class="form-floating col">
+        <input type="text" class="shadow form-control" id="apPat" placeholder="Ingrese su apellido paterno" name="apPat" required autocomplete="off" maxlength="30" readonly>
+        <label for="apPat" class="ms-2">Apellido paterno:</label>
+      </div>
+      <div class="form-floating col">
+        <input type="text" class="shadow form-control" id="apMat" placeholder="Ingrese su apellido materno" name="apMat" required autocomplete="off" maxlength="30" readonly>
+        <label for="apMat" class="ms-2">Apellido materno:</label>
+      </div>
+    </div>
+    <div class="row mt-5">
+      <div class="form-floating col">
+        <input type="text" class="shadow form-control" id="telefono" placeholder="Ingrese su teléfono" name="telefono" required autocomplete="off" minlength="10" maxlength="10" pattern="[0-9]{10}" readonly>
+        <label for="telefono" class="ms-2">Teléfono celular:</label>
+      </div>
+      <div class="form-floating col">
+        <input type="email" class="shadow form-control" id="email" placeholder="Ingrese su correo electrónico" name="email" required autocomplete="off" maxlength="60" readonly>
+        <label for="email" class="ms-2">Correo electrónico:</label>
+      </div>
+    </div>
+    <div class="row mt-5">
+      <div class="form-floating col">
+        <input type="text" class="shadow form-control" id="rol" placeholder="Ingrese su rol" name="rol" required autocomplete="off" maxlength="30" readonly>
+        <label for="rol" class="ms-2">Rol:</label>
+      </div>
+      <div class="form-floating col">
+        <input type="text" class="shadow form-control" id="sede" placeholder="Ingrese su sede" name="sede" required autocomplete="off" maxlength="30" readonly>
+        <label for="sede" class="ms-2">Sede:</label>
+      </div>
+    </div>
+    <div class="row mt-5">
+      <h5>Se requiere la validación de tu correo, por favor, ingresa el código que te llegó al correo, puedes revisar en el apartado de correo no deseado.</h5>
+    </div>
+    <div class="row mt-3 w-25">
+      <div class="form-floating col">
+        <input type="text" class="shadow form-control" id="token" placeholder="Ingrese su sede" name="token" required autocomplete="off" maxlength="10" style="background-color: rgb(207, 208, 208);">
+        <label for="token" class="ms-2">Código:</label>
+      </div>
+      <button type="submit" class="btn btn-primary col-auto" onclick="validarToken()">Validar token</button>
+    </div>
+  </div>
 </body>
 </html>

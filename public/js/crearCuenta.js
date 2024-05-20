@@ -107,33 +107,33 @@ function pruebaDatos(){
     sedes.selectedIndex = 1;
 }
 
-async function validarToken(){
+async function validarToken() {
     const token = document.getElementById('token').value;
     const correo = document.getElementById('email').value;
     const tipoUsuario = 3;
 
-    if(token === '') {
+    if (token === '') {
         alert('Se debe ingresar el token que recibiste al correo ' + correo);
     } else {
         try {
             const response = await fetch('/validarToken', {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json'
-              },
-              body: JSON.stringify({ correo: correo, token: token, tipoUsuario: tipoUsuario })
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ correo: correo, token: token, tipoUsuario: tipoUsuario })
             });
-    
+
             const data = await response.json();
             alert(data.mensaje); // Mostrar mensaje de respuesta
-    
+
             // Verificar el código de respuesta y redirigir si es 200 o 201
-            if (response.status === 201) {
-                window.location.href = '/verificacion';
+            if (response.status >= 200 && response.status < 300) {
+                window.location.href = '/';
             }
         } catch (error) {
-        console.error('Error:', error);
-        alert('Error al validar el token');
+            console.error('Error:', error);
+            alert('Error al validar el token');
         }
     }
 }
