@@ -7,7 +7,8 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 async function validarCorreoRecuperacion() {
-    const correo = document.getElementById('email').value;
+    const inputCorreo = document.getElementById('email');
+    const correo = inputCorreo.value;
     const divAlertas = document.getElementById('alertas');
     const divCodRecup = document.getElementById('divCodRecup');
     const botonCodigo = document.getElementById('btn-recuperar');
@@ -27,6 +28,7 @@ async function validarCorreoRecuperacion() {
         });
         const data = await response.json();
         if (response.ok) {
+            inputCorreo.readOnly = true;
             divAlertas.innerHTML = mensajeCorreoEncontrado;
             divCodRecup.style.display = 'block';
             botonCodigo.innerHTML = 'Validar código recibido';
@@ -60,6 +62,7 @@ async function validarTokenRecuperacion(correo, token) {
         const data = await response.json();
 
         if (response.ok) {
+            document.getElementById('codRecup').readOnly = true;
             const camposNuevaContrasena = document.getElementById('camposNuevaContrasena');
             camposNuevaContrasena.style.display = 'block';
         } else {

@@ -1,43 +1,81 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="en">
 <head>
-    <title>Recuperar cuenta</title>
-    <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link href="../bootstrap-5.3.3-dist/css/bootstrap.min.css" rel="stylesheet">
-    <script src="../bootstrap-5.3.3-dist/js/bootstrap.bundle.min.js"></script>
-    <link type="text/css" rel="stylesheet" href="/css/formatoGeneral.css">
-    <script src="../js/recuperarCuenta.js" defer></script>
-	<script src="../js/crearCuenta.js"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Recuperar cuenta</title>
+  <link href="https://fonts.googleapis.com/css?family=Karla:400,700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.materialdesignicons.com/4.8.95/css/materialdesignicons.min.css">
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css">
+  <link rel="stylesheet" href="../css/style1.css">
+  <script src="../js/recuperarCuenta.js" defer></script>
+  <script src="../js/crearCuenta.js"></script>
 </head>
 <body>
-    <div id="alertas"></div>
-    <div class="container">
-        <button type="button" class="btn btn-secondary mt-3"><a href="/" style="color: white;">Volver</a></button>
-        <h3 class="mt-3">Recuperar cuenta</h3>
-        <div id="formRecuperarCuenta">
-            <div class="form-floating mb-3 mt-3">
-                <input type="email" class="shadow form-control" id="email" placeholder="Ingrese su correo registrado" name="email" required>
-                <label for="email">Ingrese su correo registrado:</label>
-            </div>
-            <div class="form-floating mt-3 mb-3" style="display: none;" id="divCodRecup">
-                <input type="text" class="shadow form-control" id="codRecup" placeholder="Ingrese código de recuperación" name="codRecup" maxlength="10" required>
-                <label for="codRecup">Código de recuperación:</label>
-            </div>
-            <button type="button" class="btn btn-primary" id="btn-recuperar" style="float: right;">Obtener código</button>
-        </div>
-    </div>
-	<div class="container mt-5" id="camposNuevaContrasena" style="display: none;">
-		<div class="form-floating mb-3 mt-3">
-			<input type="password" class="shadow form-control" id="nuevaContrasena" placeholder="Enter new password" name="nuevaContrasena">
-			<label for="nuevaContrasena">Nueva contraseña:</label>
+	<nav class="navbar navbar-expand-lg">
+		<a class="navbar-brand" href="#">Integración Para La Vida</a>
+		<button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+		<span class="navbar-toggler-icon"></span>
+		</button>
+		<div class="collapse navbar-collapse" id="navbarNav">
+		<ul class="navbar-nav ml-auto">
+			<li class="nav-item">
+			<a class="nav-link" href="#">Inicio</a>
+			</li>
+			<li class="nav-item">
+			<a class="nav-link" href="#">Acerca de</a>
+			</li>
+			<li class="nav-item">
+			<a class="nav-link" href="#">Servicios</a>
+			</li>
+			<li class="nav-item">
+			<a class="nav-link" href="#">Contacto</a>
+			</li>
+		</ul>
 		</div>
-		<div class="form-floating mb-3 mt-3">
-			<input type="password" class="shadow form-control" id="repetirNuevaContrasena" placeholder="Repeat new password" name="repetirNuevaContrasena">
-			<label for="repetirNuevaContrasena">Repetir nueva contraseña:</label>
+	</nav>
+  <div id="alertas"></div>
+	<main class="d-flex align-items-center min-vh-100 py-3 py-md-0">
+		<div class="container">
+            <a href="/" style="color: white;"><button type="button" class="btn btn-secondary mt-3">Volver</button></a>
+            <div class="card login-card">
+                <div class="row no-gutters">
+                    <div class="col-md-5">
+                        <img src="../img/fondo_inpavi2.jpg" alt="fondo_inpavi2" class="login-card-img">
+                    </div>
+                    <div class="col-md-7">
+                        <div class="card-body">
+                        <h2 class="mb-4">Recuperar cuenta</h2>
+                        <div id="formRecuperarCuenta">
+                            <div class="form-floating mb-3 mt-3">
+                                <label for="email">Ingrese su correo registrado:</label>
+                                <input type="email" class="shadow form-control" id="email" placeholder="Ingrese su correo registrado" name="email" required>
+                            </div>
+                            <div class="form-floating mt-3 mb-3" style="display: none;" id="divCodRecup">
+                                <label for="codRecup">Código de recuperación:</label>
+                                <input type="text" class="shadow form-control" id="codRecup" placeholder="Ingrese código de recuperación" name="codRecup" maxlength="10" required>
+                            </div>
+                            <button type="button" class="btn btn-primary" id="btn-recuperar" style="float: right;">Obtener código</button>
+                        </div>
+                        <div class="container mt-5" id="camposNuevaContrasena" style="display: none;">
+                            <div class="form-floating mb-3 mt-3">
+                                <label for="nuevaContrasena">Nueva contraseña:</label>
+                                <input type="password" class="shadow form-control" id="nuevaContrasena" placeholder="Enter new password" name="nuevaContrasena">
+                            </div>
+                            <div class="form-floating mb-3 mt-3">
+                                <label for="repetirNuevaContrasena">Repetir nueva contraseña:</label>
+                                <input type="password" class="shadow form-control" id="repetirNuevaContrasena" placeholder="Repeat new password" name="repetirNuevaContrasena">
+                            </div>
+                            <button onclick="cambiarContrasena()" type="submit" class="btn btn-success" style="float: right;">Cambiar contraseña</button>
+                        </div>
+                    </div>
+                </div>
+			</div>
 		</div>
-		<button onclick="cambiarContrasena()" type="submit" class="btn btn-success" style="float: right;">Cambiar contraseña</button>
-	</div>
+		</div>
+	</main>
+	<script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+	<script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js"></script>
+	<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js"></script>
 </body>
 </html>

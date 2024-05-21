@@ -380,7 +380,7 @@ router.post('/reestablecerPwd', async (req, res) => {
       } 
       if (status === 2 || status === 3) return res.status(403).json({ mensaje: 'Esta cuenta no tiene los permisos para realizar esta acción' });
     } else {
-      return res.status(404).json({ mensaje: 'No se encontró al usuario con el correo ' + correo });
+      return res.status(404).json({ mensaje: 'No se encontró al usuario con el correo \"' + correo + '\"'});
     }
   });
 });
