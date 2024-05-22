@@ -1,31 +1,69 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <title>Usuario en verificación</title>
-    <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link href="../bootstrap-5.3.3-dist/css/bootstrap.min.css" rel="stylesheet">
-    <script src="../bootstrap-5.3.3-dist/js/bootstrap.bundle.min.js"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cuenta en verificación</title>
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link href="https://fonts.googleapis.com/css?family=Karla:400,700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css">
+  <script src="../bootstrap-5.3.3-dist/js/bootstrap.bundle.min.js"></script>
+  <link href="../bootstrap-5.3.3-dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="../css/style1.css">
 </head>
-<style>
-    #algo {
-        background-image: url('/img/fondo_inpavi2_copy.jpg');
-        background-size: 100%;
-        background-repeat: no-repeat;
-    }
-</style>
-
 <body>
-<div id="algo" class="container d-flex justify-content-center align-items-center vh-100">
-    <div style="background-color: hsla(208, 100%, 97%, 0.87); height: 500px; padding-top: 150px;" class="text-center">
-        <h2 class="mb-4">Tu cuenta está siendo validada</h2>
-        <div class="spinner-border" role="status">
-            <span class="visually-hidden">Loading...</span>
-        </div>
-		<br>
-		<h4>Puedes contactar a tu delegado para que apruebe tu solicitud</h4>
+  <nav class="navbar navbar-expand-lg">
+    <a class="navbar-brand" href="#">Integración Para La Vida</a>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarNav">
+      <ul class="navbar-nav ml-auto">
+        <li class="nav-item">
+          <a class="nav-link" href="#">Inicio</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="#">Acerca de</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="#">Servicios</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="#">Contacto</a>
+        </li>
+      </ul>
     </div>
-</div>
+  </nav>
+  <main class="d-flex align-items-center min-vh-100 py-3 py-md-0">
+    <div class="container">
+      <div class="card login-card">
+        <div class="row no-gutters">
+          <div class="col-md-5">
+            <img src="../img/fondo_inpavi2.jpg" alt="fondo_inpavi2" class="login-card-img">
+          </div>
+          <div class="col-md-7">
+            <div class="card-body">
+                <div class="brand-wrapper">
+                    <img src="../img/inpavi_manager.png" alt="inpavi_manager" class="logo">
+                </div>
+                <p class="login-card-description">Tu cuenta está siendo validada</p>
+                <div  class="text-center">
+                    <br>
+                    <div class="spinner-border" role="status"></div>
+                    <br>
+                        <span class="visually-hidden">Cargando...</span>
+                    <br>
+                    <h7>Puedes contactar a tu delegado para que apruebe tu solicitud</h7>
+                    </div>
+                </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+  <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js"></script>
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js"></script>
 </body>
 </html>
