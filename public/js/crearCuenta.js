@@ -51,12 +51,18 @@ function validarNuevaCuenta(){
             body: JSON.stringify({ correo: correo, apellido_materno: apellido_materno, apellido_paterno: apellido_paterno, telefono: telefono, contraseña: contraseña, nombre_usuario: nombre_usuario, id_rol: id_rol, id_sede: id_sede })
         })
         .then(response => {
-            localStorage.setItem('correo', correo);
-            window.location.href = '#';
-            document.getElementById('alertas').innerHTML = tokenEnviado;
-            setTimeout(() => {
-                window.location.href = '/ingresarToken';
-            }, 5000); // 5000 milisegundos = 5 segundos
+            if (response.status === 201) {
+                localStorage.setItem('correo', correo);
+                window.location.href = '#';
+                document.getElementById('alertas').innerHTML = tokenEnviado;
+                setTimeout(() => {
+                    window.location.href = '/ingresarToken';
+                }, 5000); // 5000 milisegundos = 5 segundos
+            } else if (response.status === 409) {
+                mostrarModal('Correo en uso', 'Este correo es usado para una cuenta ya creada, intente con otro o, de lo contrario, <a href="/">inicie sesión</a>.', modal);
+            } else {
+                alert('Error al registrar el usuario');
+            }
         })
         .catch(error => {
             console.error('Error al validar correo:', error);

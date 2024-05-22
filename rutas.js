@@ -7,13 +7,16 @@ const bcrypt = require('bcrypt');
 const nodemailer = require('nodemailer');
 const crypto = require('crypto');
 
+const dominio = 'https://20.81.199.215:8443';
+const correoParaEnvios = 'pruebas_back24@hotmail.com';
+
 // Configurar Nodemailer para Outlook
 const transporter = nodemailer.createTransport({
   host: 'smtp.office365.com', // Servidor SMTP de Outlook
   port: 587, // Puerto SMTP
   secure: false, // true para el puerto 465, false para otros puertos
   auth: {
-    user: 'pruebas_back24@hotmail.com', // Tu dirección de correo de Outlook
+    user: correoParaEnvios, // Tu dirección de correo de Outlook
     pass: '#Qwerty1234' // Tu contraseña de Outlook
   }
 });
@@ -116,6 +119,16 @@ router.get('/tablero', verificarSesionYStatus, (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'html', 'dashboard.html'));
 });
 
+// Ruta para redirigir al usuario al HTML de usuario validado
+router.get('/usuarioAceptado', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'html', 'usuarioAceptado.html'));
+});
+
+// Ruta para redirigir al usuario al HTML de usuario validado
+router.get('/usuarioDeclinado', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'html', 'usuarioDeclinado.html'));
+});
+
 // Ruta para el inicio de sesión
 router.post('/login', async (req, res) => {
   const { correo, contraseña } = req.body;
@@ -155,19 +168,15 @@ router.post('/login', async (req, res) => {
 router.post('/altaUsuario', async (req, res) => {
   const { correo, apellido_materno, apellido_paterno, telefono, contraseña, nombre_usuario, id_rol, id_sede } = req.body;
 
-  // Validar que todos los campos necesarios estén presentes
   if (!correo || !apellido_materno || !apellido_paterno || !telefono || !contraseña || !nombre_usuario || !id_rol || !id_sede) {
     return res.status(400).json({ mensaje: 'Todos los campos son obligatorios' });
   }
 
   try {
-    // Encriptar la contraseña
     const hash = await encriptar(contraseña);
-
     const token = crypto.randomBytes(5).toString('hex'); // Generar token de 10 caracteres
     const hash_token = await encriptar(token);
 
-    // Iniciar transacción
     db.serialize(() => {
       db.run('BEGIN TRANSACTION', (err) => {
         if (err) {
@@ -178,7 +187,6 @@ router.post('/altaUsuario', async (req, res) => {
         db.run('INSERT INTO usuarios (correo, apellido_materno, apellido_paterno, telefono, contraseña, nombre_usuario, id_rol, id_sede, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
           [correo, apellido_materno, apellido_paterno, telefono, hash, nombre_usuario, id_rol, id_sede, 2], function (err) {
             if (err) {
-              //console.error('Error al insertar el usuario:', err);
               db.run('ROLLBACK', rollbackErr => {
                 if (rollbackErr) {
                   console.error('Error al hacer rollback:', rollbackErr);
@@ -197,16 +205,17 @@ router.post('/altaUsuario', async (req, res) => {
                     if (rollbackErr) {
                       console.error('Error al hacer rollback:', rollbackErr);
                     }
-                    console.log('Se hizo rollback por no insertar el token en la BD.');
                     return res.status(500).json({ mensaje: 'Error al insertar el token en la base de datos' });
                   });
                 } else {
                   // Enviar correo con el token
                   const mailOptions = {
-                    from: 'pruebas_back24@hotmail.com',
+                    from: correoParaEnvios,
                     to: correo,
                     subject: 'Verificación de cuenta - INPAVI MANAGER',
-                    text: `Haz recibido un código para registrarte en el sistema, escríbelo en el campo solicitado para validar el correo. NO COMPARTAS EL CÓDIGO CON NADIE.
+                    text: `Hola, ${nombre_usuario}.
+
+                    Haz recibido un código para registrarte en el sistema, escríbelo en el campo solicitado para validar el correo. NO COMPARTAS EL CÓDIGO CON NADIE.
 
                     Tu token de verificación es: 
                     ${token}`
@@ -219,17 +228,17 @@ router.post('/altaUsuario', async (req, res) => {
                         if (rollbackErr) {
                           console.error('Error al hacer rollback:', rollbackErr);
                         }
-                        console.log('Se hizo rollback por error en el correo.');
                         return res.status(500).json({ mensaje: 'Error al enviar el correo' });
                       });
                     } else {
                       db.run('COMMIT', (commitErr) => {
-                        if (commitErr) {
-                          console.error('Error al hacer commit:', commitErr);
-                          return res.status(500).json({ mensaje: 'Error al hacer commit en la base de datos' });
-                        }
-                        res.status(201).json({ mensaje: 'Usuario registrado correctamente' });
-                      });
+                            if (commitErr) {
+                              console.error('Error al hacer commit:', commitErr);
+                              return res.status(500).json({ mensaje: 'Error al hacer commit en la base de datos' });
+                            }
+                            //console.log('Usuario registrado');
+                            res.status(201).json({ mensaje: 'Usuario registrado correctamente' });
+                          });
                     }
                   });
                 }
@@ -315,12 +324,83 @@ router.post('/validarToken', async (req, res) => {
                         return res.status(500).json({ mensaje: 'Error al borrar el token en la base de datos' });
                       });
                     } else {
+                      db.get('SELECT id_usuario, id_sede, id_rol, nombre_usuario, apellido_paterno, apellido_materno FROM usuarios WHERE correo=?', [correo], (err, row) => {
+                        if(err) {
+                          res.status(500).json({ mensaje: 'Error al obtener los datos del usuario para el envío de correo' });
+                        }
+                        if(!row) res.status(404).json({ mensaje: 'No se eencontró al usuario'});
+
+                        const nombre_usuario = row.nombre_usuario;
+                        const apellido_paterno = row.apellido_paterno;
+                        const apellido_materno = row.apellido_materno;
+                        const id_usuario = row.id_usuario;
+                        const id_sede = row.id_sede;
+                        const id_rol = row.id_rol;
+                        db.get('SELECT rol FROM roles WHERE id_rol=?', [id_rol], (err, row) => {
+                          if(err) {
+                            res.status(500).json({ mensaje: 'Error al consultar el rol'});
+                          } else {
+                            if(!row) res.status(404).json({ mensaje: 'No se encontró el rol'});
+                            const rol = row.rol;
+                            db.get('SELECT sede FROM sedes WHERE id_sede=?', [id_sede], (err, row) => {
+                              if(err) res.status(500).json({ mensaje: 'Error al consultar la sede' });
+                              if(!row) res.status(404).json({ mensaje: 'No se encontró la sede' });
+                              const sede = row.sede;
+                              // Enviar correo al delegado
+                      db.get('SELECT correo FROM usuarios WHERE id_rol = ? AND id_sede = ?', [2, id_sede], (err, delegadoRow) => { // Suponiendo que id_rol = 1 es el rol del delegado
+                        if (err) {
+                          console.error('Error al obtener el correo del delegado:', err);
+                          return res.status(500).json({ mensaje: 'Error al obtener el correo del delegado' });
+                        }
+
+                        if (delegadoRow) {
+                          const delegadoMailOptions = {
+                            from: correoParaEnvios,
+                            to: delegadoRow.correo,
+                            subject: 'Solicitud de aprobación de usuario - INPAVI MANAGER',
+                            html: `
+                              <p>Se ha registrado un nuevo usuario en su sede. A continuación, se muestran los datos del usuario:</p>
+                              <ul>
+                                <li>Nombre: ${nombre_usuario}</li>
+                                <li>Apellido Paterno: ${apellido_paterno}</li>
+                                <li>Apellido Materno: ${apellido_materno}</li>
+                                <li>Correo: ${correo}</li>
+                                <li>Rol: ${rol}</li>
+                                <li>Sede: ${sede}</li>
+                              </ul>
+                              <p>Por favor, apruebe o rechace esta solicitud:</p>
+                              <a href="${dominio}/aceptarUsuario/${id_usuario}"><button style="color: green; text-decoration: none; font-weight: bold;">Aceptar</button></a>
+                              <br>
+                              <a href="${dominio}/declinarUsuario/${id_usuario}"><button style="color: red; text-decoration: none; font-weight: bold;">Declinar</button></a>
+                            `
+                          };
+
+                          transporter.sendMail(delegadoMailOptions, (error, info) => {
+                            if (error) {
+                              console.error('Error al enviar correo al delegado:', error);
+                              db.run('COMMIT', (commitErr) => {
+                                if (commitErr) {
+                                  console.error('Error al hacer commit:', commitErr);
+                                  return res.status(500).json({ mensaje: 'Error al hacer commit en la base de datos' });
+                                }
+                              });
+                            }
+                          });
+                        } else {
+                          console.error('No se encontró el correo del delegado');
+                          return res.status(500).json({ mensaje: 'No se encontró el correo del delegado' });
+                        }
+                      });
+                            });
+                          };
+                        });
+                      });
                       db.run('COMMIT', (commitErr) => {
                         if (commitErr) {
                           console.error('Error al hacer commit:', commitErr);
                           return res.status(500).json({ mensaje: 'Error al hacer commit en la base de datos' });
                         }
-                        res.status(201).json({ mensaje: 'Usuario dado de alta correctamente' });
+                        res.status(201).json({ mensaje: 'Usuario dado de alta correctamente y en espera de validación' });
                       });
                     }
                   });
@@ -339,6 +419,47 @@ router.post('/validarToken', async (req, res) => {
     console.error('Error al validar el token:', error);
     res.status(500).json({ mensaje: 'Error al validar el token' });
   }
+});
+
+// Ruta para rechazar el alta de un usuario
+router.get('/aceptarUsuario/:id_usuario', (req, res) => {
+  const {id_usuario} = req.params;
+  console.log(id_usuario);
+
+  db.run('UPDATE usuarios SET status=? WHERE id_usuario=?', [1, id_usuario], (err) => {
+    if(err) res.status(500).json({ mensaje: 'Error al actualizar el status del usuario' });
+    res.redirect('/usuarioAceptado');
+  });
+});
+
+// Ruta para aceptar el alta de un usuario
+router.get('/declinarUsuario/:id_usuario', (req, res) => {
+  const {id_usuario} = req.params;
+  console.log(id_usuario);
+
+  db.get('SELECT correo FROM usuarios WHERE id_usuario=?', [id_usuario], (err, row) => {
+    if(err) res.status(500).json({ mensaje: 'Error al buscar el correo del usuario' });
+    if(!row) res.status(404).json({ mensaje: 'Usuario no encontrado' });
+    const opcionesCorreo = {
+      from: correoParaEnvios,
+      to: row.correo,
+      subject: 'Rechazo de solicitud para alta - INPAVI MANAGER',
+      html: `
+        <p>Tu solicitud de alta ha sido rechazada. Comunícate con el delegado de tu sede para que te informe los pasos a seguir.</p>
+      `
+    };
+
+    transporter.sendMail(opcionesCorreo, (error, info) => {
+      if (error) {
+        console.error('Error al enviar correo al delegado:', error);
+      } else {
+        db.run('DELETE FROM usuarios WHERE id_usuario=?', [id_usuario], (err) => {
+          if(err) res.status(500).json({ mensaje: 'Error al eliminar el usuario' });
+          res.redirect('/usuarioDeclinado');
+        });
+      }
+    });
+  });
 });
 
 // Ruta para reestablecer la contraseña de un usuario
@@ -473,7 +594,7 @@ router.post('/obtenerDatos', (req, res) => {
 // Función para enviar correo para reestablecer contraseña
 function enviarCorreoReestablecerContraseña(correo, token) {
   const mailOptions = {
-    from: 'pruebas_back24@hotmail.com',
+    from: correoParaEnvios,
     to: correo,
     subject: 'Recuperación de cuenta - INPAVI MANAGER',
     text: `Haz recibido un código para cambiar tu contraseña, escríbelo en el campo solicitado para validar el correo. NO COMPARTAS EL CÓDIGO CON NADIE.
