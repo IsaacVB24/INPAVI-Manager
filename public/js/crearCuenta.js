@@ -10,8 +10,6 @@ const tokenEnviado = '<div class="alert alert-success alert-dismissible fade sho
 function validarNuevaCuenta(){
     const roles = document.getElementById(idSelectRol);
     const sedes = document.getElementById(idSelectSede);
-    const formulario = document.getElementById('formCrearCuenta');
-    const datosIngresados = Array.from(formulario.querySelectorAll('input, select'));
     var completo = true;
 
     // Insertar HTML de la ventana modal dentro del formulario
