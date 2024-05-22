@@ -424,20 +424,37 @@ router.post('/validarToken', async (req, res) => {
 // Ruta para rechazar el alta de un usuario
 router.get('/aceptarUsuario/:id_usuario', (req, res) => {
   const {id_usuario} = req.params;
-  console.log(id_usuario);
 
   db.run('UPDATE usuarios SET status=? WHERE id_usuario=?', [1, id_usuario], (err) => {
     if(err) res.status(500).json({ mensaje: 'Error al actualizar el status del usuario' });
-    res.redirect('/usuarioAceptado');
+    db.get('SELECT correo, nombre_usuario FROM usuarios WHERE id_usuario=?', [id_usuario], (err, row) => {
+      console.log(row.correo, row.nombre_usuario);
+      if(err) res.status(500).json({ mensaje: 'Error al obtener los datos del usuario' });
+      const opcionesCorreo = {
+        from: correoParaEnvios,
+        to: row.correo,
+        subject: 'Aceptación de cuenta - INPAVI MANAGER',
+        html: `
+          <p>Hola, ${row.nombre_usuario}. <br><br> Tu solicitud de alta ha sido Aceptada. Ya puedes ingresar a <a href="${dominio}/">INPAVI Manager</a>.</p>
+        `
+      };
+  
+      transporter.sendMail(opcionesCorreo, (error, info) => {
+        if (error) {
+          console.error('Error al enviar correo al usuario aceptado:', error);
+        } else {
+          res.redirect('/usuarioAceptado');
+        }
+      });
+    });
   });
 });
 
 // Ruta para aceptar el alta de un usuario
 router.get('/declinarUsuario/:id_usuario', (req, res) => {
   const {id_usuario} = req.params;
-  console.log(id_usuario);
 
-  db.get('SELECT correo FROM usuarios WHERE id_usuario=?', [id_usuario], (err, row) => {
+  db.get('SELECT correo, nombre_usuario FROM usuarios WHERE id_usuario=?', [id_usuario], (err, row) => {
     if(err) res.status(500).json({ mensaje: 'Error al buscar el correo del usuario' });
     if(!row) res.status(404).json({ mensaje: 'Usuario no encontrado' });
     const opcionesCorreo = {
@@ -445,7 +462,7 @@ router.get('/declinarUsuario/:id_usuario', (req, res) => {
       to: row.correo,
       subject: 'Rechazo de solicitud para alta - INPAVI MANAGER',
       html: `
-        <p>Tu solicitud de alta ha sido rechazada. Comunícate con el delegado de tu sede para que te informe los pasos a seguir.</p>
+        <p>Hola, ${row.nombre_usuario}. <br><br>Tu solicitud de alta ha sido rechazada. Comunícate con el delegado de tu sede para que te informe sobre los pasos a seguir.</p>
       `
     };
 
