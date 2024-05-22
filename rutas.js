@@ -197,34 +197,40 @@ router.post('/altaUsuario', async (req, res) => {
                     if (rollbackErr) {
                       console.error('Error al hacer rollback:', rollbackErr);
                     }
+                    console.log('Se hizo rollback por no insertar el token en la BD.');
                     return res.status(500).json({ mensaje: 'Error al insertar el token en la base de datos' });
                   });
                 } else {
-                  db.run('COMMIT', (commitErr) => {
-                    if (commitErr) {
-                      console.error('Error al hacer commit:', commitErr);
-                      return res.status(500).json({ mensaje: 'Error al hacer commit en la base de datos' });
+                  // Enviar correo con el token
+                  const mailOptions = {
+                    from: 'pruebas_back24@hotmail.com',
+                    to: correo,
+                    subject: 'Verificación de cuenta - INPAVI MANAGER',
+                    text: `Haz recibido un código para registrarte en el sistema, escríbelo en el campo solicitado para validar el correo. NO COMPARTAS EL CÓDIGO CON NADIE.
+
+                    Tu token de verificación es: 
+                    ${token}`
+                  };
+
+                  transporter.sendMail(mailOptions, (error, info) => {
+                    if (error) {
+                      console.error('Error al enviar correo:', error);
+                      db.run('ROLLBACK', rollbackErr => {
+                        if (rollbackErr) {
+                          console.error('Error al hacer rollback:', rollbackErr);
+                        }
+                        console.log('Se hizo rollback por error en el correo.');
+                        return res.status(500).json({ mensaje: 'Error al enviar el correo' });
+                      });
+                    } else {
+                      db.run('COMMIT', (commitErr) => {
+                        if (commitErr) {
+                          console.error('Error al hacer commit:', commitErr);
+                          return res.status(500).json({ mensaje: 'Error al hacer commit en la base de datos' });
+                        }
+                        res.status(201).json({ mensaje: 'Usuario registrado correctamente' });
+                      });
                     }
-                    res.status(201).json({ mensaje: 'Usuario registrado correctamente' });
-
-                    // Enviar correo con el token
-                    const mailOptions = {
-                      from: 'pruebas_back24@hotmail.com',
-                      to: correo,
-                      subject: 'Verificación de cuenta - INPAVI MANAGER',
-                      text: `Haz recibido un código para registrarte en el sistema, escríbelo en el campo solicitado para validar el correo. NO COMPARTAS EL CÓDIGO CON NADIE.
-
-                      Tu token de verificación es: 
-                      ${token}`
-                    };
-
-                    transporter.sendMail(mailOptions, (error, info) => {
-                      if (error) {
-                        console.error('Error al enviar correo:', error);
-                      } else {
-                        //console.log('Correo enviado: ' + info.response);
-                      }
-                    });
                   });
                 }
               });
