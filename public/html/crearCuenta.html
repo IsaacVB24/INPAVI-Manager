@@ -87,53 +87,6 @@
 				<button type="submit" class="btn btn-primary mx-3 mt-3" style="float: right;" onclick="validarNuevaCuenta()">Generar token</button>
 			</div>
 		</div>
-		<div class="container m-5" id="datosTrasValidacion" style="display: none;">
-			<div class="row">
-				<div class="form-floating col">
-					<input type="text" class="shadow form-control" id="nombres" placeholder="Ingrese su nombre" name="nombres" required autocomplete="off" maxlength="30">
-					<label for="nombres" class="ms-2">Nombre(s):</label>
-				</div>
-				<div class="form-floating col">
-					<input type="text" class="shadow form-control" id="apPat" placeholder="Ingrese su apellido paterno" name="apPat" required autocomplete="off" maxlength="30">
-					<label for="apPat" class="ms-2">Apellido paterno:</label>
-				</div>
-				<div class="form-floating col">
-					<input type="text" class="shadow form-control" id="apMat" placeholder="Ingrese su apellido materno" name="apMat" required autocomplete="off" maxlength="30">
-					<label for="apMat" class="ms-2">Apellido materno:</label>
-				</div>
-			</div>
-			<div class="row mt-5">
-				<div class="form-floating col">
-					<input type="text" class="shadow form-control" id="telefono" placeholder="Ingrese su teléfono" name="telefono" required autocomplete="off" minlength="10" maxlength="10" pattern="[0-9]{10}">
-					<label for="telefono" class="ms-2">Teléfono celular:</label>
-				</div>
-				<div class="form-floating col">
-					<input type="email" class="shadow form-control" id="email" placeholder="Ingrese su correo electrónico" name="email" required autocomplete="off" maxlength="60">
-					<label for="email" class="ms-2">Correo electrónico:</label>
-				</div>
-				<div class="form-floating col">
-					<input type="password" class="shadow form-control" id="pwd" placeholder="Ingrese una contraseña" name="pswd" required autocomplete="off" minlength="8" maxlength="30">
-					<label for="pwd" class="ms-2">Contraseña:</label>
-				</div>
-			</div>
-			<div class="row mt-5">
-				<div class="form-floating col">
-					<input type="text" class="shadow form-control" id="rol" placeholder="Ingrese su rol" name="telefono" required autocomplete="off" minlength="10" maxlength="10" pattern="[0-9]{10}">
-					<label for="telefono" class="ms-2">Rol:</label>
-				</div>
-				<div class="form-floating col">
-					<input type="email" class="shadow form-control" id="sede" placeholder="Ingrese su sede" name="email" required autocomplete="off" maxlength="30">
-					<label for="email" class="ms-2">Sede:</label>
-				</div>
-			</div>
-			<div class="row mt-5 w-25">
-				<div class="form-floating col">
-					<input type="email" class="shadow form-control" id="token" placeholder="Ingrese su sede" name="email" required autocomplete="off" maxlength="10" style="background-color: rgb(207, 208, 208);">
-					<label for="email" class="ms-2">Código:</label>
-				</div>
-				<button type="submit" class="btn btn-primary col-auto" onclick="validarToken()">Validar token</button>
-			</div>
-		</div>
 		<div class="row mt-2 mb-3" id="yaTienesCuenta">
 			<span>¿Ya tienes una cuenta?</span>
 			<a href="/">Inicia sesión</a>

@@ -1,5 +1,6 @@
 document.addEventListener('DOMContentLoaded', () => {
     const correo = localStorage.getItem('correo');
+    if(!correo) window.location.href = '/recursoNoEncontrado';
     fetch('/obtenerDatos', {
         method: 'POST',
         headers: {

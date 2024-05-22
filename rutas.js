@@ -107,7 +107,7 @@ router.get('/altaVoluntario', verificarSesionYStatus, (req, res) => {
 });
 
 // Ruta para pantalla de para ingresar token (MODIFICAR HTML)
-router.get('/ingresarToken', verificarSesionYStatus, (req, res) => {
+router.get('/ingresarToken', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'html', 'ingresarToken.html'));
 });
 

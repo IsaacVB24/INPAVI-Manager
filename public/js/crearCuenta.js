@@ -53,34 +53,12 @@ function validarNuevaCuenta(){
             body: JSON.stringify({ correo: correo, apellido_materno: apellido_materno, apellido_paterno: apellido_paterno, telefono: telefono, contraseña: contraseña, nombre_usuario: nombre_usuario, id_rol: id_rol, id_sede: id_sede })
         })
         .then(response => {
-            if (response.status === 409) {
-                mostrarModal('Correo registrado', 'Este correo no puede usarse ya que ya hay una cuenta asociada. Por favor <a href="/">inicie sesión</a>.', modal);
-            } else if (response.status === 500) {
-                alert('Error al consultar correo');
-            } else {
-                document.getElementById(nombreForm).style.display = 'none';
-                document.getElementById('yaTienesCuenta').style.display = 'none';
-                document.getElementById(formConDatos).style.display = 'block';
-
-                const formularioConDatos = document.getElementById(formConDatos);
-                const inputsConDatos = Array.from(formularioConDatos.querySelectorAll('input'));
-                inputsConDatos.pop();
-                inputsConDatos.forEach((input, indice) => {
-                    input.readOnly = true;
-                    // Verificar si es un input o un select
-                    if (datosIngresados[indice].tagName === 'INPUT') {
-                        input.value = datosIngresados[indice].value;
-                    } else if (datosIngresados[indice].tagName === 'SELECT') {
-                        input.value = datosIngresados[indice].options[datosIngresados[indice].selectedIndex].text;
-                    }
-                });
-                
-                inputsConDatos[6].value = roles.options[roles.selectedIndex].text;
-                inputsConDatos[7].value = sedes.options[sedes.selectedIndex].text;
-
-                document.getElementById('alertas').innerHTML = tokenEnviado;
-            }
-            console.clear();
+            localStorage.setItem('correo', correo);
+            window.location.href = '#';
+            document.getElementById('alertas').innerHTML = tokenEnviado;
+            setTimeout(() => {
+                window.location.href = '/ingresarToken';
+            }, 5000); // 5000 milisegundos = 5 segundos
         })
         .catch(error => {
             console.error('Error al validar correo:', error);
