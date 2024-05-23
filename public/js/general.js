@@ -2,6 +2,28 @@ const ventanaModal = '<div class="modal" id="myModal" style="display=block;"><di
 const idHModal = 'hModal';
 const idBModal = 'bModal';
 const idBotonModal = 'btnModal';
+const barraNav = `<nav class="navbar navbar-expand-lg">
+<a class="navbar-brand" href="#">Integración Para La Vida</a>
+<button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+  <span class="navbar-toggler-icon"></span>
+</button>
+<div class="collapse navbar-collapse" id="navbarNav">
+  <ul class="navbar-nav ml-auto">
+    <li class="nav-item">
+      <a class="nav-link" href="#">Inicio</a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link" href="#">Acerca de</a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link" href="#">Servicios</a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link" href="#">Contacto</a>
+    </li>
+  </ul>
+</div>
+</nav>`;
 
 function idInnerHTML(id, contenido){
     document.getElementById(id).innerHTML = contenido;
@@ -37,4 +59,8 @@ function mostrarModal(titulo, mensaje, modal) {
     document.getElementById(idHModal).innerHTML = titulo;
     document.getElementById(idBModal).innerHTML = mensaje;
     modal.show();
+}
+
+function nav() {
+    get('barraNav').innerHTML = barraNav;
 }
