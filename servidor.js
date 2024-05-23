@@ -5,7 +5,7 @@ const rutas = require('./rutas'); // Asegúrate de que este archivo exista y est
 const https = require('https');
 const fs = require('fs');
 
-const puertoHTTPS = 8443;
+const puertoHTTPS = 8444;
 
 const app = express();
 
@@ -41,8 +41,8 @@ app.use('/', rutas);
 
 // Opciones de SSL
 const opcionesSSL = {
-  key: fs.readFileSync('clave_privada.pem'),
-  cert: fs.readFileSync('certificado_autofirmado.pem')
+  key: fs.readFileSync('private.key'),
+  cert: fs.readFileSync('certificate.crt')
 };
 
 // Crear y iniciar el servidor HTTPS

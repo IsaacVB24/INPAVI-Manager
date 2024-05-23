@@ -7,7 +7,8 @@ const bcrypt = require('bcrypt');
 const nodemailer = require('nodemailer');
 const crypto = require('crypto');
 
-const dominio = 'https://20.81.199.215:8443';
+const puerto = '8444';
+const dominio = `https://20.81.199.215:${puerto}`;
 const correoParaEnvios = 'pruebas_back24@hotmail.com';
 
 // Configurar Nodemailer para Outlook
@@ -54,18 +55,13 @@ const verificarSesionYStatus = (req, res, next) => {
     case 1:
       // Estado 1: Usuario dado de alta
       // Redirigir siempre al dashboard y bloquear acceso a otras rutas
-      if (ruta !== '/tablero') {
-        res.redirect('/tablero');
-        return;
-      }
       next();
       break;
     case 2:
       // Estado 2: En espera de que el usuario escriba el token
       // Redirigir siempre a /crearCuenta y bloquear acceso a otras rutas
       if (ruta !== '/ingresarToken') {
-        res.redirect('/ingresarToken');
-        return;
+        return res.redirect('/ingresarToken');
       }
       next();
       break;
@@ -73,8 +69,7 @@ const verificarSesionYStatus = (req, res, next) => {
       // Estado 3: En espera de que un delegado acepte la solicitud
       // Redirigir siempre a /verificacion y bloquear acceso a otras rutas
       if (ruta !== '/verificacion') {
-        res.redirect('/verificacion');
-        return;
+        return res.redirect('/verificacion');
       }
       next();
       break;
@@ -145,7 +140,7 @@ router.post('/login', async (req, res) => {
 
   try {
     // Buscar el usuario en la base de datos por correo
-    db.get('SELECT contraseña, status FROM usuarios WHERE correo = ?', [correo], async (err, row) => {
+    db.get('SELECT contraseña, status, id_rol, nombre_usuario FROM usuarios WHERE correo = ?', [correo], async (err, row) => {
       if (err) {
         console.error('Error al buscar usuario:', err);
         res.status(500).json({ mensaje: 'Error al buscar usuario en la base de datos' });
@@ -155,7 +150,7 @@ router.post('/login', async (req, res) => {
           const match = await bcrypt.compare(contraseña, row.contraseña);
           if (match) {
             // Establecer la sesión del usuario
-            req.session.usuario = { correo, status: row.status }; // Puedes agregar más información del usuario si lo necesitas
+            req.session.usuario = { correo, status: row.status, id_rol: row.id_rol, nombre: row.nombre_usuario }; // Puedes agregar más información del usuario si lo necesitas
             if(row.status === 0) res.status(404).json({ mensaje: 'Correo no encontrado' });
             if(row.status === 1) res.status(200).json({ mensaje: 'Inicio de sesión correcto', ruta: '/tablero' });
             if(row.status === 2) res.status(200).json({ mensaje: 'Inicio de sesión correcto', ruta: '/ingresarToken', tipoUsuario: row.status });
@@ -643,6 +638,66 @@ router.post('/obtenerDatos', (req, res) => {
     });
     
   });
+});
+
+// Ruta para enviar botones al HTML según el tipo de usuario y tras haber iniciado sesión
+router.get('/obtenerBotones', (req, res) => {
+  // Verifica si hay un usuario en la sesión
+  if (req.session && req.session.usuario) {
+    const { nombre, id_rol } = req.session.usuario;
+
+    db.get('SELECT rol FROM roles WHERE id_rol=?', [id_rol], (err, row) => {
+      if(err) res.status(500).json({ mensaje: 'Error al consultar el rol del usuario' });
+      if(!row) res.status(404).json({ mensaje: `No se encontró el rol con id: ${id_rol}` });
+      const rol = row.rol;
+      // Define los botones según el status del usuario
+      let botones;
+      switch (id_rol) {
+        case 1: // Supervisor
+          botones = [
+            { nombre: 'Botón 1', ruta: '/ruta1' },
+            { nombre: 'Botón 2', ruta: '/ruta2' }
+          ];
+          break;
+        case 2: // Delegado
+          botones = [
+            { nombre: 'Botón A', ruta: '/rutaA' },
+            { nombre: 'Botón B', ruta: '/rutaB' }
+          ];
+          break;
+        case 3: // Coordinador DAS
+          botones = [
+            { nombre: 'Botón X', ruta: '/rutaX' },
+            { nombre: 'Botón Y', ruta: '/rutaY' }
+          ];
+          break;
+        case 4: // Coordinador Entrada
+          botones = [
+            { nombre: 'Botón X', ruta: '/rutaX' },
+            { nombre: 'Botón Y', ruta: '/rutaY' }
+          ];
+          break;
+        case 5: // Equipo directo DAS
+          botones = [
+            { nombre: 'Dar de alta un voluntario', ruta: '/altaVoluntario' }
+          ];
+          break;
+        case 6: // Equipo directo Entrada
+          botones = [
+            { nombre: 'Botón X', ruta: '/rutaX' },
+            { nombre: 'Botón Y', ruta: '/rutaY' }
+          ];
+          break;
+        default:
+          res.status(403).json({ mensaje: 'Error con el tipo de usuario que está trabajando' });
+      }
+
+      // Enviar los botones y el status al cliente
+      res.json({ botones, nombre, rol });
+    });
+  } else {
+    res.redirect('/');
+  }
 });
 
 // Función para enviar correo para reestablecer contraseña
