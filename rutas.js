@@ -223,7 +223,7 @@ router.post('/altaUsuario', async (req, res) => {
                     from: correoParaEnvios,
                     to: correo,
                     subject: 'Verificación de cuenta - INPAVI MANAGER',
-                    text: `Hola, ${nombre_usuario}.
+                    text: `Hola, ${nombre_usuario} ${apellido_paterno} ${apellido_materno}.
 
                     Haz recibido un código para registrarte en el sistema, escríbelo en el campo solicitado para validar el correo. NO COMPARTAS EL CÓDIGO CON NADIE.
 
@@ -357,7 +357,7 @@ router.post('/validarToken', async (req, res) => {
                               if(!row) res.status(404).json({ mensaje: 'No se encontró la sede' });
                               const sede = row.sede;
                               // Enviar correo al delegado
-                      db.get('SELECT correo FROM usuarios WHERE id_rol = ? AND id_sede = ?', [2, id_sede], (err, delegadoRow) => { // Suponiendo que id_rol = 1 es el rol del delegado
+                      db.get('SELECT correo, nombre_usuario FROM usuarios WHERE id_rol = ? AND id_sede = ?', [2, id_sede], (err, delegadoRow) => { // Suponiendo que id_rol = 1 es el rol del delegado
                         if (err) {
                           console.error('Error al obtener el correo del delegado:', err);
                           return res.status(500).json({ mensaje: 'Error al obtener el correo del delegado' });
@@ -368,7 +368,8 @@ router.post('/validarToken', async (req, res) => {
                             from: correoParaEnvios,
                             to: delegadoRow.correo,
                             subject: 'Solicitud de aprobación de usuario - INPAVI MANAGER',
-                            html: `
+                            html: `Hola, ${delegadoRow.nombre_usuario}.
+                            
                               <p>Se ha registrado un nuevo usuario en su sede. A continuación, se muestran los datos del usuario:</p>
                               <ul>
                                 <li>Nombre: ${nombre_usuario}</li>
