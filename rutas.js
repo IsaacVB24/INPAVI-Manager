@@ -129,6 +129,16 @@ router.get('/usuarioDeclinado', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'html', 'usuarioDeclinado.html'));
 });
 
+// Ruta para redirigir al usuario al HTML de usuario validado previamente
+router.get('/aceptadoPreviamente', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'html', 'usuarioYaAceptado.html'));
+});
+
+// Ruta para redirigir al usuario al HTML de usuario validado
+router.get('/declinadoPreviamente', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'html', 'usuarioYaDeclinado.html'));
+});
+
 // Ruta para el inicio de sesión
 router.post('/login', async (req, res) => {
   const { correo, contraseña } = req.body;
@@ -388,7 +398,12 @@ router.post('/validarToken', async (req, res) => {
                           });
                         } else {
                           console.error('No se encontró el correo del delegado');
-                          return res.status(500).json({ mensaje: 'No se encontró el correo del delegado' });
+                          db.run('ROLLBACK', rollbackErr => {
+                            if (rollbackErr) {
+                              console.error('Error al hacer rollback:', rollbackErr);
+                            }
+                            return res.status(500).json({ mensaje: 'No se encontró el correo del delegado' });
+                          });
                         }
                       });
                             });
@@ -425,28 +440,38 @@ router.post('/validarToken', async (req, res) => {
 router.get('/aceptarUsuario/:id_usuario', (req, res) => {
   const {id_usuario} = req.params;
 
-  db.run('UPDATE usuarios SET status=? WHERE id_usuario=?', [1, id_usuario], (err) => {
-    if(err) res.status(500).json({ mensaje: 'Error al actualizar el status del usuario' });
-    db.get('SELECT correo, nombre_usuario FROM usuarios WHERE id_usuario=?', [id_usuario], (err, row) => {
-      console.log(row.correo, row.nombre_usuario);
-      if(err) res.status(500).json({ mensaje: 'Error al obtener los datos del usuario' });
-      const opcionesCorreo = {
-        from: correoParaEnvios,
-        to: row.correo,
-        subject: 'Aceptación de cuenta - INPAVI MANAGER',
-        html: `
-          <p>Hola, ${row.nombre_usuario}. <br><br> Tu solicitud de alta ha sido Aceptada. Ya puedes ingresar a <a href="${dominio}/">INPAVI Manager</a>.</p>
-        `
-      };
-  
-      transporter.sendMail(opcionesCorreo, (error, info) => {
-        if (error) {
-          console.error('Error al enviar correo al usuario aceptado:', error);
-        } else {
-          res.redirect('/usuarioAceptado');
-        }
-      });
-    });
+  db.get('SELECT status FROM usuarios WHERE id_usuario=?', [id_usuario], (err, row) => {
+    if(err) res.status(500).json({ mensaje: 'Error al buscar al usuario' });
+    if(row) {
+      if(row.status === 1) {
+        res.redirect('/aceptadoPreviamente');
+      } else if(row.status === 3) {
+        db.run('UPDATE usuarios SET status=? WHERE id_usuario=?', [1, id_usuario], (err) => {
+          if(err) res.status(500).json({ mensaje: 'Error al actualizar el status del usuario' });
+          db.get('SELECT correo, nombre_usuario FROM usuarios WHERE id_usuario=?', [id_usuario], (err, row) => {
+            if(err) res.status(500).json({ mensaje: 'Error al obtener los datos del usuario' });
+            const opcionesCorreo = {
+              from: correoParaEnvios,
+              to: row.correo,
+              subject: 'Aceptación de cuenta - INPAVI MANAGER',
+              html: `
+                <p>Hola, ${row.nombre_usuario}. <br><br> Tu solicitud de alta ha sido Aceptada. Ya puedes ingresar a <a href="${dominio}/">INPAVI Manager</a>.</p>
+              `
+            };
+        
+            transporter.sendMail(opcionesCorreo, (error, info) => {
+              if (error) {
+                console.error('Error al enviar correo al usuario aceptado:', error);
+              } else {
+                res.redirect('/usuarioAceptado');
+              }
+            });
+          });
+        });
+      }
+    } else {
+      res.redirect('/declinadoPreviamente');
+    }
   });
 });
 
@@ -454,28 +479,39 @@ router.get('/aceptarUsuario/:id_usuario', (req, res) => {
 router.get('/declinarUsuario/:id_usuario', (req, res) => {
   const {id_usuario} = req.params;
 
-  db.get('SELECT correo, nombre_usuario FROM usuarios WHERE id_usuario=?', [id_usuario], (err, row) => {
-    if(err) res.status(500).json({ mensaje: 'Error al buscar el correo del usuario' });
-    if(!row) res.status(404).json({ mensaje: 'Usuario no encontrado' });
-    const opcionesCorreo = {
-      from: correoParaEnvios,
-      to: row.correo,
-      subject: 'Rechazo de solicitud para alta - INPAVI MANAGER',
-      html: `
-        <p>Hola, ${row.nombre_usuario}. <br><br>Tu solicitud de alta ha sido rechazada. Comunícate con el delegado de tu sede para que te informe sobre los pasos a seguir.</p>
-      `
-    };
-
-    transporter.sendMail(opcionesCorreo, (error, info) => {
-      if (error) {
-        console.error('Error al enviar correo al delegado:', error);
-      } else {
-        db.run('DELETE FROM usuarios WHERE id_usuario=?', [id_usuario], (err) => {
-          if(err) res.status(500).json({ mensaje: 'Error al eliminar el usuario' });
-          res.redirect('/usuarioDeclinado');
+  db.get('SELECT status FROM usuarios WHERE id_usuario=?', [id_usuario], (err, row) => {
+    if(err) res.status(500).json({ mensaje: 'Error al buscar al usuario' });
+    if(row) {
+      if(row.status === 1) {
+        res.redirect('/aceptadoPreviamente');
+      } else if(row.status === 3) {
+        db.get('SELECT correo, nombre_usuario FROM usuarios WHERE id_usuario=?', [id_usuario], (err, row) => {
+          if(err) res.status(500).json({ mensaje: 'Error al buscar el correo del usuario' });
+          if(!row) res.status(404).json({ mensaje: 'Usuario no encontrado' });
+          const opcionesCorreo = {
+            from: correoParaEnvios,
+            to: row.correo,
+            subject: 'Rechazo de solicitud para alta - INPAVI MANAGER',
+            html: `
+              <p>Hola, ${row.nombre_usuario}. <br><br>Tu solicitud de alta ha sido rechazada. Comunícate con el delegado de tu sede para que te informe sobre los pasos a seguir.</p>
+            `
+          };
+      
+          transporter.sendMail(opcionesCorreo, (error, info) => {
+            if (error) {
+              console.error('Error al enviar correo al delegado:', error);
+            } else {
+              db.run('DELETE FROM usuarios WHERE id_usuario=?', [id_usuario], (err) => {
+                if(err) res.status(500).json({ mensaje: 'Error al eliminar el usuario' });
+                res.redirect('/usuarioDeclinado');
+              });
+            }
+          });
         });
       }
-    });
+    } else {
+      res.redirect('/declinadoPreviamente');
+    }
   });
 });
 
