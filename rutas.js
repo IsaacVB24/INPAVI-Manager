@@ -169,6 +169,13 @@ router.post('/login', async (req, res) => {
   }
 });
 
+// Ruta para cerrar la sesión del usuario
+router.get('/logout', function(req, res) {
+  req.session.destroy(() => {
+    res.redirect('/');
+  });
+});
+
 // Ruta para validar si un correo ya existe y dar de alta a un usuario
 router.post('/altaUsuario', async (req, res) => {
   const { correo, apellido_materno, apellido_paterno, telefono, contraseña, nombre_usuario, id_rol, id_sede } = req.body;
@@ -679,7 +686,7 @@ router.get('/obtenerBotones', (req, res) => {
           break;
         case 5: // Equipo directo DAS
           botones = [
-            { nombre: 'Dar de alta un voluntario', ruta: '/altaVoluntario' }
+            { nombre: 'Dar de alta a un voluntario', ruta: '/altaVoluntario' }
           ];
           break;
         case 6: // Equipo directo Entrada
@@ -693,7 +700,7 @@ router.get('/obtenerBotones', (req, res) => {
       }
 
       // Enviar los botones y el status al cliente
-      res.json({ botones, nombre, rol });
+      res.json({ botones, nombre, rol, id_rol });
     });
   } else {
     res.redirect('/');
