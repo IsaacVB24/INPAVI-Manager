@@ -707,6 +707,58 @@ router.get('/obtenerBotones', (req, res) => {
   }
 });
 
+router.get('/obtenerOcupaciones', verificarSesionYStatus, (req, res) => {
+  db.all('SELECT ocupacion FROM ocupaciones', (err, rows) => {
+    if(err) {
+      res.status(500).json({ mensaje: 'Error al consultar las ocupaciones en la base de datos' });
+    } else {
+      if(rows) {
+        const ocupaciones = [];
+        rows.forEach(ocupacion => {
+          ocupaciones.push(ocupacion);
+        });
+        res.status(200).json(ocupaciones);
+      } else {
+        res.status(404).json({ mensaje: 'No existen ocupaciones actualmente' });
+      }
+    }
+  });
+});
+
+router.get('/obtenerIntereses', verificarSesionYStatus, (req, res) => {
+  db.all('SELECT interes FROM intereses', (err, rows) => {
+    if(err) {
+      res.status(500).json({ mensaje: 'Error al consultar los intereses de los voluntarios en la base de datos' });
+    } else {
+      if(rows) {
+        const intereses = [];
+        rows.forEach(interes => {
+          intereses.push(interes);
+        });
+        res.status(200).json(intereses);
+      } else {
+        res.status(404).json({ mensaje: 'No existen intereses de voluntarios actualmente' });
+      }
+    }
+  });
+});
+
+router.get('/obtenerVoluntarios', verificarSesionYStatus, (req, res) => {
+  db.all('SELECT nombre_v FROM voluntarios WHERE estado=1', (err, rows) => {
+    if(err) {
+      res.status(500).json({ mensaje: 'Error al consultar los voluntarios actuales en la base de datos' });
+    } else {
+      if(rows) {
+        const voluntarios = [];
+        rows.forEach(voluntario => {
+          voluntarios.push(voluntario);
+        });
+        res.status(200).json(voluntarios);
+      }
+    }
+  });
+});
+
 // Función para enviar correo para reestablecer contraseña
 function enviarCorreoReestablecerContraseña(correo, token) {
   const mailOptions = {

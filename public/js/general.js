@@ -52,7 +52,12 @@ function get(id){
     return document.getElementById(id);
 }
 function valorDe(id){
-    return document.getElementById(id).value;
+    const elemento = document.getElementById(id);
+    return elemento.value;
+}
+
+function crear(elemento) {
+    return document.createElement(elemento);
 }
 
 function mostrarModal(titulo, mensaje, modal) {
