@@ -147,7 +147,7 @@ db.serialize(() => {
   db.run(`CREATE TABLE IF NOT EXISTS voluntarios (
     id_voluntario INTEGER PRIMARY KEY AUTOINCREMENT,
     id_voluntarioAsignado INTEGER,
-    estado INTEGER NOT NULL,
+    estado INTEGER NOT NULL,    -- 0 -> Baja  / 1 -> Alta / 2 -> (registrado pero no dado de alta)
     fecha_captacion TEXT NOT NULL,
     fecha_alta TEXT NOT NULL,
     nombre_v TEXT NOT NULL,
@@ -161,8 +161,10 @@ db.serialize(() => {
     informe_valoracion INTEGER,   -- 0 -> Voluntario interno / 1 -> Voluntario externo temporal
     fecha_baja TEXT,
     observaciones TEXT,
+    id_sede INT NOT NULL,
     FOREIGN KEY (id_voluntarioAsignado) REFERENCES voluntarios(id_voluntario),
-    FOREIGN KEY (id_ocupacion) REFERENCES ocupaciones(id_ocupacion)
+    FOREIGN KEY (id_ocupacion) REFERENCES ocupaciones(id_ocupacion),
+    FOREIGN KEY (id_sede) REFERENCES sedes(id_sede)
   )`);
 
   // Crear índices para la tabla de voluntarios

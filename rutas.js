@@ -140,7 +140,7 @@ router.post('/login', async (req, res) => {
 
   try {
     // Buscar el usuario en la base de datos por correo
-    db.get('SELECT contraseña, status, id_rol, nombre_usuario FROM usuarios WHERE correo = ?', [correo], async (err, row) => {
+    db.get('SELECT contraseña, status, id_rol, nombre_usuario, id_sede FROM usuarios WHERE correo = ?', [correo], async (err, row) => {
       if (err) {
         console.error('Error al buscar usuario:', err);
         res.status(500).json({ mensaje: 'Error al buscar usuario en la base de datos' });
@@ -150,7 +150,7 @@ router.post('/login', async (req, res) => {
           const match = await bcrypt.compare(contraseña, row.contraseña);
           if (match) {
             // Establecer la sesión del usuario
-            req.session.usuario = { correo, status: row.status, id_rol: row.id_rol, nombre: row.nombre_usuario }; // Puedes agregar más información del usuario si lo necesitas
+            req.session.usuario = { correo, status: row.status, id_rol: row.id_rol, nombre: row.nombre_usuario, id_sede: row.id_sede }; // Puedes agregar más información del usuario si lo necesitas
             if(row.status === 0) res.status(404).json({ mensaje: 'Correo no encontrado' });
             if(row.status === 1) res.status(200).json({ mensaje: 'Inicio de sesión correcto', ruta: '/tablero' });
             if(row.status === 2) res.status(200).json({ mensaje: 'Inicio de sesión correcto', ruta: '/ingresarToken', tipoUsuario: row.status });
@@ -686,7 +686,8 @@ router.get('/obtenerBotones', (req, res) => {
           break;
         case 5: // Equipo directo DAS
           botones = [
-            { nombre: 'Dar de alta a un voluntario', ruta: '/altaVoluntario' }
+            { nombre: 'Dar de alta a un voluntario', ruta: '/altaVoluntario', inactivo: false },
+            { nombre: 'Ver la información de un voluntario', ruta: '/infoVoluntario', inactivo: true }
           ];
           break;
         case 6: // Equipo directo Entrada
@@ -743,7 +744,7 @@ router.get('/obtenerIntereses', verificarSesionYStatus, (req, res) => {
   });
 });
 
-router.get('/obtenerVoluntarios', verificarSesionYStatus, (req, res) => {
+router.get('/obtenerNombreVoluntarios', verificarSesionYStatus, (req, res) => {
   db.all('SELECT nombre_v FROM voluntarios WHERE estado=1', (err, rows) => {
     if(err) {
       res.status(500).json({ mensaje: 'Error al consultar los voluntarios actuales en la base de datos' });
@@ -757,6 +758,83 @@ router.get('/obtenerVoluntarios', verificarSesionYStatus, (req, res) => {
       }
     }
   });
+});
+
+router.get('/obtenerVoluntariosEquipoDirecto', (req, res) => {
+  // Verifica si hay un usuario en la sesión
+  if (req.session && req.session.usuario) {
+    const { id_sede } = req.session.usuario;
+    
+    db.all(
+      `SELECT 
+      v.id_voluntario, 
+      v.nombre_v, 
+      v.apellido_paterno_v, 
+      v.informe_valoracion, 
+      o.ocupacion, 
+      i.interes, 
+      p.programa AS derivacion, 
+      pc.contacto AS primeros_contactos
+        FROM voluntarios v 
+        LEFT JOIN ocupaciones o ON v.id_ocupacion = o.id_ocupacion 
+        LEFT JOIN interesesVoluntario iv ON v.id_voluntario = iv.id_voluntario 
+        LEFT JOIN intereses i ON iv.id_interes = i.id_interes 
+        LEFT JOIN derivacionVoluntario dv ON v.id_voluntario = dv.id_voluntario
+        LEFT JOIN programas p ON dv.id_derivacion = p.id_programa
+        LEFT JOIN primerosContactosVoluntario pcv ON v.id_voluntario = pcv.id_voluntario
+        LEFT JOIN primerosContactos pc ON pcv.id_contacto = pc.id_contacto
+        WHERE v.estado=1 AND v.id_sede=?`, [id_sede], (err, rows) => {
+        if (err) {
+          res.status(500).json({ mensaje: 'Error al consultar los voluntarios activos' });
+        } else {
+          if (rows) {
+            const voluntarios = {};
+
+            rows.forEach(row => {
+              if (!voluntarios[row.id_voluntario]) {
+                voluntarios[row.id_voluntario] = {
+                  id_voluntario: row.id_voluntario,
+                  nombre: row.nombre_v,
+                  apellido_paterno: row.apellido_paterno_v,
+                  informe_valoracion: (row.informe_valoracion === 0 ? 'Interno' : 'Externo temporal'),
+                  ocupacion: row.ocupacion,
+                  intereses: [],
+                  derivacion: [],
+                  primeros_contactos: []
+                };
+              }
+              if (row.interes) {
+                if(!voluntarios[row.id_voluntario].intereses.includes(row.interes))
+                  voluntarios[row.id_voluntario].intereses.push(row.interes);
+              }
+              if (row.derivacion) {
+                if(!voluntarios[row.id_voluntario].derivacion.includes(row.derivacion))
+                  voluntarios[row.id_voluntario].derivacion.push(row.derivacion);
+              }
+              if (row.primeros_contactos) {
+                if(!voluntarios[row.id_voluntario].primeros_contactos.includes(row.primeros_contactos))
+                  voluntarios[row.id_voluntario].primeros_contactos.push(row.primeros_contactos);
+              }
+            });
+
+            const voluntariosArray = Object.values(voluntarios);
+
+            res.status(200).json(voluntariosArray);
+          } else {
+            db.get('SELECT sede FROM sedes WHERE id_sede=?', [id_sede], (err, row) => {
+              if(err) {
+                res.status(500).json({ mensaje: 'Error al consultar la sede de los voluntarios activos' });
+              } else {
+                if(row) res.status(404).json({ mensaje: 'No se encontraron voluntarios activos para la sede: ' + row.sede });
+              }
+            });
+          }
+        }
+      }
+    );
+  } else {
+    res.redirect('/');
+  }
 });
 
 // Función para enviar correo para reestablecer contraseña

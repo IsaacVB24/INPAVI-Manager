@@ -44,7 +44,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const urls = [
         '/obtenerOcupaciones',
         '/obtenerIntereses',
-        '/obtenerVoluntarios'
+        '/obtenerNombreVoluntarios'
     ];
 
     // Realizar las solicitudes con Promise.all

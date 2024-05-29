@@ -1,0 +1,7 @@
+#tablaVoluntarios {
+    max-height: 400px;
+    overflow-y: auto;
+}
+tr td:hover {
+    cursor: pointer;
+}
