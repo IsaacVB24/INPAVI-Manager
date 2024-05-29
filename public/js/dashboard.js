@@ -1,4 +1,5 @@
 document.addEventListener('DOMContentLoaded', () => {
+    localStorage.removeItem('id');
     fetch('/obtenerBotones', {
         method: 'GET',
         headers: {
@@ -14,10 +15,12 @@ document.addEventListener('DOMContentLoaded', () => {
             respuesta.botones.forEach(boton => {
                 const nvoA = crear('a');
                 nvoA.href = boton.ruta;
-                const nvoBoton = crear('button');
-                nvoBoton.innerHTML = boton.nombre;
-                nvoBoton.disabled = boton.inactivo;
-                nvoA.appendChild(nvoBoton)
+                nvoA.classList.add('btn');
+                nvoA.classList.add('btn-primary');
+                if(boton.inactivo) nvoA.classList.add('disabled');
+                nvoA.classList.add('ml-1');
+                nvoA.classList.add('mr-1');
+                nvoA.innerHTML = boton.nombre;
                 divBotones.appendChild(nvoA);
             });
             if(respuesta.id_rol === 5) {
@@ -25,19 +28,19 @@ document.addEventListener('DOMContentLoaded', () => {
                 divElementosExtra.innerHTML = `
                 <div class="table-responsive" id="tablaVoluntarios">      
                     <table class="table table-hover" style="text-align: center;">
-                    <thead>
-                        <tr>
-                        <th>Nombre(s)</th>
-                        <th>Apellido paterno</th>
-                        <th>Ocupación</th>
-                        <th>Derivación</th>
-                        <th>Intereses</th>
-                        <th>Primeros contactos</th>
-                        <th>Tipo de voluntario</th>
-                        </tr>
-                    </thead>
-                    <tbody id="contenidoTabla">
-                    </tbody>
+                        <thead>
+                            <tr>
+                                <th>Nombre(s)</th>
+                                <th>Apellido paterno</th>
+                                <th>Ocupación</th>
+                                <th>Derivación</th>
+                                <th>Intereses</th>
+                                <th>Primeros contactos</th>
+                                <th>Tipo de voluntario</th>
+                            </tr>
+                        </thead>
+                        <tbody id="contenidoTabla">
+                        </tbody>
                     </table>
                 </div>`;
                 fetch('/obtenerVoluntariosEquipoDirecto', {
@@ -67,9 +70,9 @@ document.addEventListener('DOMContentLoaded', () => {
                         informacion.primeros_contactos.forEach(contacto => {
                             primerosContactos += (contacto + '<br>');
                         });
-                
+
                         const fila = `
-                        <tr id='${informacion.id_voluntario}'>
+                        <tr id='${informacion.id_voluntario}' onclick='seleccionVoluntario(${informacion.id_voluntario})'>
                             <td class='align-middle'>${informacion.nombre}</td>
                             <td class='align-middle'>${informacion.apellido_paterno}</td>
                             <td class='align-middle'>${informacion.ocupacion}</td>
@@ -93,3 +96,30 @@ document.addEventListener('DOMContentLoaded', () => {
         console.error('Error al obtener datos:', error);
     });
 });
+
+function seleccionVoluntario(idFila) {
+    const filaActual = get(idFila);
+    const idFilaActual = localStorage.getItem('id');
+    
+    if (parseInt(idFilaActual) === idFila) {
+        filaActual.classList.remove('table-success');
+        localStorage.removeItem('id');
+        const activos = document.querySelectorAll('a.activado');
+        activos.forEach(boton => {
+            boton.classList.add('disabled');
+            boton.classList.remove('activado');
+        });
+    } else {
+        const inactivos = document.querySelectorAll('a.disabled');
+        const filasActivas = document.querySelectorAll('tr.table-success');
+        filasActivas.forEach(fila => {
+            fila.classList.remove('table-success');
+        });
+        filaActual.classList.add('table-success');
+        localStorage.setItem('id', idFila);
+        inactivos.forEach(boton => {
+            boton.classList.add('activado');
+            boton.classList.remove('disabled');
+        });
+    }
+}
