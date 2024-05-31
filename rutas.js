@@ -686,7 +686,7 @@ router.get('/obtenerBotones', (req, res) => {
           break;
         case 5: // Equipo directo DAS
           botones = [
-            { nombre: 'Dar de alta a un voluntario', ruta: '/altaVoluntario', inactivo: false },
+            { nombre: 'Registrar a un voluntario', ruta: '/altaVoluntario', inactivo: false },
             { nombre: 'Ver la información de un voluntario', ruta: '/infoVoluntario', inactivo: true }
           ];
           break;
@@ -796,7 +796,7 @@ router.get('/obtenerVoluntariosEquipoDirecto', (req, res) => {
                   id_voluntario: row.id_voluntario,
                   nombre: row.nombre_v,
                   apellido_paterno: row.apellido_paterno_v,
-                  informe_valoracion: (row.informe_valoracion === 0 ? 'Interno' : 'Externo temporal'),
+                  informe_valoracion: row.informe_valoracion === 3 ? 'Sin información' : (row.informe_valoracion === 0 ? 'Interno' : 'Externo temporal'),
                   ocupacion: row.ocupacion,
                   intereses: [],
                   derivacion: [],
@@ -832,6 +832,231 @@ router.get('/obtenerVoluntariosEquipoDirecto', (req, res) => {
         }
       }
     );
+  } else {
+    res.redirect('/');
+  }
+});
+
+router.get('/obtenerProgramas', verificarSesionYStatus, (req, res) => {
+  db.all('SELECT * FROM programas', (err, rows) => {
+    if(err) {
+      res.status(500).json({ mensaje: 'Error al consultar los programas sociales en la base de datos' });
+    }
+    if(rows) {
+      // Crear un arreglo de objetos con el id y nombre del programa
+      const programas = rows.map(row => ({
+        id: row.id_programa,
+        nombre: row.programa
+      }));
+
+      // Enviar la respuesta en formato JSON
+      res.status(200).json(programas);
+    } else {
+      res.status(404).json({ mensaje: 'No se encontró ningún programa social' });
+    }
+  });
+});
+
+router.get('/obtenerPrimerosContactos', verificarSesionYStatus, (req,res) => {
+  db.all('SELECT * FROM primerosContactos', (err, rows) => {
+    if(err) {
+      res.status(500).json({ mensaje: 'Error al consultar los datos de primeros contactos' });
+    }
+    if(rows) {
+      const primerosContactos = rows.map(contacto => ({
+        id: contacto.id_contacto,
+        nombre: contacto.contacto
+      }));
+      res.status(200).json(primerosContactos);
+    } else {
+      res.status(404).json({ mensaje: 'No se encontraron datos de primeros contactos' });
+    }
+  });
+});
+
+router.post('/voluntarioNuevo', (req, res) => {
+  if (req.session && req.session.usuario) {
+    const { id_sede } = req.session.usuario;
+    const { nombre, apellidoP, apellidoM, fechaNacimiento, identificacion, telefono, correo, ocupacion, personaContacto, voluntarioIntAsignado, intereses, valoracion, primerosContactos, informeValoracion, derivacion, observaciones } = req.body;
+    //console.log('Datos recibidos:' + JSON.stringify({ nombre, apellidoP, apellidoM, fechaNacimiento, identificacion, telefono, correo, ocupacion, personaContacto, voluntarioIntAsignado, intereses, valoracion, primerosContactos, informeValoracion, derivacion, observaciones }));
+    
+    const fechaActual = new Date();
+    const year = fechaActual.getUTCFullYear();
+    const month = String(fechaActual.getUTCMonth() + 1).padStart(2, '0');
+    const day = String(fechaActual.getUTCDate()).padStart(2, '0');
+    const fechaFormateada = `${year}-${month}-${day}`;
+    //console.log(fechaFormateada);
+    
+    let estado = derivacion.length === 0 ? 2 : 1;
+    let fechaAlta = estado === 1 ? fechaFormateada : '';
+
+    db.get('SELECT 1 FROM voluntarios WHERE nombre_v = ? AND apellido_paterno_v = ? AND apellido_materno_v = ? AND fecha_nacimiento = ?', [nombre, apellidoP, apellidoM, fechaNacimiento], function (err, row) {
+      if(err) {
+        res.status(500).json({ mensaje: 'Error al consultar la existencia del voluntario: ' + err });
+      }
+      if(row) {
+        res.status(409).json({ mensaje: 'El voluntario que se quiere registrar ya existe.' });
+      } else {
+        db.serialize(() => {
+          db.run('BEGIN TRANSACTION');
+          //console.log('Inicio de transacción');
+    
+          db.get('SELECT id_ocupacion FROM ocupaciones WHERE ocupacion = ?', [ocupacion], (err, row) => {
+            if (err) {
+              //console.log('Error al consultar las ocupaciones');
+              return db.run('ROLLBACK', () => {
+                res.status(500).json({ mensaje: 'Error al consultar las ocupaciones' });
+              });
+            }
+            
+            //console.log(`No hubo error en consultar el id_de ocupación de: '${ocupacion}'`);
+            let id_ocupacion;
+    
+            const insertVoluntario = () => {
+              db.run('INSERT INTO voluntarios(id_voluntarioAsignado, estado, fecha_captacion, fecha_alta, nombre_v, apellido_paterno_v, apellido_materno_v, identificacion, fecha_nacimiento, telefono_v, correo_v, id_ocupacion, informe_valoracion, observaciones, id_sede, personaContacto) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)', 
+              [voluntarioIntAsignado, estado, fechaFormateada, fechaAlta, nombre, apellidoP, apellidoM, identificacion, fechaNacimiento, telefono, correo, id_ocupacion, informeValoracion, observaciones, id_sede, personaContacto], 
+              function (err) {
+                if (err) {
+                  if(err.code === 'SQLITE_CONSTRAINT') {
+                    return db.run('ROLLBACK', () => {
+                      res.status(409).json({ mensaje: 'El voluntario con esta identificación ya existe.' });
+                    });
+                  } else {
+                    return db.run('ROLLBACK', () => {
+                    console.error('Error al insertar los datos del voluntario: ' + err);
+                    res.status(500).json({ mensaje: 'Error al insertar los datos del voluntario' });
+                  });
+                }
+                  
+                }
+    
+                const id_voluntario = this.lastID;
+                //console.log(`No hubo error al insertar al nuevo voluntario '${nombre}' con nuevo ID: ${id_voluntario}`);
+    
+                const tasks = [];
+    
+                if (valoracion.length > 0) {
+                  valoracion.forEach(id_programa => {
+                    tasks.push(new Promise((resolve, reject) => {
+                      db.run('INSERT INTO valoracionVoluntario(id_voluntario, id_valoracion) VALUES (?,?)', [id_voluntario, id_programa], (err) => {
+                        if (err) {
+                          reject(err);
+                        } else {
+                          resolve();
+                        }
+                      });
+                    }));
+                  });
+                }
+    
+                if (intereses.length > 0) {
+                  intereses.forEach(interes => {
+                    tasks.push(new Promise((resolve, reject) => {
+                      db.get('SELECT id_interes FROM intereses WHERE interes = ?', [interes], (err, row) => {
+                        if (err) {
+                          reject(err);
+                        } else if (row) {
+                          db.run('INSERT INTO interesesVoluntario(id_voluntario, id_interes) VALUES (?,?)', [id_voluntario, row.id_interes], (err) => {
+                            if (err) {
+                              reject(err);
+                            } else {
+                              resolve();
+                            }
+                          });
+                        } else {
+                          db.run('INSERT INTO intereses(interes) VALUES(?)', [interes], function (err) {
+                            if (err) {
+                              reject(err);
+                            } else {
+                              const id_interes = this.lastID;
+                              db.run('INSERT INTO interesesVoluntario(id_voluntario, id_interes) VALUES (?,?)', [id_voluntario, id_interes], (err) => {
+                                if (err) {
+                                  reject(err);
+                                } else {
+                                  resolve();
+                                }
+                              });
+                            }
+                          });
+                        }
+                      });
+                    }));
+                  });
+                }
+    
+                if (primerosContactos.length > 0) {
+                  primerosContactos.forEach(id_contacto => {
+                    tasks.push(new Promise((resolve, reject) => {
+                      db.run('INSERT INTO primerosContactosVoluntario(id_voluntario, id_contacto) VALUES (?,?)', [id_voluntario, id_contacto], (err) => {
+                        if (err) {
+                          reject(err);
+                        } else {
+                          resolve();
+                        }
+                      });
+                    }));
+                  });
+                }
+    
+                if (derivacion.length > 0) {
+                  derivacion.forEach(programa => {
+                    tasks.push(new Promise((resolve, reject) => {
+                      db.run('INSERT OR IGNORE INTO programas(id_programa, programa) VALUES (?,?)', [programa[0], programa[1]], function (err) {
+                        if (err) {
+                          reject(err);
+                        } else {
+                          db.run('INSERT INTO derivacionVoluntario(id_voluntario, id_derivacion) VALUES (?,?)', [id_voluntario, programa[0]], (err) => {
+                            if (err) {
+                              reject(err);
+                            } else {
+                              resolve();
+                            }
+                          });
+                        }
+                      });
+                    }));
+                  });
+                }
+    
+                Promise.all(tasks).then(() => {
+                  db.run('COMMIT', (commitErr) => {
+                    if (commitErr) {
+                      console.error('Error al hacer commit:', commitErr);
+                      return res.status(500).json({ mensaje: 'Error al hacer commit en la base de datos' });
+                    }
+                    //console.log('Transacción completada y datos insertados');
+                    res.status(201).json({ mensaje: 'Voluntario registrado correctamente' });
+                  });
+                }).catch(err => {
+                  console.error('Error durante la transacción:', err);
+                  db.run('ROLLBACK', () => {
+                    res.status(500).json({ mensaje: 'Error al registrar al voluntario' });
+                  });
+                });
+              });
+            };
+    
+            if (!row) {
+              db.run('INSERT INTO ocupaciones(ocupacion) VALUES (?)', [ocupacion], function (err) {
+                if (err) {
+                  return db.run('ROLLBACK', () => {
+                    console.error('Error al insertar la ocupación: ' + err);
+                    res.status(500).json({ mensaje: 'Error al insertar la ocupación' });
+                  });
+                }
+                id_ocupacion = this.lastID;
+                //console.log('No hubo problema al insertar una ocupación nueva con ID: ' + id_ocupacion);
+                insertVoluntario();
+              });
+            } else {
+              id_ocupacion = row.id_ocupacion;
+              //console.log(`Como ya existe la ocupación '${ocupacion}', su ID es: ${id_ocupacion}`);
+              insertVoluntario();
+            }
+          });
+        });
+      }
+    });
   } else {
     res.redirect('/');
   }

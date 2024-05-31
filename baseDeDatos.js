@@ -131,7 +131,7 @@ db.serialize(() => {
           { programa: 'Entrada' },
           { programa: 'Integra' },
           { programa: 'D.A.S.' }, // Desarrollando Acciones Solidarias
-          { programa: 'C.V.C' }  // Centro de Vida Cristiana
+          { programa: 'C.V.C.' }  // Centro de Vida Cristiana
         ];
         const stmt = db.prepare("INSERT INTO programas (programa) VALUES (?)");
         programas.forEach((programa) => {
@@ -153,7 +153,7 @@ db.serialize(() => {
     nombre_v TEXT NOT NULL,
     apellido_paterno_v TEXT NOT NULL,
     apellido_materno_v TEXT NOT NULL,
-    identificacion TEXT NOT NULL,
+    identificacion TEXT NOT NULL UNIQUE,
     fecha_nacimiento TEXT NOT NULL,
     telefono_v TEXT NOT NULL,
     correo_v TEXT NOT NULL,
@@ -162,6 +162,7 @@ db.serialize(() => {
     fecha_baja TEXT,
     observaciones TEXT,
     id_sede INT NOT NULL,
+    personaContacto TEXT,
     FOREIGN KEY (id_voluntarioAsignado) REFERENCES voluntarios(id_voluntario),
     FOREIGN KEY (id_ocupacion) REFERENCES ocupaciones(id_ocupacion),
     FOREIGN KEY (id_sede) REFERENCES sedes(id_sede)

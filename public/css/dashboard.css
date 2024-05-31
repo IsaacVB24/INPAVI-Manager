@@ -5,3 +5,6 @@
 tr td:hover {
     cursor: pointer;
 }
+#noVoluntarios {
+    cursor: default;
+}

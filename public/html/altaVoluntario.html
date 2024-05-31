@@ -50,7 +50,7 @@
                 <label for="telefonoV" class="ms-2">Teléfono a 10 dígitos: <span>*</span></label>
             </div>
             <div class="form-floating mt-1">
-                <input type="email" class="shadow form-control" id="correoV" placeholder="Ingrese su apellido materno" name="apMatV" required autocomplete="off" maxlength="30">
+                <input type="email" class="shadow form-control" id="correoV" placeholder="Ingrese su apellido materno" name="apMatV" required autocomplete="off" maxlength="50">
                 <label for="apMat" class="ms-2">Correo electrónico: <span>*</span></label>
             </div>
             <div class="form-floating mt-3" id="divOcupacion">
@@ -64,7 +64,7 @@
             </div>
             <div class="form-floating mt-1">
                 <input type="text" class="shadow form-control" id="presonaContactoV" placeholder="Ingrese su apellido materno" name="apMatV" required autocomplete="off" maxlength="70">
-                <label for="apMat" class="ms-2">Persona de contacto: <span>*</span></label>
+                <label for="apMat" class="ms-2">Persona de contacto:</label>
             </div>
             <div class="form-floating mt-1">
                 <select class="form-select shadow" id="voluntarioAsignado" name="voluntarioAsignado" required style="cursor: pointer;">
@@ -87,74 +87,24 @@
             <div class="row mt-4" style="border: 1px black solid; text-align: center; padding: 5px">
                 <div class="col" id="valoracion">
                     <p class="h5">Valoración / Participación <span>*</span></p>
-                    <div class="form-check">
-                        <button type="button" class="w-50">ENTRADA</button>
-                    </div>
-                    <div class="form-check mt-2">
-                        <button type="button" class="w-50">INTEGRA</button>
-                    </div>
-                    <div class="form-check mt-2">
-                        <button type="button" class="w-50">D.A.S.</button>
-                    </div>
-                    <div class="form-check mt-2">
-                        <button type="button" class="w-50">C.V.C.</button>
-                    </div>
-                    <!--
-                    <div class="form-check mt-2">
-                        <button type="button" class="w-50">Proyecto</button>
-                    </div>
-                    <div class="form-check mt-1">
-                        <textarea name="nombreProyecto" id="nombreProyecto" cols="30" rows="2" style="resize: none; padding: 5px; display: none;" maxlength="200"></textarea>
-                    </div>
-                    -->
                 </div>
                 <div class="col" style="border-left: 1px black solid; text-align: center;" id="primerosContactos">
                     <p class="h5">Primeros contactos</p>
-                    <div class="form-check mt-3">
-                        <button type="button" class="w-50">Taller acogida</button>
-                    </div>
-                    <div class="form-check mt-2">
-                        <button type="button" class="w-50">1° entrevista personal</button>
-                    </div>
-                    <div class="form-check mt-2">
-                        <button type="button" class="w-50">Formación básica</button>
-                    </div>
-                    <div class="form-check mt-2">
-                        <button type="button" class="w-50">Formación específica</button>
-                    </div>
                 </div>
             </div>
             
             <div class="row mt-4" style="border: 1px black solid; text-align: center; padding: 5px;" id="informeValoracion">
                 <p class="h5">Informe de valoración</p>
                 <div class="form-check">
-                    <button type="button" class="w-25">Voluntario interno</button>
+                    <button id="0" type="button" class="w-25">Voluntario interno</button>
                 </div>
                 <div class="form-check mt-2">
-                    <button type="button" class="w-25">Voluntario externo temporal</button>
+                    <button id="1" type="button" class="w-25">Voluntario externo temporal</button>
                 </div>
             </div>
             <div class="row mt-4" style="border: 1px black solid; text-align: center; padding: 5px; display: none;" id="derivacion">
                 <div class="col">
                     <p class="h5">Derivación <span>*</span></p>
-                    <div class="form-check">
-                        <button type="button" class="w-50">ENTRADA</button>
-                    </div>
-                    <div class="form-check mt-2">
-                        <button type="button" class="w-50">INTEGRA</button>
-                    </div>
-                    <div class="form-check mt-2">
-                        <button type="button" class="w-50">D.A.S.</button>
-                    </div>
-                    <div class="form-check mt-2">
-                        <button type="button" class="w-50">C.V.C.</button>
-                    </div>
-                    <div class="form-check mt-2">
-                        <button type="button" class="w-50" id="proyecto">Proyecto</button>
-                    </div>
-                    <div class="form-check mt-2" style="text-align: center;">
-                        <textarea name="nombreProyecto" id="nombreProyecto" cols="30" rows="2" style="resize: none; padding: 6px; display: none;" maxlength="200" placeholder="Nombre del proyecto"></textarea>
-                    </div>
                 </div>
             </div>
             <div class="row mt-4">

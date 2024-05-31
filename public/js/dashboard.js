@@ -52,6 +52,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 .then(response => response.json())
                 .then(respuesta => {
                     const tabla = document.getElementById('contenidoTabla');
+                    if(respuesta.length === 0) tabla.innerHTML = `
+                    <tr>
+                        <td colspan="7" id="noVoluntarios">No hay voluntarios registrados aún, da clic en el botón para registrar a un voluntario.</td>
+                    </tr>
+                    `;
                     respuesta.forEach(informacion => {
                         let derivacion = '';
                         let intereses = '';
@@ -78,7 +83,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             <td class='align-middle'>${informacion.ocupacion}</td>
                             <td class='align-middle'>${derivacion}</td>
                             <td class='align-middle'>${intereses}</td>
-                            <td class='align-middle'>${primerosContactos}</td>
+                            <td class='align-middle'>${primerosContactos || 'Sin información'}</td>
                             <td class='align-middle'>${informacion.informe_valoracion}</td>
                         </tr>`;
                         tabla.innerHTML += fila;

@@ -9,10 +9,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const divPrimerosContactos = get('primerosContactos');
     const divInformeValoracion = get('informeValoracion');
     const divDerivacion = get('derivacion');
-    const botonesValoracion = divValoracion.querySelectorAll('button');
-    const botonesPrimerosContactos = divPrimerosContactos.querySelectorAll('button');
     const botonesInformeValoracion = divInformeValoracion.querySelectorAll('button');
-    const botonesDerivacion = divDerivacion.querySelectorAll('button');
 
     const inputTelefono = get('telefonoV');
     // Agregar un event listener para el evento input
@@ -27,16 +24,7 @@ document.addEventListener('DOMContentLoaded', () => {
         inputTelefono.value = valor;
     });
 
-    botonesValoracion.forEach(boton => {
-        boton.addEventListener('click', () => {botonSeleccionado(boton);});
-    });
-    botonesPrimerosContactos.forEach(boton => {
-        boton.addEventListener('click', () => {botonSeleccionado(boton);});
-    });
     botonesInformeValoracion.forEach(boton => {
-        boton.addEventListener('click', () => {botonSeleccionado(boton);});
-    });
-    botonesDerivacion.forEach(boton => {
         boton.addEventListener('click', () => {botonSeleccionado(boton);});
     });
 
@@ -44,7 +32,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const urls = [
         '/obtenerOcupaciones',
         '/obtenerIntereses',
-        '/obtenerNombreVoluntarios'
+        '/obtenerNombreVoluntarios',
+        '/obtenerProgramas',
+        '/obtenerPrimerosContactos'
     ];
 
     // Realizar las solicitudes con Promise.all
@@ -54,7 +44,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         throw new Error(`Error al obtener datos desde ${url}`);
       })))
-      .then(([ocupaciones, intereses, voluntarios]) => {
+      .then(([ocupaciones, intereses, voluntarios, programas, primerosContactos]) => {
         // Procesar ocupaciones
         ocupaciones.forEach((ocupacion, indice) => {
           const nuevaOpcion = crear('option');
@@ -121,6 +111,59 @@ document.addEventListener('DOMContentLoaded', () => {
           nuevaOpcion.textContent = voluntario.nombre_v;
           selectVoluntarios.appendChild(nuevaOpcion);
         });
+
+        // Procesar programas
+        programas.forEach(programa => {
+            const nuevoDiv = crear('div');
+            nuevoDiv.classList.add('form-check');
+            nuevoDiv.classList.add('mt-2');
+            const btnPrograma = crear('button');
+            btnPrograma.id = programa.id;
+            btnPrograma.type = 'button';
+            btnPrograma.classList.add('w-50');
+            btnPrograma.innerHTML = programa.nombre;
+            nuevoDiv.appendChild(btnPrograma);
+            const clon1 = nuevoDiv.cloneNode(true);
+            const clon2 = nuevoDiv.cloneNode(true);
+            divValoracion.appendChild(clon1);
+            divDerivacion.appendChild(clon2);
+        });
+        const siguienteIDProgramas = programas.length + 1;
+        const seccionProyecto = `
+        <div class="form-check mt-2">
+                        <button type="button" class="w-50" id="proyecto">Proyecto</button>
+                    </div>
+                    <div class="form-check mt-2" style="text-align: center;">
+                        <textarea name="${siguienteIDProgramas}" id="nombreProyecto" cols="30" rows="2" style="resize: none; padding: 6px; display: none;" maxlength="200" placeholder="Nombre del proyecto"></textarea>
+                    </div>
+        `;
+        divDerivacion.innerHTML += seccionProyecto;
+        const botonesValoracion = divValoracion.querySelectorAll('button');
+        botonesValoracion.forEach(boton => {
+            boton.addEventListener('click', () => {botonSeleccionado(boton);});
+        });
+        const botonesDerivacion = divDerivacion.querySelectorAll('button');
+        botonesDerivacion.forEach(boton => {
+            boton.addEventListener('click', () => {botonSeleccionado(boton);});
+        });
+
+        // Procesar primeros contactos
+        primerosContactos.forEach(contacto => {
+            const nuevoDiv = crear('div');
+            nuevoDiv.classList.add('form-check');
+            nuevoDiv.classList.add('mt-2');
+            const btnContacto = crear('button');
+            btnContacto.classList.add('w-75');
+            btnContacto.type ='button';
+            btnContacto.id = contacto.id;
+            btnContacto.innerHTML = contacto.nombre;
+            nuevoDiv.appendChild(btnContacto);
+            divPrimerosContactos.appendChild(nuevoDiv);
+        });
+        const botonesPrimerosContactos = divPrimerosContactos.querySelectorAll('button');
+        botonesPrimerosContactos.forEach(boton => {
+            boton.addEventListener('click', () => {botonSeleccionado(boton);});
+        });
       })
       .catch(error => {
         console.error('Error al cargar los datos:', error);
@@ -131,7 +174,7 @@ let ocupacion = '';
 
 function agregarOcupacion() {
     idInnerHTML(idHModal, 'Añadir ocupación');
-    idInnerHTML(idBModal, '<input type="text" class="shadow form-control" id="ocupacionNva" placeholder="Ingrese la nueva ocupación" name="ocupacionNva" required autocomplete="off" maxlength="20">');
+    idInnerHTML(idBModal, '<input type="text" class="shadow form-control" id="ocupacionNva" placeholder="Ingrese la nueva ocupación" name="ocupacionNva" required autocomplete="off" maxlength="100">');
     idInnerHTML(idBotonModal, 'Agregar');
     const btnModal = document.getElementById('btnModal');
     btnModal.classList.remove(...btnModal.classList);
@@ -205,32 +248,71 @@ function altaVoluntario(){
     const modal = new bootstrap.Modal(document.getElementById('myModal'));
     const divValoracion = get('valoracion');
     let botonesSeleccionadosValoracion = 0;
+    const valoracion = [];
     divValoracion.querySelectorAll('button').forEach(boton => {
-        if(boton.classList.contains('seleccionado')) botonesSeleccionadosValoracion += 1;
+        if(boton.classList.contains('seleccionado')) {
+            botonesSeleccionadosValoracion += 1;
+            valoracion.push(parseInt(boton.id));
+        };
     });
     const divDerivacion = get('derivacion');
     let botonesSeleccionadosDerivacion = 0;
-    divDerivacion.querySelectorAll('button').forEach(boton => {
-        if(boton.classList.contains('seleccionado')) botonesSeleccionadosDerivacion += 1;
+    const derivacion = [];
+    const botonesDerivacion = divDerivacion.querySelectorAll('button.seleccionado');
+    botonesDerivacion.forEach(boton => {
+        let datoPrograma = [];
+        botonesSeleccionadosDerivacion += 1;
+        if(boton.id === 'proyecto') {
+            const proyecto = get('nombreProyecto');
+            datoPrograma.push(parseInt(proyecto.name));
+            datoPrograma.push(proyecto.value.trim());
+        } else {
+            datoPrograma.push(parseInt(boton.id));
+            datoPrograma.push(boton.textContent);
+        }
+        derivacion.push(datoPrograma);
     });
     
-    const nombres = valorDe('nombresV');
-    const apellidoP = valorDe('apPatV');
-    const apellidoM = valorDe('apMatV');
+    const nombres = valorDe('nombresV').trim();
+    const apellidoP = valorDe('apPatV').trim();
+    const apellidoM = valorDe('apMatV').trim();
     const fechaNacimiento = valorDe('fechaNacimientoV');
-    const identificacion = valorDe('identificacion');
+    const identificacion = valorDe('identificacion').trim();
     const telefono = valorDe('telefonoV');
-    const correo = valorDe('correoV');
-    const ocupacionV = ocupacion;
+    const correo = valorDe('correoV').trim();
+    const ocupacionV = ocupacion.trim();
     const personaContacto = valorDe('presonaContactoV');
     const correoValido = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/.test(correo);
+    const selectVoluntarioAsignado = get('voluntarioAsignado');
+    const voluntarioAsignado = selectVoluntarioAsignado.value;
+    const intereses = [];
+    const ulIntereses = get('listaIntereses');
+    const checkboxesIntereses = ulIntereses.querySelectorAll('input[type="checkbox"]');
+    checkboxesIntereses.forEach(checkbox => {
+        if(checkbox.checked) {
+            const label = ulIntereses.querySelector(`label[for="${checkbox.id}"`);
+            intereses.push(label.textContent.trim());
+        }
+    });
+    const primerosContactos = [];
+    const divPrimerosContactos = get('primerosContactos');
+    divPrimerosContactos.querySelectorAll('button').forEach(boton => {
+        if(boton.classList.contains('seleccionado')) primerosContactos.push(parseInt(boton.id));
+    });
+    const divInformeValoracion = get('informeValoracion');
+    const cantidadInformeValoracion = divInformeValoracion.querySelectorAll('button.seleccionado');
+    const observaciones = valorDe('comment').trim();
     
-    if(!nombres || !apellidoP || !apellidoM || !fechaNacimiento || !identificacion || !telefono || !correo || !ocupacionV || !personaContacto || botonesSeleccionadosValoracion === 0) {
+    if(!nombres || !apellidoP || !apellidoM || !fechaNacimiento || !identificacion || !telefono || !correo || !ocupacionV || botonesSeleccionadosValoracion === 0) {
         mostrarModal('Campos incompletos', 'Se deben completar todos los campos marcados con <span>*</span>.', modal);
         return;
     }
-    if(altaHoy && botonesSeleccionadosDerivacion === 0) {
-        mostrarModal('Completar derivación del voluntario', 'Si hoy se va a dar de alta el voluntario, se debe asignarle una derivación.', modal);
+    if((altaHoy && botonesSeleccionadosDerivacion === 0) || (altaHoy && primerosContactos.length === 0) || (altaHoy && cantidadInformeValoracion.length === 0)) {
+        mostrarModal('Completar derivación del voluntario', 'Si hoy se va a dar de alta el voluntario, se debe asignarle una derivación, completar los primeros contactos y la valoración.', modal);
+        return;
+    }
+    if(fechaNacimiento.length > 10) {
+        mostrarModal('Error en la fecha de nacimiento', 'Se debe ingresar una fecha de nacimiento válida.', modal);
         return;
     }
     if(telefono.length !== 10) {
@@ -241,9 +323,66 @@ function altaVoluntario(){
         mostrarModal('Correo inválido', 'Se debe ingresar un correo válido, por ejemplo: nombreCorreo@dominio.mx', modal);
         return;
     }
+    if(cantidadInformeValoracion.length > 1) {
+        mostrarModal('Error en el informe de valoración', 'Solo se debe seleccionar una opción en el informe de valoración.', modal);
+        return;
+    }
+    var informeValoracion;
+    if(cantidadInformeValoracion.length === 1) {
+        informeValoracion = parseInt(cantidadInformeValoracion[0].id);
+    } else {
+        informeValoracion = 3;
+    }
     if(altaHoy && get('proyecto').classList.contains('seleccionado') && !valorDe('nombreProyecto')) {
         mostrarModal('Completar proyecto', 'Se debe ingresar el nombre del proyecto.', modal);
+        return;
+    } else if(altaHoy) {
+        const botonesProyectos = divDerivacion.querySelectorAll('button');
+        let duplicado = false;
+        botonesProyectos.forEach(boton => {
+            if(boton.textContent === valorDe('nombreProyecto').trim()) {
+                duplicado = true;
+            }
+        });
+        if(duplicado) {
+            mostrarModal('Nombre de proyecto incorrecto', 'El proyecto que se trata de registrar ya existe', modal);
+            return;
+        }
     }
+    fetch('/voluntarioNuevo', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ nombre: nombres, apellidoP: apellidoP, apellidoM: apellidoM, fechaNacimiento: fechaNacimiento, identificacion: identificacion, telefono: telefono, correo: correo, ocupacion: ocupacionV, personaContacto: personaContacto, voluntarioIntAsignado: voluntarioAsignado, intereses: intereses, valoracion: valoracion, primerosContactos: primerosContactos, informeValoracion: informeValoracion, derivacion: derivacion, observaciones: observaciones })
+    })
+    .then(response => {
+        return response.json().then(data => {
+            return {
+                status: response.status,
+                mensaje: data.mensaje
+            };
+        });
+    })
+    .then(data => {
+        if (data.status === 201) {
+            btnModal.classList.remove('btn-danger');
+            btnModal.classList.add('btn-success');
+            btnModal.innerHTML = 'Genial';
+            btnModal.onclick = () => {window.location.href = '/tablero'};
+            mostrarModal('Voluntario registrado', 'El voluntario ha sido registrado exitosamente', modal);
+        } else if(data.status === 409) {
+            mostrarModal('Conflicto', data.mensaje, modal);
+        } else if(data.status === 500) {
+            mostrarModal('Error del servidor', data.mensaje, modal);
+        } else {
+            mostrarModal('Error', 'Error desconocido al registrar al voluntario.', modal);
+        }
+    })
+    .catch(error => {
+        console.error('Error al intentar registrar al voluntario:', error);
+        alert('Error al validar intentar registrar al voluntario');
+    });
 }
 
 function elementoExiste(arreglo, elemento) {
