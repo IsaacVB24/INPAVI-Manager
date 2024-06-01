@@ -1,10 +1,10 @@
 document.addEventListener('DOMContentLoaded', () => {
-    const loginForm = document.getElementById('loginForm');
+    const loginForm = get('loginForm');
     loginForm.addEventListener('submit', async (e) => {
       e.preventDefault();
   
-      const correo = document.getElementById('correo').value;
-      const contraseña = document.getElementById('contraseña').value;
+      const correo = get('correo').value;
+      const contraseña = get('contraseña').value;
   
       try {
         const response = await fetch('/login', {
@@ -18,7 +18,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const result = await response.json();
   
         if (!response.ok) {
-          const errorMessage = document.getElementById('error-message');
+          const errorMessage = get('error-message');
           errorMessage.classList.remove('d-none');
           errorMessage.textContent = result.mensaje || 'Error al iniciar sesión. Por favor, intenta de nuevo.';
         } else {
@@ -27,7 +27,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
       } catch (error) {
         console.error('Error al enviar la solicitud de inicio de sesión:', error);
-        const errorMessage = document.getElementById('error-message');
+        const errorMessage = get('error-message');
         errorMessage.classList.remove('d-none');
         errorMessage.textContent = 'Error al iniciar sesión. Por favor, intenta de nuevo.';
       }

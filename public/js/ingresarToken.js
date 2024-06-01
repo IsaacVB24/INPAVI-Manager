@@ -12,13 +12,13 @@ document.addEventListener('DOMContentLoaded', () => {
     .then(data => {
         if (data) {
             localStorage.removeItem('correo');
-            document.getElementById('nombres').value = data.nombres;
-            document.getElementById('apPat').value = data.apPat;
-            document.getElementById('apMat').value = data.apMat;
-            document.getElementById('telefono').value = data.telefono;
-            document.getElementById('email').value = data.correo;
-            document.getElementById('rol').value = data.rol;
-            document.getElementById('sede').value = data.sede;
+            get('nombres').value = data.nombres;
+            get('apPat').value = data.apPat;
+            get('apMat').value = data.apMat;
+            get('telefono').value = data.telefono;
+            get('email').value = data.correo;
+            get('rol').value = data.rol;
+            get('sede').value = data.sede;
         } else {
             alert('Error al obtener datos: ' + data.mensaje);
         }

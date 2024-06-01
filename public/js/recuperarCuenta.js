@@ -2,16 +2,16 @@ const mensajeCorreoIncorrecto = '<div class="alert alert-danger alert-dismissibl
 const mensajeCorreoEncontrado = '<div class="alert alert-success alert-dismissible fade show"><button type="button" class="btn-close" data-bs-dismiss="alert"></button><strong>¡Correo encontrado!</strong> Revisa tu bandeja de entrada y proporciona el código que te fue enviado.</div>';
 
 document.addEventListener('DOMContentLoaded', () => {
-    const botonCodigo = document.getElementById('btn-recuperar');
+    const botonCodigo = get('btn-recuperar');
     botonCodigo.onclick = validarCorreoRecuperacion;
 });
 
 async function validarCorreoRecuperacion() {
-    const inputCorreo = document.getElementById('email');
+    const inputCorreo = get('email');
     const correo = inputCorreo.value;
-    const divAlertas = document.getElementById('alertas');
-    const divCodRecup = document.getElementById('divCodRecup');
-    const botonCodigo = document.getElementById('btn-recuperar');
+    const divAlertas = get('alertas');
+    const divCodRecup = get('divCodRecup');
+    const botonCodigo = get('btn-recuperar');
 
     if(correo === '') {
         alert("Se debe ingresar un correo válido");
@@ -32,7 +32,7 @@ async function validarCorreoRecuperacion() {
             divAlertas.innerHTML = mensajeCorreoEncontrado;
             divCodRecup.style.display = 'block';
             botonCodigo.innerHTML = 'Validar código recibido';
-            botonCodigo.onclick = () => validarTokenRecuperacion(correo, document.getElementById('codRecup').value);
+            botonCodigo.onclick = () => validarTokenRecuperacion(correo, get('codRecup').value);
         } else {
             divAlertas.innerHTML = `<div class="alert alert-danger">${data.mensaje}</div>`;
         }
@@ -43,7 +43,7 @@ async function validarCorreoRecuperacion() {
 }
 
 async function validarTokenRecuperacion(correo, token) {
-    document.getElementById('btn-recuperar').style.display = 'none';
+    get('btn-recuperar').style.display = 'none';
     const tipoUsuario = 1;
     if (token === '') {
         alert('Se debe ingresar el token que recibiste al correo ' + correo);
@@ -62,8 +62,8 @@ async function validarTokenRecuperacion(correo, token) {
         const data = await response.json();
 
         if (response.ok) {
-            document.getElementById('codRecup').readOnly = true;
-            const camposNuevaContrasena = document.getElementById('camposNuevaContrasena');
+            get('codRecup').readOnly = true;
+            const camposNuevaContrasena = get('camposNuevaContrasena');
             camposNuevaContrasena.style.display = 'block';
         } else {
             alert(data.mensaje);
@@ -75,9 +75,9 @@ async function validarTokenRecuperacion(correo, token) {
 }
 
 async function cambiarContrasena() {
-    const correo = document.getElementById('email').value;
-    const nuevaContrasena = document.getElementById('nuevaContrasena').value;
-    const repetirNuevaContrasena = document.getElementById('repetirNuevaContrasena').value;
+    const correo = get('email').value;
+    const nuevaContrasena = get('nuevaContrasena').value;
+    const repetirNuevaContrasena = get('repetirNuevaContrasena').value;
 
     if(!validarContraseña(nuevaContrasena)) {
         alert('La contraseña debe tener al menos 8 caracteres de longitud, incluir al menos una letra mayúscula, minúscula, un número y un carácter especial (>#$_.).');

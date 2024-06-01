@@ -26,46 +26,46 @@ const barraNav = `<nav class="navbar navbar-expand-lg">
 </nav>`;
 
 function idInnerHTML(id, contenido){
-    document.getElementById(id).innerHTML = contenido;
+  get(id).innerHTML = contenido;
 }
 function enterEnInput(inputObjetivo, idBoton){
-    inputObjetivo.addEventListener('keydown', function (event) {
-        if(event.key === 'Enter'){
-            document.getElementById(idBoton).click();
-        }
-    });
+  inputObjetivo.addEventListener('keydown', function (event) {
+      if(event.key === 'Enter'){
+          get(idBoton).click();
+      }
+  });
 }
 // Función para verificar si un elemento ya existe en una lista
 function elementoExisteEnLista(elemento, criterioDeSeleccion) {
-    const labels = document.querySelectorAll(criterioDeSeleccion);
-    const labelContents = Array.from(labels).map(label => label.textContent.trim());
-    return labelContents.includes(elemento);
+  const labels = document.querySelectorAll(criterioDeSeleccion);
+  const labelContents = Array.from(labels).map(label => label.textContent.trim());
+  return labelContents.includes(elemento);
 }
 
 function ocultar(idElemento){
-    document.getElementById(idElemento).style.display = 'none';
+  get(idElemento).style.display = 'none';
 }
 function mostrar(idElemento){
-    document.getElementById(idElemento).style.display = 'block';
+  get(idElemento).style.display = 'block';
 }
 function get(id){
-    return document.getElementById(id);
+  return document.getElementById(id);
 }
 function valorDe(id){
-    const elemento = document.getElementById(id);
-    return elemento.value;
+  const elemento = get(id);
+  return elemento.value;
 }
 
 function crear(elemento) {
-    return document.createElement(elemento);
+  return document.createElement(elemento);
 }
 
 function mostrarModal(titulo, mensaje, modal) {
-    document.getElementById(idHModal).innerHTML = titulo;
-    document.getElementById(idBModal).innerHTML = mensaje;
-    modal.show();
+  get(idHModal).innerHTML = titulo;
+  get(idBModal).innerHTML = mensaje;
+  modal.show();
 }
 
 function nav() {
-    get('barraNav').innerHTML = barraNav;
+  get('barraNav').innerHTML = barraNav;
 }

@@ -1,7 +1,7 @@
 const colorFondoBotonSeleccionado = 'rgb(123, 168, 133)';
 
 document.addEventListener('DOMContentLoaded', () => {
-    document.getElementById('alertas').insertAdjacentHTML('beforeend', ventanaModal);
+    get('alertas').insertAdjacentHTML('beforeend', ventanaModal);
     const selectOcupaciones = get('ocupacionV');
     const ulIntereses = get('listaIntereses');
     const selectVoluntarios = get('voluntarioAsignado');
@@ -10,6 +10,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const divInformeValoracion = get('informeValoracion');
     const divDerivacion = get('derivacion');
     const botonesInformeValoracion = divInformeValoracion.querySelectorAll('button');
+    const soloCaracteres = [get('nombresV'), get('apPatV'), get('apMatV'), get('personaContactoV')];
+    soloCaracteres.forEach(campo => {
+        permitirSoloNombres(campo);
+    });
 
     const inputTelefono = get('telefonoV');
     // Agregar un event listener para el evento input
@@ -176,7 +180,7 @@ function agregarOcupacion() {
     idInnerHTML(idHModal, 'Añadir ocupación');
     idInnerHTML(idBModal, '<input type="text" class="shadow form-control" id="ocupacionNva" placeholder="Ingrese la nueva ocupación" name="ocupacionNva" required autocomplete="off" maxlength="100">');
     idInnerHTML(idBotonModal, 'Agregar');
-    const btnModal = document.getElementById('btnModal');
+    const btnModal = get('btnModal');
     btnModal.classList.remove(...btnModal.classList);
     btnModal.classList.add('btn');
     btnModal.classList.add('btn-warning');
@@ -193,19 +197,20 @@ function agregarOcupacion() {
             get('ocupacionNva').value = '';
         };
     });
-    const inputOcupacionNva = document.getElementById('ocupacionNva');
+    const inputOcupacionNva = get('ocupacionNva');
+    permitirSoloLetras(inputOcupacionNva);
     inputOcupacionNva.focus();
     enterEnInput(inputOcupacionNva, idBotonModal);
 
     // Agregar evento hide.bs.modal al modal para evitar su cierre si el input está vacío
-    document.getElementById('myModal').addEventListener('hide.bs.modal', function() {
+    btnModal.addEventListener('click', function() {
         // Obtener el valor del input
         const ocupacionNva = inputOcupacionNva.value;
 
         // Verificar si el input está vacío
         if (ocupacionNva.trim() !== '') {
             divOcupacion.innerHTML = '<input type="text" class="shadow form-control" id="ocupacionV" placeholder="Ocupación añadida" name="ocupacionV" required autocomplete="off" maxlength="70" readonly style="user-select:no; cursor:default;"><label for="ocupacionV" class="ms-2">Ocupación:</label><div class="mt-1"><a href="" data-bs-toggle="modal" data-bs-target="#myModal" style="color:#df950d;" id="modificarOcupacion">Modificar ocupación</a><a href="" onclick="eliminarOcupacion()" style="color:red; float:right;">Eliminar ocupación</a></div>';
-            document.getElementById('ocupacionV').setAttribute('value', ocupacionNva);
+            get('ocupacionV').setAttribute('value', ocupacionNva);
             ocupacion = get('ocupacionV').value;
         }
     });
@@ -215,17 +220,18 @@ function agregarInteres(){
     idInnerHTML(idHModal, 'Añadir interés de voluntario');
     idInnerHTML(idBModal, '<input type="text" class="shadow form-control" id="interesNvo" placeholder="Ingrese el nuevo interés" name="interesNvo" required autocomplete="off" maxlength="40">');
     idInnerHTML(idBotonModal, 'Agregar');
-    const inputInteresNvo = document.getElementById('interesNvo');
+    const inputInteresNvo = get('interesNvo');
+    permitirSoloLetras(inputInteresNvo);
     inputInteresNvo.focus();
     enterEnInput(inputInteresNvo, idBotonModal);
     const labels = document.querySelectorAll('#listaIntereses label');
     //const labelContents = Array.from(labels).map(label => label.textContent);
     //console.log(labelContents);
-    const divNvosIntereses = document.getElementById('nvosIntereses');
+    const divNvosIntereses = get('nvosIntereses');
     const contenidoDivNvosIntereses = divNvosIntereses.innerHTML;
 
     // Agregar evento hide.bs.modal al modal para evitar su cierre si el input está vacío
-    document.getElementById('myModal').addEventListener('hide.bs.modal', function() {
+    get('myModal').addEventListener('hide.bs.modal', function() {
         // Obtener el valor del input
         const interesNvo = inputInteresNvo.value.trim();
 
@@ -238,14 +244,14 @@ function agregarInteres(){
 }
 
 function altaVoluntario(){
-    const btnModal = document.getElementById('btnModal');
+    const btnModal = get('btnModal');
     const altaHoy = get('alta').checked;
     btnModal.classList.remove(...btnModal.classList);
     btnModal.classList.add('btn');
     btnModal.classList.add('btn-danger');
     btnModal.innerHTML = 'Entendido';
     //btnModal.classList.add('btn-success');
-    const modal = new bootstrap.Modal(document.getElementById('myModal'));
+    const modal = new bootstrap.Modal(get('myModal'));
     const divValoracion = get('valoracion');
     let botonesSeleccionadosValoracion = 0;
     const valoracion = [];
@@ -286,7 +292,7 @@ function altaVoluntario(){
     const telefono = valorDe('telefonoV');
     const correo = valorDe('correoV').trim();
     const ocupacionV = ocupacion.trim();
-    const personaContacto = valorDe('presonaContactoV');
+    const personaContacto = valorDe('personaContactoV');
     const correoValido = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/.test(correo);
     const selectVoluntarioAsignado = get('voluntarioAsignado');
     const voluntarioAsignado = selectVoluntarioAsignado.value;
@@ -357,7 +363,7 @@ function altaVoluntario(){
                 duplicado = true;
             }
         });
-        if(duplicado) {
+        if(duplicado && get('proyecto').classList.contains('seleccionado')) {
             mostrarModal('Nombre de proyecto incorrecto', 'El proyecto que se trata de registrar ya existe', modal);
             return;
         }
@@ -459,7 +465,10 @@ function botonSeleccionado(boton) {
     if(boton.classList.contains('deseleccionado')) {
         boton.classList.remove('deseleccionado');
     }
-    if(boton.id === 'proyecto') get('nombreProyecto').style.display = 'block';
+    if(boton.id === 'proyecto') {
+        get('nombreProyecto').style.display = 'block';
+        bloquearCaracteresEspeciales(get('nombreProyecto'));
+    }
 }
 
 function botonDeseleccionado(boton) {
@@ -498,4 +507,50 @@ function formateoArregloParaImpresion(arreglo) {
         });
         return total;
     }
+}
+
+function permitirSoloNombres(campo) {
+    campo.addEventListener('input', function() {
+        let texto = campo.value;
+        texto = texto.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s]/g, '');
+        // Convertir a minúsculas
+        texto = texto.toLowerCase();
+
+        // Capitalizar la primera letra de cada palabra
+        texto = texto.replace(/\b\w/g, function(letra) {
+            return letra.toUpperCase();
+        });
+        
+        // Mantener todo el texto en minúsculas excepto las primeras letras
+        texto = texto.split(' ').map(palabra => {
+            return palabra.charAt(0).toUpperCase() + palabra.slice(1).toLowerCase();
+        }).join(' ');
+
+        // Actualizar el valor del input
+        this.value = texto;
+    });
+}
+
+function permitirSoloLetras(campo) {
+    campo.addEventListener('input', function() {
+        let texto = campo.value;
+        texto = texto.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s]/g, '');
+        
+        // Convertir a minúsculas excepto la primera letra de la oración
+        texto = texto.charAt(0).toUpperCase() + texto.slice(1).toLowerCase();
+
+        // Actualizar el valor del input
+        this.value = texto;
+    });
+}
+
+function bloquearCaracteresEspeciales(campo) {
+    campo.addEventListener('input', function() {
+        let texto = campo.value;
+        // Bloquear caracteres especiales (algunos)
+        texto = texto.replace(/[@#$%^&*()_+\-=\[\]{};':"\\|<>\/~`]/g, '');
+
+        // Actualizar el valor del input
+        this.value = texto;
+    });
 }

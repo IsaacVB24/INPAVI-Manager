@@ -51,7 +51,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 })
                 .then(response => response.json())
                 .then(respuesta => {
-                    const tabla = document.getElementById('contenidoTabla');
+                    const tabla = get('contenidoTabla');
                     if(respuesta.length === 0) tabla.innerHTML = `
                     <tr>
                         <td colspan="7" id="noVoluntarios">No hay voluntarios registrados aún, da clic en el botón para registrar a un voluntario.</td>

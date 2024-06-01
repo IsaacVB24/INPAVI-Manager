@@ -8,14 +8,14 @@ const correoYaRegistrado = '<div class="alert alert-danger alert-dismissible fad
 const tokenEnviado = '<div class="alert alert-success alert-dismissible fade show"><button type="button" class="btn-close" data-bs-dismiss="alert"></button><strong>¡Token enviado!</strong> Revisa tu bandeja de entrada y proporciona el código que te fue enviado.</div>';
 
 function validarNuevaCuenta(){
-    const roles = document.getElementById(idSelectRol);
-    const sedes = document.getElementById(idSelectSede);
+    const roles = get(idSelectRol);
+    const sedes = get(idSelectSede);
     var completo = true;
 
     // Insertar HTML de la ventana modal dentro del formulario
-    document.getElementById('nvaCuenta').insertAdjacentHTML('beforeend', ventanaModal);
-    const modal = new bootstrap.Modal(document.getElementById('myModal'));
-    document.getElementById(idBotonModal).innerHTML = 'Entendido';
+    get('nvaCuenta').insertAdjacentHTML('beforeend', ventanaModal);
+    const modal = new bootstrap.Modal(get('myModal'));
+    get(idBotonModal).innerHTML = 'Entendido';
 
     const inputs = document.querySelectorAll('input');
     inputs.forEach((input, numeroInput) => {
@@ -54,7 +54,7 @@ function validarNuevaCuenta(){
             if (response.status === 201) {
                 localStorage.setItem('correo', correo);
                 window.location.href = '#';
-                document.getElementById('alertas').innerHTML = tokenEnviado;
+                get('alertas').innerHTML = tokenEnviado;
                 setTimeout(() => {
                     window.location.href = '/ingresarToken';
                 }, 5000); // 5000 milisegundos = 5 segundos
@@ -72,7 +72,7 @@ function validarNuevaCuenta(){
 }
 
 function pruebaDatos(){
-    const formulario = document.getElementById('nvaCuenta');
+    const formulario = get('nvaCuenta');
     const inputs = formulario.querySelectorAll('input');
     
     inputs[0].value = 'Usuario';
@@ -83,15 +83,15 @@ function pruebaDatos(){
     inputs[5].value = '12345678';
     inputs[6].value = '12345678';
 
-    const roles = document.getElementById(idSelectRol);
+    const roles = get(idSelectRol);
     roles.selectedIndex = 1;
-    const sedes = document.getElementById(idSelectSede);
+    const sedes = get(idSelectSede);
     sedes.selectedIndex = 1;
 }
 
 async function validarToken() {
-    const token = document.getElementById('token').value;
-    const correo = document.getElementById('email').value;
+    const token = get('token').value;
+    const correo = get('email').value;
     const tipoUsuario = 3;
 
     if (token === '') {
@@ -121,8 +121,8 @@ async function validarToken() {
 }
 
 function cargarSedesYRoles() {
-    const selectSede = document.getElementById(idSelectSede);
-    const selectRoles = document.getElementById(idSelectRol);
+    const selectSede = get(idSelectSede);
+    const selectRoles = get(idSelectRol);
     console.clear();
 
     // Obtener sedes del backend
