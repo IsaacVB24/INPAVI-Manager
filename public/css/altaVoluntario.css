@@ -6,3 +6,6 @@ button {
 span {
     color: red;
 }
+ul li span {
+    color: black;
+}

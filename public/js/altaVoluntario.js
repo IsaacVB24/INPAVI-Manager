@@ -102,13 +102,13 @@ document.addEventListener('DOMContentLoaded', () => {
         otroDiv.appendChild(nvoA);
         otroLi.appendChild(otroDiv);
         ulIntereses.appendChild(otroLi);
-
+        
         // Procesar voluntarios
         voluntarios.forEach((voluntario, indice) => {
           const nuevaOpcion = crear('option');
           nuevaOpcion.id = 'voluntario_' + (indice + 1);
           nuevaOpcion.value = indice + 1;
-          nuevaOpcion.textContent = voluntario.nombre_v;
+          nuevaOpcion.textContent = voluntario;
           selectVoluntarios.appendChild(nuevaOpcion);
         });
 
@@ -249,15 +249,18 @@ function altaVoluntario(){
     const divValoracion = get('valoracion');
     let botonesSeleccionadosValoracion = 0;
     const valoracion = [];
+    const nombresValoracion = [];
     divValoracion.querySelectorAll('button').forEach(boton => {
         if(boton.classList.contains('seleccionado')) {
             botonesSeleccionadosValoracion += 1;
             valoracion.push(parseInt(boton.id));
+            nombresValoracion.push(boton.innerHTML);
         };
     });
     const divDerivacion = get('derivacion');
     let botonesSeleccionadosDerivacion = 0;
     const derivacion = [];
+    const nombresDerivacion = [];
     const botonesDerivacion = divDerivacion.querySelectorAll('button.seleccionado');
     botonesDerivacion.forEach(boton => {
         let datoPrograma = [];
@@ -266,9 +269,11 @@ function altaVoluntario(){
             const proyecto = get('nombreProyecto');
             datoPrograma.push(parseInt(proyecto.name));
             datoPrograma.push(proyecto.value.trim());
+            nombresDerivacion.push(proyecto.value.trim());
         } else {
             datoPrograma.push(parseInt(boton.id));
             datoPrograma.push(boton.textContent);
+            nombresDerivacion.push(boton.textContent);
         }
         derivacion.push(datoPrograma);
     });
@@ -295,12 +300,20 @@ function altaVoluntario(){
         }
     });
     const primerosContactos = [];
+    const nombresContactos = [];
     const divPrimerosContactos = get('primerosContactos');
     divPrimerosContactos.querySelectorAll('button').forEach(boton => {
-        if(boton.classList.contains('seleccionado')) primerosContactos.push(parseInt(boton.id));
+        if(boton.classList.contains('seleccionado')){
+            primerosContactos.push(parseInt(boton.id));
+            nombresContactos.push(boton.innerHTML);
+        }
     });
     const divInformeValoracion = get('informeValoracion');
     const cantidadInformeValoracion = divInformeValoracion.querySelectorAll('button.seleccionado');
+    const nombresInformeValoracion = [];
+    cantidadInformeValoracion.forEach(boton => {
+        nombresInformeValoracion.push(boton.innerHTML);
+    });
     const observaciones = valorDe('comment').trim();
     
     if(!nombres || !apellidoP || !apellidoM || !fechaNacimiento || !identificacion || !telefono || !correo || !ocupacionV || botonesSeleccionadosValoracion === 0) {
@@ -349,40 +362,81 @@ function altaVoluntario(){
             return;
         }
     }
-    fetch('/voluntarioNuevo', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ nombre: nombres, apellidoP: apellidoP, apellidoM: apellidoM, fechaNacimiento: fechaNacimiento, identificacion: identificacion, telefono: telefono, correo: correo, ocupacion: ocupacionV, personaContacto: personaContacto, voluntarioIntAsignado: voluntarioAsignado, intereses: intereses, valoracion: valoracion, primerosContactos: primerosContactos, informeValoracion: informeValoracion, derivacion: derivacion, observaciones: observaciones })
-    })
-    .then(response => {
-        return response.json().then(data => {
-            return {
-                status: response.status,
-                mensaje: data.mensaje
-            };
+    
+    const [año, mes, dia] = fechaNacimiento.split('-');
+    var fechaActual = new Date();
+    var añoActual = fechaActual.getFullYear();
+    if(año >= añoActual || (añoActual - año) > 100) {
+        mostrarModal('Error en la fecha de nacimiento', 'Se debe ingresar una fecha de nacimiento válida para el voluntario.', modal);
+        return;
+    }
+    const meses = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'otubre', 'noviembre', 'diciembre'];
+    const nombreMes = meses[parseInt(mes, 10) - 1];
+    const interesesConf = formateoArregloParaImpresion(intereses);
+    const valoracionConf = formateoArregloParaImpresion(nombresValoracion);
+    const contactosConf = formateoArregloParaImpresion(nombresContactos);
+    const informeValConf = formateoArregloParaImpresion(nombresInformeValoracion);
+    const derivacionConf = formateoArregloParaImpresion(nombresDerivacion);
+    
+    mostrarModal('Confirmación', `¿Realmente deseas registrar al siguiente voluntario? <br><br>
+    <ul id="datosConfirmacion">
+        <li><p><span class="fw-bold">Nombre completo:</span> ${nombres} ${apellidoP} ${apellidoM}</p></li>
+        <li><p><span class="fw-bold">Fecha de nacimiento:</span> ${dia} de ${nombreMes} de ${año}</p></li>
+        <li><p><span class="fw-bold">Identificación:</span> ${identificacion}</p></li>
+        <li><p><span class="fw-bold">Teléfono:</span> ${telefono}</p></li>
+        <li><p><span class="fw-bold">Correo electrónico:</span> ${correo}</p></li>
+        <li><p><span class="fw-bold">Ocupación:</span> ${ocupacionV}</p></li>
+        <li><p><span class="fw-bold">Persona de contacto:</span> ${personaContacto || '-'}</p></li>
+        <li><p><span class="fw-bold">Voluntario interno asignado:</span> ${selectVoluntarioAsignado.options[selectVoluntarioAsignado.selectedIndex].text}</p></li>
+        <li><p><span class="fw-bold">Intereses:</span> ${interesesConf}</p></li>
+        <li><p><span class="fw-bold">Valoración / Participación:</span> ${valoracionConf}</p></li>
+        <li><p><span class="fw-bold">Primeros contactos:</span> ${contactosConf}</p></li>
+        <li><p><span class="fw-bold">Informe de valoración:</span> ${informeValConf}</p></li>
+        <li><p><span class="fw-bold">Derivación:</span> ${derivacionConf}</p></li>
+        <li><p><span class="fw-bold">Observaciones:</span> ${observaciones || '-'}</p></li>
+    </ul>`, modal);
+    btnModal.classList.add('btn-success');
+    btnModal.classList.remove('btn-danger');
+    get('cerrarModal').onclick = () => {get('myModal').style.display = 'none'; alert("OK");};
+    btnModal.onclick = () => {
+        fetch('/voluntarioNuevo', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ nombre: nombres, apellidoP: apellidoP, apellidoM: apellidoM, fechaNacimiento: fechaNacimiento, identificacion: identificacion, telefono: telefono, correo: correo, ocupacion: ocupacionV, personaContacto: personaContacto, voluntarioIntAsignado: voluntarioAsignado, intereses: intereses, valoracion: valoracion, primerosContactos: primerosContactos, informeValoracion: informeValoracion, derivacion: derivacion, observaciones: observaciones })
+        })
+        .then(response => {
+            return response.json().then(data => {
+                return {
+                    status: response.status,
+                    mensaje: data.mensaje
+                };
+            });
+        })
+        .then(data => {
+            if (data.status === 201) {
+                btnModal.classList.remove('btn-danger');
+                btnModal.classList.add('btn-success');
+                btnModal.innerHTML = 'Genial';
+                btnModal.onclick = () => {window.location.href = '/tablero'};
+                mostrarModal('Voluntario registrado', 'El voluntario ha sido registrado exitosamente', modal);
+            } else if(data.status === 409) {
+                btnModal.classList.add('btn-danger');
+                btnModal.classList.remove('btn-success');
+                mostrarModal('Conflicto', data.mensaje, modal);
+                btnModal.onclick = () => {};
+            } else if(data.status === 500) {
+                mostrarModal('Error del servidor', data.mensaje, modal);
+            } else {
+                mostrarModal('Error', 'Error desconocido al registrar al voluntario.', modal);
+            }
+        })
+        .catch(error => {
+            console.error('Error al intentar registrar al voluntario:', error);
+            alert('Error al validar intentar registrar al voluntario');
         });
-    })
-    .then(data => {
-        if (data.status === 201) {
-            btnModal.classList.remove('btn-danger');
-            btnModal.classList.add('btn-success');
-            btnModal.innerHTML = 'Genial';
-            btnModal.onclick = () => {window.location.href = '/tablero'};
-            mostrarModal('Voluntario registrado', 'El voluntario ha sido registrado exitosamente', modal);
-        } else if(data.status === 409) {
-            mostrarModal('Conflicto', data.mensaje, modal);
-        } else if(data.status === 500) {
-            mostrarModal('Error del servidor', data.mensaje, modal);
-        } else {
-            mostrarModal('Error', 'Error desconocido al registrar al voluntario.', modal);
-        }
-    })
-    .catch(error => {
-        console.error('Error al intentar registrar al voluntario:', error);
-        alert('Error al validar intentar registrar al voluntario');
-    });
+    };
 }
 
 function elementoExiste(arreglo, elemento) {
@@ -428,4 +482,20 @@ function altaHoy() {
 
 function asignarOupacion(nombreOcupacion) {
     ocupacion = nombreOcupacion;
+}
+
+function formateoArregloParaImpresion(arreglo) {
+    if(arreglo.length === 0) {
+        return '-';
+    } else {
+        let total = '';
+        arreglo.forEach((elemento, indice) => {
+            if((indice + 1) !== arreglo.length) {
+                total += (elemento + ', ');
+            } else {
+                total += elemento;
+            }
+        });
+        return total;
+    }
 }

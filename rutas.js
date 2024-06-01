@@ -668,8 +668,8 @@ router.get('/obtenerBotones', (req, res) => {
           break;
         case 2: // Delegado
           botones = [
-            { nombre: 'Botón A', ruta: '/rutaA' },
-            { nombre: 'Botón B', ruta: '/rutaB' }
+            { nombre: 'Registrar a un voluntario', ruta: '/altaVoluntario', inactivo: false },
+            { nombre: 'Ver la información de un voluntario', ruta: '/infoVoluntario', inactivo: true }
           ];
           break;
         case 3: // Coordinador DAS
@@ -745,14 +745,14 @@ router.get('/obtenerIntereses', verificarSesionYStatus, (req, res) => {
 });
 
 router.get('/obtenerNombreVoluntarios', verificarSesionYStatus, (req, res) => {
-  db.all('SELECT nombre_v FROM voluntarios WHERE estado=1', (err, rows) => {
+  db.all('SELECT nombre_v, apellido_paterno_v, apellido_materno_v FROM voluntarios WHERE estado=1', (err, rows) => {
     if(err) {
       res.status(500).json({ mensaje: 'Error al consultar los voluntarios actuales en la base de datos' });
     } else {
       if(rows) {
         const voluntarios = [];
         rows.forEach(voluntario => {
-          voluntarios.push(voluntario);
+          voluntarios.push(`${voluntario.nombre_v} ${voluntario.apellido_paterno_v} ${voluntario.apellido_materno_v}`);
         });
         res.status(200).json(voluntarios);
       }

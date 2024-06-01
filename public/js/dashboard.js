@@ -23,7 +23,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 nvoA.innerHTML = boton.nombre;
                 divBotones.appendChild(nvoA);
             });
-            if(respuesta.id_rol === 5) {
+            if(respuesta.id_rol === 2 || respuesta.id_rol === 5) {
                 const divElementosExtra = get('elementosExtra');
                 divElementosExtra.innerHTML = `
                 <div class="table-responsive" id="tablaVoluntarios">      
