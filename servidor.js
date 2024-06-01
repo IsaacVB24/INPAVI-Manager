@@ -19,7 +19,7 @@ app.use((req, res, next) => {
 
 // Configurar el middleware de express-session
 app.use(session({
-  secret: 'secreto',
+  secret: process.env.SECRETO,
   resave: false,
   saveUninitialized: true,
   rolling: true,

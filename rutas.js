@@ -8,8 +8,10 @@ const nodemailer = require('nodemailer');
 const crypto = require('crypto');
 
 const puerto = '8444';
-const dominio = `https://20.81.199.215:${puerto}`;
-const correoParaEnvios = 'pruebas_back24@hotmail.com';
+const dominio = `${process.env.DOMINIO}:${puerto}`;
+// Variables definidas en ~/.bashrc en Linux
+const correoParaEnvios = process.env.CORREO_ENVIOS;
+const claveCorreoEnvios = process.env.CLAVE;
 
 // Configurar Nodemailer para Outlook
 const transporter = nodemailer.createTransport({
@@ -17,8 +19,8 @@ const transporter = nodemailer.createTransport({
   port: 587, // Puerto SMTP
   secure: false, // true para el puerto 465, false para otros puertos
   auth: {
-    user: correoParaEnvios, // Tu dirección de correo de Outlook
-    pass: '#Qwerty1234' // Tu contraseña de Outlook
+    user: correoParaEnvios,
+    pass: claveCorreoEnvios
   }
 });
 
