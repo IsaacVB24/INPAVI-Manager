@@ -14,6 +14,10 @@ document.addEventListener('DOMContentLoaded', () => {
     soloCaracteres.forEach(campo => {
         permitirSoloNombres(campo);
     });
+    get('alta').addEventListener('click', altaHoy);
+    get('agregarOcupacion').addEventListener('click', agregarOcupacion);
+    get('registroVoluntario').addEventListener('click', altaVoluntario);
+    get('listaIntereses').addEventListener('click', function(event) {event.stopPropagation();});
 
     const inputTelefono = get('telefonoV');
     // Agregar un event listener para el evento input
@@ -209,7 +213,7 @@ function agregarOcupacion() {
 
         // Verificar si el input está vacío
         if (ocupacionNva.trim() !== '') {
-            divOcupacion.innerHTML = '<input type="text" class="shadow form-control" id="ocupacionV" placeholder="Ocupación añadida" name="ocupacionV" required autocomplete="off" maxlength="70" readonly style="user-select:no; cursor:default;"><label for="ocupacionV" class="ms-2">Ocupación:</label><div class="mt-1"><a href="" data-bs-toggle="modal" data-bs-target="#myModal" style="color:#df950d;" id="modificarOcupacion">Modificar ocupación</a><a href="" onclick="eliminarOcupacion()" style="color:red; float:right;">Eliminar ocupación</a></div>';
+            divOcupacion.innerHTML = '<input type="text" class="shadow form-control" id="ocupacionV" placeholder="Ocupación añadida" name="ocupacionV" required autocomplete="off" maxlength="70" readonly style="user-select:no; cursor:default;"><label for="ocupacionV" class="ms-2">Ocupación:</label><div class="mt-1"><a href="" data-bs-toggle="modal" data-bs-target="#myModal" style="color:#df950d;" id="modificarOcupacion">Modificar ocupación</a><a href="" style="color:red; float:right;">Eliminar ocupación</a></div>';
             get('ocupacionV').setAttribute('value', ocupacionNva);
             ocupacion = get('ocupacionV').value;
         }
@@ -403,7 +407,7 @@ function altaVoluntario(){
     </ul>`, modal);
     btnModal.classList.add('btn-success');
     btnModal.classList.remove('btn-danger');
-    get('cerrarModal').onclick = () => {get('myModal').style.display = 'none'; alert("OK");};
+    get('cerrarModal').onclick = () => {get('myModal').style.display = 'none';};
     btnModal.onclick = () => {
         fetch('/voluntarioNuevo', {
             method: 'POST',

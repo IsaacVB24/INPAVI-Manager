@@ -1,13 +1,26 @@
 const express = require('express');
 const session = require('express-session');
 const path = require('path');
-const rutas = require('./rutas'); // Asegúrate de que este archivo exista y esté configurado correctamente
+const rutas = require('./rutas');
 const https = require('https');
 const fs = require('fs');
+const helmet = require('helmet');
 
 const puertoHTTPS = 8444;
 
 const app = express();
+
+app.use(helmet());
+
+// Configurar la Política de Seguridad de Contenido con Helmet.js
+app.use(
+  helmet.contentSecurityPolicy({
+    directives: {
+      defaultSrc: ["'self'"],
+      scriptSrc: ["'self'", "'unsafe-inline'", "https://code.jquery.com", "https://cdn.jsdelivr.net"]
+    },
+  })
+);
 
 // Middleware para redirigir de HTTP a HTTPS
 app.use((req, res, next) => {
@@ -23,6 +36,7 @@ app.use(session({
   resave: false,
   saveUninitialized: true,
   rolling: true,
+  proxy: true,
   cookie: {
     maxAge: 20 * 60 * 1000, // 20 minutos en milisegundos
     secure: true

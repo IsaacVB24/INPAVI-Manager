@@ -1,0 +1,30 @@
+{
+    "name": "inpavi-manager",
+    "version": "1.0.0",
+    "description": "Proyecto realizado por Isaac Victoria Benavides para la O.N.G. INPAVI para que gestionen eficientemente sus datos internos de algunos de sus programas sociales, al almacenar información confidencial, se implementan medidas de robustez para la seguridad por lo que el administrador del sistema debe tener amplios conocimiento sobre desarrollo de proyectos utilizando herramientas como HTML, CSS, JavaScript, Node.js, Express.js, middlewares de JS, conceptos de criptografía y ciberseguridad.",
+    "main": "servidor.js",
+    "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+    },
+    "repository": {
+    "type": "git",
+    "url": "git+https://github.com/IsaacVB24/INPAVI-Manager.git"
+    },
+    "keywords": [
+    "gestión de datos",
+    "programas sociales",
+    "productividad"
+    ],
+    "author": "Isaac Victoria Benavides",
+    "license": "MIT",
+    "bugs": {
+    "url": "https://github.com/IsaacVB24/INPAVI-Manager/issues"
+    },
+    "homepage": "https://github.com/IsaacVB24/INPAVI-Manager#readme",
+    "dependencies": {
+        "express": "^4.17.1",
+        "helmet": "^4.6.0",
+        "express-session": "^1.17.1",
+        "path": "^0.12.7"
+      }
+}

@@ -71,24 +71,6 @@ function validarNuevaCuenta(){
     }
 }
 
-function pruebaDatos(){
-    const formulario = get('nvaCuenta');
-    const inputs = formulario.querySelectorAll('input');
-    
-    inputs[0].value = 'Usuario';
-    inputs[1].value = 'Apellido paterno de prueba';
-    inputs[2].value = 'Apellido materno de prueba';
-    inputs[3].value = '5500000000';
-    inputs[4].value = 'correo@prueba.com';
-    inputs[5].value = '12345678';
-    inputs[6].value = '12345678';
-
-    const roles = get(idSelectRol);
-    roles.selectedIndex = 1;
-    const sedes = get(idSelectSede);
-    sedes.selectedIndex = 1;
-}
-
 async function validarToken() {
     const token = get('token').value;
     const correo = get('email').value;
@@ -195,3 +177,9 @@ function validarContraseña(contraseña) {
         return false; // La contraseña no cumple con los criterios
     }
 }
+
+document.addEventListener('DOMContentLoaded', () => {
+    cargarSedesYRoles();
+    get('cambio').addEventListener('click', visibilidadDeContraseña);
+    get('btn-genToken').addEventListener('click', validarNuevaCuenta);
+});

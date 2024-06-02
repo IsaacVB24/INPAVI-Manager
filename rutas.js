@@ -15,7 +15,7 @@ const claveCorreoEnvios = process.env.CLAVE;
 
 // Configurar Nodemailer para Outlook
 const transporter = nodemailer.createTransport({
-  host: 'smtp.office365.com', // Servidor SMTP de Outlook
+  host: process.env.SERVIDOR_SMTP,
   port: 587, // Puerto SMTP
   secure: false, // true para el puerto 465, false para otros puertos
   auth: {

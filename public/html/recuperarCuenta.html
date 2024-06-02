@@ -12,7 +12,7 @@
   <script src="../js/crearCuenta.js"></script>
   <script src="../js/general.js"></script>
 </head>
-<body onload="nav()">
+<body>
   <div id="barraNav"></div>
   <div id="alertas"></div>
 	<main class="d-flex align-items-center min-vh-100 py-3 py-md-0">
@@ -46,7 +46,7 @@
                                 <label for="repetirNuevaContrasena">Repetir nueva contraseña:</label>
                                 <input type="password" class="shadow form-control" id="repetirNuevaContrasena" placeholder="Repeat new password" name="repetirNuevaContrasena">
                             </div>
-                            <button onclick="cambiarContrasena()" type="submit" class="btn btn-success" style="float: right;">Cambiar contraseña</button>
+                            <button id="btn-cambiarContr" type="submit" class="btn btn-success" style="float: right;">Cambiar contraseña</button>
                         </div>
                     </div>
                 </div>

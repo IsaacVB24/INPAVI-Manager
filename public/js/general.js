@@ -66,6 +66,6 @@ function mostrarModal(titulo, mensaje, modal) {
   modal.show();
 }
 
-function nav() {
+document.addEventListener('DOMContentLoaded', () => {
   get('barraNav').innerHTML = barraNav;
-}
+});

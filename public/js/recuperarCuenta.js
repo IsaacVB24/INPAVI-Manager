@@ -4,6 +4,7 @@ const mensajeCorreoEncontrado = '<div class="alert alert-success alert-dismissib
 document.addEventListener('DOMContentLoaded', () => {
     const botonCodigo = get('btn-recuperar');
     botonCodigo.onclick = validarCorreoRecuperacion;
+    get('btn-cambiarContr').addEventListener('click', cambiarContrasena);
 });
 
 async function validarCorreoRecuperacion() {

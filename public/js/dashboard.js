@@ -76,8 +76,10 @@ document.addEventListener('DOMContentLoaded', () => {
                             primerosContactos += (contacto + '<br>');
                         });
 
-                        const fila = `
-                        <tr id='${informacion.id_voluntario}' onclick='seleccionVoluntario(${informacion.id_voluntario})'>
+                        const fila = crear('tr');
+                        fila.id = informacion.id_voluntario;
+
+                        fila.innerHTML = `
                             <td class='align-middle'>${informacion.nombre}</td>
                             <td class='align-middle'>${informacion.apellido_paterno}</td>
                             <td class='align-middle'>${informacion.ocupacion}</td>
@@ -85,8 +87,9 @@ document.addEventListener('DOMContentLoaded', () => {
                             <td class='align-middle'>${intereses}</td>
                             <td class='align-middle'>${primerosContactos || 'Sin información'}</td>
                             <td class='align-middle'>${informacion.informe_valoracion}</td>
-                        </tr>`;
-                        tabla.innerHTML += fila;
+                        `;
+                        fila.addEventListener('click', () => {seleccionVoluntario(informacion.id_voluntario)});
+                        tabla.appendChild(fila);
                     });
                 })
                 .catch(error => {

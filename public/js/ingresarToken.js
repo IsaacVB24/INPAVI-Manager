@@ -1,6 +1,8 @@
 document.addEventListener('DOMContentLoaded', () => {
     const correo = localStorage.getItem('correo');
     if(!correo) window.location.href = '/recursoNoEncontrado';
+    get('btn-validarToken').addEventListener('click', validarToken);
+
     fetch('/obtenerDatos', {
         method: 'POST',
         headers: {

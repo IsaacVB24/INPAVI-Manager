@@ -13,7 +13,7 @@
 	<script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
 	<script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js"></script>
 </head>
-<body onload="pruebaDatos(), cargarSedesYRoles(), nav()">
+<body>
 	<div id="barraNav"></div>
 	<div id="alertas"></div>
 	<main class="d-flex align-items-center min-vh-100 py-3 py-md-0">
@@ -42,7 +42,7 @@
 				<div class="form-floating mt-3 mb-3 mx-3">
 					<input type="password" class="shadow form-control" id="pwd" placeholder="Ingrese una contraseña" name="pswd" required autocomplete="off" minlength="8" maxlength="30">
 					<label for="pwd">Contraseña:</label>
-				<p id="cambio" style="cursor: pointer; color: blue; margin-top: 5px;" onclick="visibilidadDeContraseña()">Mostrar</p>
+				<p id="cambio" style="cursor: pointer; color: blue; margin-top: 5px;">Mostrar</p>
 				</div>
 				<div class="form-floating mt-3 mb-3 mx-3">
 					<input type="password" class="shadow form-control" id="pwd2" placeholder="Ingrese la misma contraseña" name="pswd2" required autocomplete="off" minlength="8" maxlength="30">
@@ -63,7 +63,7 @@
 						</select>
 					</div>
 				</div>
-				<button type="submit" class="btn btn-primary mx-3 mt-3" style="float: right;" onclick="validarNuevaCuenta()">Generar token</button>
+				<button type="submit" class="btn btn-primary mx-3 mt-3" style="float: right;" id="btn-genToken">Generar token</button>
 			</div>
 		</div>
 		<div class="row mt-2 mb-3" id="yaTienesCuenta">

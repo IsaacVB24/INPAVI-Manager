@@ -11,7 +11,7 @@
   <script src="../js/ingresarToken.js" defer></script>
   <script src="../js/general.js"></script>
 </head>
-<body onload="nav()">
+<body>
   <div id="barraNav"></div>
   <div class="container m-5" id="datosTrasValidacion">
     <div class="row">
@@ -56,7 +56,7 @@
         <input type="text" class="shadow form-control" id="token" placeholder="Ingrese su sede" name="token" required autocomplete="off" maxlength="10" style="background-color: rgb(207, 208, 208);">
         <label for="token" class="ms-2">Código:</label>
       </div>
-      <button type="submit" class="btn btn-primary col-auto" onclick="validarToken()">Validar token</button>
+      <button id="btn-validarToken" type="submit" class="btn btn-primary col-auto">Validar token</button>
     </div>
   </div>
 </body>
