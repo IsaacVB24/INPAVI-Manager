@@ -5,7 +5,8 @@
     "main": "servidor.js",
     "scripts": {
         "test": "echo \"Error: no test specified\" && exit 1",
-        "start": "node servidor.js"
+        "start": "node servidor.js",
+        "pm2-start": "pm2 start servidor.js"
     },
     "repository": {
         "type": "git",
