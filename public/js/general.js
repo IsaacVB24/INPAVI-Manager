@@ -66,6 +66,12 @@ function mostrarModal(titulo, mensaje, modal) {
   modal.show();
 }
 
+function tratarFecha(fecha) {
+  const [año, mes, dia] = fecha.split('-');
+  const meses = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'otubre', 'noviembre', 'diciembre'];
+  return (`${dia} de ${meses[parseInt(mes, 10) - 1]} de ${año}`);
+};
+
 document.addEventListener('DOMContentLoaded', () => {
   get('barraNav').innerHTML = barraNav;
 });

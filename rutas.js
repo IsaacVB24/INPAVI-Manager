@@ -136,6 +136,11 @@ router.get('/declinadoPreviamente', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'html', 'usuarioYaDeclinado.html'));
 });
 
+// Ruta para redirigir al usuario a la pantalla de visualización de los datos de un voluntario
+router.get('/datosVoluntario', verificarSesionYStatus, (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'html', 'datosVoluntario.html'));
+});
+
 // Ruta para el inicio de sesión
 router.post('/login', async (req, res) => {
   const { correo, contraseña } = req.body;
@@ -671,7 +676,7 @@ router.get('/obtenerBotones', (req, res) => {
         case 2: // Delegado
           botones = [
             { nombre: 'Registrar a un voluntario', ruta: '/altaVoluntario', inactivo: false },
-            { nombre: 'Ver la información de un voluntario', ruta: '/infoVoluntario', inactivo: true }
+            { nombre: 'Ver la información de un voluntario', ruta: '/datosVoluntario', inactivo: true }
           ];
           break;
         case 3: // Coordinador DAS
@@ -689,7 +694,7 @@ router.get('/obtenerBotones', (req, res) => {
         case 5: // Equipo directo DAS
           botones = [
             { nombre: 'Registrar a un voluntario', ruta: '/altaVoluntario', inactivo: false },
-            { nombre: 'Ver la información de un voluntario', ruta: '/infoVoluntario', inactivo: true }
+            { nombre: 'Ver la información de un voluntario', ruta: '/datosVoluntario', inactivo: true }
           ];
           break;
         case 6: // Equipo directo Entrada
@@ -1062,6 +1067,74 @@ router.post('/voluntarioNuevo', (req, res) => {
   } else {
     res.redirect('/');
   }
+});
+
+router.post('/infoVoluntario', verificarSesionYStatus, (req, res) => {
+  const { id_voluntario } = req.body;
+
+  db.get(`
+    SELECT 
+      v.id_voluntario, 
+      v.id_voluntarioAsignado, 
+      va.nombre_v AS nombre_voluntarioAsignado, 
+      va.apellido_paterno_v AS apPat_voluntarioAsignado, 
+      va.apellido_materno_v AS apMat_voluntarioAsignado, 
+      v.fecha_captacion, 
+      v.fecha_alta, 
+      v.nombre_v, 
+      v.apellido_paterno_v, 
+      v.apellido_materno_v, 
+      v.identificacion, 
+      v.fecha_nacimiento, 
+      v.telefono_v, 
+      v.correo_v, 
+      v.informe_valoracion, 
+      v.fecha_baja, 
+      v.estado, 
+      v.observaciones, 
+      v.id_sede, 
+      s.sede,
+      v.personaContacto, 
+      o.ocupacion,
+      GROUP_CONCAT(DISTINCT i.interes) AS intereses,
+      GROUP_CONCAT(DISTINCT d.programa) AS derivacion,
+      GROUP_CONCAT(DISTINCT p.programa) AS valoracion,
+      GROUP_CONCAT(DISTINCT pc.contacto) AS primerosContactos
+    FROM 
+      voluntarios v
+    LEFT JOIN 
+      voluntarios va ON v.id_voluntarioAsignado = va.id_voluntario
+    LEFT JOIN 
+      ocupaciones o ON v.id_ocupacion = o.id_ocupacion
+    LEFT JOIN 
+      interesesVoluntario iv ON v.id_voluntario = iv.id_voluntario
+    LEFT JOIN 
+      intereses i ON iv.id_interes = i.id_interes
+    LEFT JOIN 
+      derivacionVoluntario dv ON v.id_voluntario = dv.id_voluntario
+    LEFT JOIN 
+      programas d ON dv.id_derivacion = d.id_programa
+    LEFT JOIN 
+      valoracionVoluntario vv ON v.id_voluntario = vv.id_voluntario
+    LEFT JOIN 
+      programas p ON vv.id_valoracion = p.id_programa
+    LEFT JOIN 
+      primerosContactosVoluntario pcv ON v.id_voluntario = pcv.id_voluntario
+    LEFT JOIN 
+      primerosContactos pc ON pcv.id_contacto = pc.id_contacto
+    LEFT JOIN 
+      sedes s ON v.id_sede = s.id_sede
+    WHERE v.id_voluntario = ?`, [id_voluntario], (err, row) => {
+      if(err) {
+        return res.status(500).json({ mensaje: 'Error al consultar datos del voluntario en la base de datos' });
+      }
+      if(row) {
+        return res.status(200).json({ row });
+      } else {
+        return res.status(404).json({ mensaje: 'No se encontró el voluntario buscado' });
+      }
+    }
+  );
 });
 
 // Función para enviar correo para reestablecer contraseña

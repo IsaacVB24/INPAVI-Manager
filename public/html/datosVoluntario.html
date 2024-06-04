@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+	<title>Visualización de voluntario</title>
+	<meta charset="UTF-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="../css/formatoGeneral.css">
+	<link href="../bootstrap-5.3.3-dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="../css/style1.css">
+	<script src="../bootstrap-5.3.3-dist/js/bootstrap.bundle.min.js"></script>
+	<script src="../js/datosVoluntario.js" defer></script>
+    <script src="../js/general.js"></script>
+</head>
+<body>
+    <div id="barraNav"></div>
+	<div id="alertas"></div>
+	<div class="container">
+        <div class="d-flex justify-content-between align-items-center mt-3">
+            <div class="p-2">
+                <a href="/tablero" style="color: white;">
+                    <button type="button" class="btn btn-secondary">Regresar</button>
+                </a>
+            </div>
+            <div class="text-center mt-3 d-flex">
+                <p id="textoFecha"></p><span id="fecha"></span>
+            </div>
+        </div>
+		
+		<div class="mt-3" id="datosVoluntario">
+            <div class="input-group mb-1">
+                <span class="input-group-text" style="width: 12ch;">Nombre(s):</span>
+                <input id="nombres" type="text" class="form-control" placeholder="Nombre(s)">
+            </div>
+            <div class="input-group mb-3">
+                <span class="input-group-text" style="width: 12ch;">Apellidos:</span>
+                <input id="apPat" type="text" class="form-control" placeholder="Apellido paterno">
+                <input id="apMat" type="text" class="form-control" placeholder="Apellido materno">
+            </div>
+
+            <div class="input-group mb-3">
+                <span class="input-group-text">Tipo de voluntario:</span>
+                <input id="tipoVoluntario" type="text" class="form-control" placeholder="Informe valoración">
+            </div>
+
+            <div class="input-group mb-1">
+                <span class="input-group-text">Fecha de nacimiento:</span>
+                <input type="text" id="fechaNacimiento" class="form-control" placeholder="Fecha de nacimiento">
+            </div>
+            <div class="input-group mb-1">
+                <span class="input-group-text">Correo electrónico:</span>
+                <input type="text" id="correo" class="form-control" placeholder="Correo electrónico">
+            </div>
+            <div class="input-group mb-1">
+                <span class="input-group-text">Teléfono:</span>
+                <input type="text" id="telefono" class="form-control" placeholder="Teléfono">
+            </div>
+            <div class="input-group mb-1">
+                <span class="input-group-text">Identificacion:</span>
+                <input type="text" id="identificacion" class="form-control" placeholder="Identificación">
+            </div>
+            <div class="input-group mb-1">
+                <span class="input-group-text">Ocupación:</span>
+                <input type="text" id="ocupacion" class="form-control" placeholder="Ocupación">
+            </div>
+            <div class="input-group mb-3">
+                <span class="input-group-text">Intereses:</span>
+                <textarea id="intereses" class="form-control" placeholder="Intereses del voluntario"></textarea>
+            </div>
+
+            <div class="input-group mb-1" id="divFechaCaptacion">
+                <span class="input-group-text">Fecha captación:</span>
+                <input type="text" id="fechaCaptacion" class="form-control" placeholder="Fecha captación">
+            </div>
+            <div class="input-group mb-3">
+                <span class="input-group-text">Sede:</span>
+                <input type="text" id="sede" class="form-control" placeholder="Sede">
+            </div>
+
+            <div class="input-group mb-1">
+                <span class="input-group-text">Persona de contacto:</span>
+                <input type="text" id="personaContacto" class="form-control" placeholder="Persona de contacto">
+            </div>
+            <div class="input-group mb-1">
+                <span class="input-group-text">Voluntario asignado:</span>
+                <input type="text" id="internoAsignado" class="form-control" placeholder="Voluntario interno asignado">
+            </div>
+            <div class="input-group mb-1">
+                <span class="input-group-text">Valoración:</span>
+                <textarea id="valoracion" class="form-control" placeholder="Valoración del voluntario"></textarea>
+            </div>
+            <div class="input-group mb-1">
+                <span class="input-group-text">Primeros contactos:</span>
+                <textarea id="primerosContactos" class="form-control" placeholder="Primeros contactos del voluntario"></textarea>
+            </div>
+            <div class="input-group mb-1">
+                <span class="input-group-text">Derivación:</span>
+                <textarea id="derivacion" class="form-control" placeholder="Derivación del voluntario"></textarea>
+            </div>
+
+            <div class="input-group mb-3">
+                <span class="input-group-text">Observaciones:</span>
+                <textarea id="observaciones" class="form-control" placeholder="Observaciones sobre el voluntario" rows="4"></textarea>
+            </div>
+		  <button type="submit" class="btn btn-primary mt-3 mb-3" id="registroVoluntario" style="float: right;">Registrar nuevo voluntario</button>
+		</div>
+	</div>
+</body>
+</html>

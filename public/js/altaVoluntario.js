@@ -373,6 +373,7 @@ function altaVoluntario(){
         }
     }
     
+    const fechaNacimientoTratada = tratarFecha(fechaNacimiento);
     const [año, mes, dia] = fechaNacimiento.split('-');
     var fechaActual = new Date();
     var añoActual = fechaActual.getFullYear();
@@ -380,8 +381,6 @@ function altaVoluntario(){
         mostrarModal('Error en la fecha de nacimiento', 'Se debe ingresar una fecha de nacimiento válida para el voluntario.', modal);
         return;
     }
-    const meses = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'otubre', 'noviembre', 'diciembre'];
-    const nombreMes = meses[parseInt(mes, 10) - 1];
     const interesesConf = formateoArregloParaImpresion(intereses);
     const valoracionConf = formateoArregloParaImpresion(nombresValoracion);
     const contactosConf = formateoArregloParaImpresion(nombresContactos);
@@ -391,7 +390,7 @@ function altaVoluntario(){
     mostrarModal('Confirmación', `¿Realmente deseas registrar al siguiente voluntario? <br><br>
     <ul id="datosConfirmacion">
         <li><p><span class="fw-bold">Nombre completo:</span> ${nombres} ${apellidoP} ${apellidoM}</p></li>
-        <li><p><span class="fw-bold">Fecha de nacimiento:</span> ${dia} de ${nombreMes} de ${año}</p></li>
+        <li><p><span class="fw-bold">Fecha de nacimiento:</span> ${fechaNacimientoTratada}</p></li>
         <li><p><span class="fw-bold">Identificación:</span> ${identificacion}</p></li>
         <li><p><span class="fw-bold">Teléfono:</span> ${telefono}</p></li>
         <li><p><span class="fw-bold">Correo electrónico:</span> ${correo}</p></li>

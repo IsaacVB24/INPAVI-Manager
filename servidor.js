@@ -17,8 +17,30 @@ app.use(
   helmet.contentSecurityPolicy({
     directives: {
       defaultSrc: ["'self'"],
-      scriptSrc: ["'self'", "'unsafe-inline'", "https://code.jquery.com", "https://cdn.jsdelivr.net"]
-    },
+      scriptSrc: [
+        "'self'", 
+        "'unsafe-inline'", 
+        "https://code.jquery.com", 
+        "https://cdn.jsdelivr.net", 
+        "https://stackpath.bootstrapcdn.com"
+      ],
+      styleSrc: [
+        "'self'", 
+        "'unsafe-inline'", 
+        "https://stackpath.bootstrapcdn.com",
+        "https://fonts.googleapis.com",
+        "https://cdn.materialdesignicons.com",
+        "https://cdn.jsdelivr.net"
+      ],
+      fontSrc: [
+        "'self'",
+        "https://fonts.gstatic.com",
+        "https://cdn.materialdesignicons.com",
+        "https://cdn.jsdelivr.net"
+      ],
+      imgSrc: ["'self'", "data:"],
+      connectSrc: ["'self'"]
+    }
   })
 );
 
