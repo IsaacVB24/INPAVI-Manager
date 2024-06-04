@@ -658,7 +658,7 @@ router.post('/obtenerDatos', (req, res) => {
 router.get('/obtenerBotones', (req, res) => {
   // Verifica si hay un usuario en la sesión
   if (req.session && req.session.usuario) {
-    const { nombre, id_rol } = req.session.usuario;
+    const { nombre, id_rol, id_sede } = req.session.usuario;
 
     db.get('SELECT rol FROM roles WHERE id_rol=?', [id_rol], (err, row) => {
       if(err) res.status(500).json({ mensaje: 'Error al consultar el rol del usuario' });
@@ -670,7 +670,7 @@ router.get('/obtenerBotones', (req, res) => {
         case 1: // Supervisor
           botones = [
             { nombre: 'Botón 1', ruta: '/ruta1' },
-            { nombre: 'Botón 2', ruta: '/ruta2' }
+            { nombre: 'Ver la información de un voluntario', ruta: '/datosVoluntario', inactivo: true }
           ];
           break;
         case 2: // Delegado
@@ -708,7 +708,7 @@ router.get('/obtenerBotones', (req, res) => {
       }
 
       // Enviar los botones y el status al cliente
-      res.json({ botones, nombre, rol, id_rol });
+      res.json({ botones, nombre, rol, id_rol, id_sede });
     });
   } else {
     res.redirect('/');
@@ -770,29 +770,41 @@ router.get('/obtenerNombreVoluntarios', verificarSesionYStatus, (req, res) => {
 router.get('/obtenerVoluntariosEquipoDirecto', (req, res) => {
   // Verifica si hay un usuario en la sesión
   if (req.session && req.session.usuario) {
-    const { id_sede } = req.session.usuario;
-    
-    db.all(
-      `SELECT 
-      v.id_voluntario, 
-      v.nombre_v, 
-      v.apellido_paterno_v, 
-      v.informe_valoracion, 
-      o.ocupacion, 
-      i.interes, 
-      p.programa AS derivacion, 
-      pc.contacto AS primeros_contactos
-        FROM voluntarios v 
-        LEFT JOIN ocupaciones o ON v.id_ocupacion = o.id_ocupacion 
-        LEFT JOIN interesesVoluntario iv ON v.id_voluntario = iv.id_voluntario 
-        LEFT JOIN intereses i ON iv.id_interes = i.id_interes 
+    const { id_sede, id_rol } = req.session.usuario;
+    let consulta = 
+    `SELECT
+      v.id_voluntario,
+      v.nombre_v,
+      v.apellido_paterno_v,
+      v.informe_valoracion,
+      o.ocupacion,
+      i.interes,
+      p.programa AS derivacion,
+      pc.contacto AS primeros_contactos,
+      s.sede AS sede
+        FROM voluntarios v
+        LEFT JOIN ocupaciones o ON v.id_ocupacion = o.id_ocupacion
+        LEFT JOIN interesesVoluntario iv ON v.id_voluntario = iv.id_voluntario
+        LEFT JOIN intereses i ON iv.id_interes = i.id_interes
         LEFT JOIN derivacionVoluntario dv ON v.id_voluntario = dv.id_voluntario
         LEFT JOIN programas p ON dv.id_derivacion = p.id_programa
         LEFT JOIN primerosContactosVoluntario pcv ON v.id_voluntario = pcv.id_voluntario
         LEFT JOIN primerosContactos pc ON pcv.id_contacto = pc.id_contacto
-        WHERE v.estado=1 AND v.id_sede=?`, [id_sede], (err, rows) => {
+        LEFT JOIN sedes s ON v.id_sede = s.id_sede
+        `;
+    let parametros = [];
+    if(id_rol === 1) {
+      consulta += ' WHERE v.estado=1';
+    } else if(id_rol === 2 && id_sede === 1) {
+      consulta += ' WHERE v.estado=1 AND v.id_sede IN (1,2,3,4)';
+    } else if(id_rol !== 2) {
+      consulta += ' WHERE v.estado=1 AND v.id_sede=?';
+      parametros.push(id_sede);
+    }
+    
+    db.all(consulta, parametros, (err, rows) => {
         if (err) {
-          res.status(500).json({ mensaje: 'Error al consultar los voluntarios activos' });
+          res.status(500).json({ mensaje: 'Error al consultar los voluntarios activos: ' + err, consulta, parametros });
         } else {
           if (rows) {
             const voluntarios = {};
@@ -807,7 +819,8 @@ router.get('/obtenerVoluntariosEquipoDirecto', (req, res) => {
                   ocupacion: row.ocupacion,
                   intereses: [],
                   derivacion: [],
-                  primeros_contactos: []
+                  primeros_contactos: [],
+                  sede: row.sede
                 };
               }
               if (row.interes) {

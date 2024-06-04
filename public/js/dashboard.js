@@ -23,13 +23,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 nvoA.innerHTML = boton.nombre;
                 divBotones.appendChild(nvoA);
             });
-            if(respuesta.id_rol === 2 || respuesta.id_rol === 5) {
+            const rol = respuesta.id_rol;
+            if(rol === 1 || rol === 2 || rol === 3 || rol === 5) {
                 const divElementosExtra = get('elementosExtra');
                 divElementosExtra.innerHTML = `
                 <div class="table-responsive" id="tablaVoluntarios">      
                     <table class="table table-hover" style="text-align: center;">
                         <thead>
-                            <tr>
+                            <tr id="encabezados">
                                 <th>Nombre(s)</th>
                                 <th>Apellido paterno</th>
                                 <th>Ocupación</th>
@@ -43,6 +44,11 @@ document.addEventListener('DOMContentLoaded', () => {
                         </tbody>
                     </table>
                 </div>`;
+                if(rol === 1 || (rol === 2 && respuesta.id_sede === 1)) {
+                    const encabezadoSede = crear('th');
+                    encabezadoSede.innerHTML = 'Sede'
+                    get('encabezados').appendChild(encabezadoSede);
+                }
                 fetch('/obtenerVoluntariosEquipoDirecto', {
                     method: 'GET',
                     headers: {
@@ -88,6 +94,9 @@ document.addEventListener('DOMContentLoaded', () => {
                             <td class='align-middle'>${primerosContactos || 'Sin información'}</td>
                             <td class='align-middle'>${informacion.informe_valoracion}</td>
                         `;
+                        if(rol === 1 || (rol === 2 || respuesta.id_sede === 1)) {
+                            fila.innerHTML += `<td class='align-middle'>${informacion.sede}</td>`;
+                        }
                         fila.addEventListener('click', () => {seleccionVoluntario(informacion.id_voluntario)});
                         tabla.appendChild(fila);
                     });

@@ -18,7 +18,6 @@ document.addEventListener('DOMContentLoaded', () => {
             throw new Error('Error al obtener las sedes');
         })
         .then(data => {
-            console.log(data);
             const voluntario = data.row;
             const textoFecha = get('textoFecha');
             const fecha = get('fecha');
