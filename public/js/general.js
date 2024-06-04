@@ -24,6 +24,7 @@ const barraNav = `<nav class="navbar navbar-expand-lg">
   </ul>
 </div>
 </nav>`;
+const ruta = window.location.pathname;
 
 function idInnerHTML(id, contenido){
   get(id).innerHTML = contenido;

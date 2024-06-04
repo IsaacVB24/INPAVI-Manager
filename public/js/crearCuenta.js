@@ -179,7 +179,9 @@ function validarContraseña(contraseña) {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-    cargarSedesYRoles();
-    get('cambio').addEventListener('click', visibilidadDeContraseña);
-    get('btn-genToken').addEventListener('click', validarNuevaCuenta);
+    if(ruta === '/crearCuenta'){
+        cargarSedesYRoles();
+        get('cambio').addEventListener('click', visibilidadDeContraseña);
+        get('btn-genToken').addEventListener('click', validarNuevaCuenta);
+    }
 });
