@@ -73,6 +73,80 @@ function tratarFecha(fecha) {
   return (`${dia} de ${meses[parseInt(mes, 10) - 1]} de ${año}`);
 };
 
+function formateoArregloParaImpresion(arreglo) {
+  if(arreglo.length === 0) {
+      return '-';
+  } else {
+      let total = '';
+      arreglo.forEach((elemento, indice) => {
+          if((indice + 1) !== arreglo.length) {
+              total += (elemento + ', ');
+          } else {
+              total += elemento;
+          }
+      });
+      return total;
+  }
+}
+
+function permitirSoloNombres(campo) {
+  campo.addEventListener('input', function() {
+      let texto = campo.value;
+      texto = texto.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s]/g, '');
+      // Convertir a minúsculas
+      texto = texto.toLowerCase();
+
+      // Capitalizar la primera letra de cada palabra
+      texto = texto.replace(/\b\w/g, function(letra) {
+          return letra.toUpperCase();
+      });
+      
+      // Mantener todo el texto en minúsculas excepto las primeras letras
+      texto = texto.split(' ').map(palabra => {
+          return palabra.charAt(0).toUpperCase() + palabra.slice(1).toLowerCase();
+      }).join(' ');
+
+      // Actualizar el valor del input
+      this.value = texto;
+  });
+}
+
+function permitirSoloLetras(campo) {
+  campo.addEventListener('input', function() {
+      let texto = campo.value;
+      texto = texto.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s]/g, '');
+      
+      // Convertir a minúsculas excepto la primera letra de la oración
+      texto = texto.charAt(0).toUpperCase() + texto.slice(1).toLowerCase();
+
+      // Actualizar el valor del input
+      this.value = texto;
+  });
+}
+
+function bloquearCaracteresEspeciales(campo) {
+  campo.addEventListener('input', function() {
+      let texto = campo.value;
+      // Bloquear caracteres especiales (algunos)
+      texto = texto.replace(/[@#$%^&*()_+\-=\[\]{};':"\\|<>\/~`]/g, '');
+
+      // Actualizar el valor del input
+      this.value = texto;
+  });
+}
+
+function permitirSoloNumeros(input) {
+  input.addEventListener('input', function() {
+      let valor = input.value;
+      
+      // Reemplazar cualquier carácter que no sea un número con una cadena vacía
+      valor = valor.replace(/\D/g, '');
+
+      // Actualizar el valor del campo de fecha de nacimiento con solo números
+      input.value = valor;
+  });
+}
+
 document.addEventListener('DOMContentLoaded', () => {
   get('barraNav').innerHTML = barraNav;
   //if(get('alertas')) {get('alertas').innerHTML = `<div class="alert alert-warning alert-dismissible"><button type="button" class="btn-close" data-bs-dismiss="alert"></button><strong>¡Guarda tus cambios!</strong> El servidor se reiniciará pronto.</div>`;}

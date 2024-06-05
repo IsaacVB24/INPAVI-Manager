@@ -2,7 +2,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.querySelectorAll('input').forEach(input => {input.readOnly = true;});
     document.querySelectorAll('textarea').forEach(textarea => {textarea.readOnly = true; textarea.style.resize = 'none';});
     const id_voluntario = localStorage.getItem('id');
-    //localStorage.removeItem('id');
+    localStorage.clear();
     //return;
     fetch('/infoVoluntario', {
         method: 'POST',

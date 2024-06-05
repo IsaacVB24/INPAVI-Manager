@@ -1,6 +1,7 @@
 const colorFondoBotonSeleccionado = 'rgb(123, 168, 133)';
 
 document.addEventListener('DOMContentLoaded', () => {
+    if(!get('alta')) return;
     get('alertas').insertAdjacentHTML('beforeend', ventanaModal);
     const selectOcupaciones = get('ocupacionV');
     const ulIntereses = get('listaIntereses');
@@ -20,17 +21,7 @@ document.addEventListener('DOMContentLoaded', () => {
     get('listaIntereses').addEventListener('click', function(event) {event.stopPropagation();});
 
     const inputTelefono = get('telefonoV');
-    // Agregar un event listener para el evento input
-    inputTelefono.addEventListener('input', function(event) {
-        // Obtener el valor actual del campo de fecha de nacimiento
-        let valor = inputTelefono.value;
-        
-        // Reemplazar cualquier carácter que no sea un número con una cadena vacía
-        valor = valor.replace(/\D/g, '');
-
-        // Actualizar el valor del campo de fecha de nacimiento con solo números
-        inputTelefono.value = valor;
-    });
+    permitirSoloNumeros(inputTelefono);
 
     botonesInformeValoracion.forEach(boton => {
         boton.addEventListener('click', () => {botonSeleccionado(boton);});
@@ -78,7 +69,7 @@ document.addEventListener('DOMContentLoaded', () => {
           const nvoLabel = crear('label');
           nvoLabel.className = 'form-check-label';
           nvoLabel.htmlFor = nvoInput.id;
-          nvoLabel.innerText = interes;
+          nvoLabel.innerHTML = `&nbsp${interes}`;
 
           const nvoLi = crear('li');
           nvoLi.id = 'interes_' + (indice + 1);
@@ -494,66 +485,4 @@ function altaHoy() {
 
 function asignarOupacion(nombreOcupacion) {
     ocupacion = nombreOcupacion;
-}
-
-function formateoArregloParaImpresion(arreglo) {
-    if(arreglo.length === 0) {
-        return '-';
-    } else {
-        let total = '';
-        arreglo.forEach((elemento, indice) => {
-            if((indice + 1) !== arreglo.length) {
-                total += (elemento + ', ');
-            } else {
-                total += elemento;
-            }
-        });
-        return total;
-    }
-}
-
-function permitirSoloNombres(campo) {
-    campo.addEventListener('input', function() {
-        let texto = campo.value;
-        texto = texto.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s]/g, '');
-        // Convertir a minúsculas
-        texto = texto.toLowerCase();
-
-        // Capitalizar la primera letra de cada palabra
-        texto = texto.replace(/\b\w/g, function(letra) {
-            return letra.toUpperCase();
-        });
-        
-        // Mantener todo el texto en minúsculas excepto las primeras letras
-        texto = texto.split(' ').map(palabra => {
-            return palabra.charAt(0).toUpperCase() + palabra.slice(1).toLowerCase();
-        }).join(' ');
-
-        // Actualizar el valor del input
-        this.value = texto;
-    });
-}
-
-function permitirSoloLetras(campo) {
-    campo.addEventListener('input', function() {
-        let texto = campo.value;
-        texto = texto.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s]/g, '');
-        
-        // Convertir a minúsculas excepto la primera letra de la oración
-        texto = texto.charAt(0).toUpperCase() + texto.slice(1).toLowerCase();
-
-        // Actualizar el valor del input
-        this.value = texto;
-    });
-}
-
-function bloquearCaracteresEspeciales(campo) {
-    campo.addEventListener('input', function() {
-        let texto = campo.value;
-        // Bloquear caracteres especiales (algunos)
-        texto = texto.replace(/[@#$%^&*()_+\-=\[\]{};':"\\|<>\/~`]/g, '');
-
-        // Actualizar el valor del input
-        this.value = texto;
-    });
 }

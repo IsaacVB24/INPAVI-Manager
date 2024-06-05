@@ -60,7 +60,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     const tabla = get('contenidoTabla');
                     if(respuesta.length === 0) tabla.innerHTML = `
                     <tr>
-                        <td colspan="7" id="noVoluntarios">No hay voluntarios registrados aún, da clic en el botón para registrar a un voluntario.</td>
+                        <td colspan="${get('encabezados').querySelectorAll('th').length}" id="noVoluntarios">No hay voluntarios registrados aún, da clic en el botón para registrar a un voluntario.</td>
                     </tr>
                     `;
                     respuesta.forEach(informacion => {

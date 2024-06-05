@@ -141,6 +141,10 @@ router.get('/datosVoluntario', verificarSesionYStatus, (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'html', 'datosVoluntario.html'));
 });
 
+router.get('/modificarVoluntario', verificarSesionYStatus, (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'html', 'modificacionVoluntario.html'));
+});
+
 // Ruta para el inicio de sesión
 router.post('/login', async (req, res) => {
   const { correo, contraseña } = req.body;
@@ -274,7 +278,7 @@ router.post('/altaUsuario', async (req, res) => {
 
 // Obtener las sedes
 router.get('/obtenerSedes', (req, res) => {
-  db.all('SELECT sede FROM sedes;', (err, rows) => {
+  db.all('SELECT * FROM sedes;', (err, rows) => {
     if(err) {
       res.status(500).json({ mensaje: 'No se pudieron consultar las sedes' });
     } else {
@@ -669,7 +673,6 @@ router.get('/obtenerBotones', (req, res) => {
       switch (id_rol) {
         case 1: // Supervisor
           botones = [
-            { nombre: 'Botón 1', ruta: '/ruta1' },
             { nombre: 'Ver la información de un voluntario', ruta: '/datosVoluntario', inactivo: true }
           ];
           break;
@@ -681,14 +684,13 @@ router.get('/obtenerBotones', (req, res) => {
           break;
         case 3: // Coordinador DAS
           botones = [
-            { nombre: 'Botón X', ruta: '/rutaX' },
-            { nombre: 'Botón Y', ruta: '/rutaY' }
+            { nombre: 'Registrar a un voluntario', ruta: '/altaVoluntario', inactivo: false },
+            { nombre: 'Modificar información de un voluntario', ruta: '/modificarVoluntario', inactivo: true },
+            { nombre: 'Ver la información de un voluntario', ruta: '/datosVoluntario', inactivo: true }
           ];
           break;
         case 4: // Coordinador Entrada
           botones = [
-            { nombre: 'Botón X', ruta: '/rutaX' },
-            { nombre: 'Botón Y', ruta: '/rutaY' }
           ];
           break;
         case 5: // Equipo directo DAS
@@ -699,8 +701,6 @@ router.get('/obtenerBotones', (req, res) => {
           break;
         case 6: // Equipo directo Entrada
           botones = [
-            { nombre: 'Botón X', ruta: '/rutaX' },
-            { nombre: 'Botón Y', ruta: '/rutaY' }
           ];
           break;
         default:
@@ -716,7 +716,7 @@ router.get('/obtenerBotones', (req, res) => {
 });
 
 router.get('/obtenerOcupaciones', verificarSesionYStatus, (req, res) => {
-  db.all('SELECT ocupacion FROM ocupaciones', (err, rows) => {
+  db.all('SELECT * FROM ocupaciones', (err, rows) => {
     if(err) {
       res.status(500).json({ mensaje: 'Error al consultar las ocupaciones en la base de datos' });
     } else {
@@ -734,7 +734,7 @@ router.get('/obtenerOcupaciones', verificarSesionYStatus, (req, res) => {
 });
 
 router.get('/obtenerIntereses', verificarSesionYStatus, (req, res) => {
-  db.all('SELECT interes FROM intereses', (err, rows) => {
+  db.all('SELECT * FROM intereses', (err, rows) => {
     if(err) {
       res.status(500).json({ mensaje: 'Error al consultar los intereses de los voluntarios en la base de datos' });
     } else {
@@ -1107,7 +1107,8 @@ router.post('/infoVoluntario', verificarSesionYStatus, (req, res) => {
       v.observaciones, 
       v.id_sede, 
       s.sede,
-      v.personaContacto, 
+      v.personaContacto,
+      o.id_ocupacion,
       o.ocupacion,
       GROUP_CONCAT(DISTINCT i.interes) AS intereses,
       GROUP_CONCAT(DISTINCT d.programa) AS derivacion,

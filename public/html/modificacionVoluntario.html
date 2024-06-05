@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+	<title>Visualización de voluntario</title>
+	<meta charset="UTF-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="../css/formatoGeneral.css">
+	<link href="../bootstrap-5.3.3-dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="../css/style1.css">
+    <link rel="stylesheet" href="../css/modificacionVoluntario.css">
+    <link rel="stylesheet" href="../css/altaVoluntario.css">
+	<script src="../bootstrap-5.3.3-dist/js/bootstrap.bundle.min.js"></script>
+	<script src="../js/modificacionVoluntario.js" defer></script>
+    <script src="../js/altaVoluntario.js" defer></script>
+    <script src="../js/general.js"></script>
+</head>
+<body>
+    <div id="barraNav"></div>
+	<div id="alertas"></div>
+	<div class="container">
+        <div class="d-flex justify-content-between align-items-center mt-3">
+            <div class="p-2">
+                <a href="/tablero" style="color: white;">
+                    <button type="button" class="btn btn-secondary">Regresar</button>
+                </a>
+            </div>
+            <div class="text-center mt-3 d-flex">
+                <p id="textoFecha"></p><span id="fecha"></span>
+            </div>
+        </div>
+		
+		<div class="mt-3" id="datosVoluntario">
+            <div class="input-group mb-1">
+                <span class="input-group-text" style="width: 12ch;">Nombre(s):</span>
+                <input id="nombres" type="text" class="form-control" placeholder="Nombre(s)" maxlength="30">
+            </div>
+            <div class="input-group mb-3">
+                <span class="input-group-text" style="width: 12ch;">Apellidos:</span>
+                <input id="apPat" type="text" class="form-control" placeholder="Apellido paterno" maxlength="30">
+                <input id="apMat" type="text" class="form-control" placeholder="Apellido materno" maxlength="30">
+            </div>
+
+            <div class="input-group mb-3">
+                <span class="input-group-text">Tipo de voluntario:</span>
+                <select id="tipoVoluntario" class="form-select">
+                    <option value="0" disabled selected>- Seleccione una opción -</option>
+                    <option id="1" value="1">Interno</option>
+                    <option id="2" value="2">Externo temporal</option>
+                </select>
+            </div>
+
+            <div class="input-group mb-1">
+                <span class="input-group-text">Fecha de nacimiento:</span>
+                <input type="date" id="fechaNacimiento" class="form-control" placeholder="Fecha de nacimiento">
+            </div>
+            <div class="input-group mb-1">
+                <span class="input-group-text">Correo electrónico:</span>
+                <input type="text" id="correo" class="form-control" placeholder="Correo electrónico" maxlength="50">
+            </div>
+            <div class="input-group mb-1">
+                <span class="input-group-text">Teléfono:</span>
+                <input type="text" id="telefono" class="form-control" placeholder="Teléfono" maxlength="10">
+            </div>
+            <div class="input-group mb-1">
+                <span class="input-group-text">Identificacion:</span>
+                <input type="text" id="identificacion" class="form-control" placeholder="Identificación" maxlength="20">
+            </div>
+            <div class="input-group mb-3">
+                <span class="input-group-text">Ocupación:</span>
+                <select id="ocupacion" class="form-select"></select>
+            </div>
+
+            <div class="input-group mb-1" id="divFechaCaptacion">
+                <span class="input-group-text">Fecha captación:</span>
+                <input type="date" id="fechaCaptacion" class="form-control" placeholder="Fecha captación">
+            </div>
+            <div class="input-group mb-3">
+                <span class="input-group-text">Sede:</span>
+                <select id="sede" class="form-select"></select>
+            </div>
+
+            <div class="input-group mb-1">
+                <span class="input-group-text">Persona de contacto:</span>
+                <input type="text" id="personaContacto" class="form-control" placeholder="Persona de contacto" maxlength="70">
+            </div>
+            <div class="input-group mb-1">
+                <span class="input-group-text">Voluntario asignado:</span>
+                <select id="internoAsignado" class="form-select">
+                    <option value="0" selected>Sin asignación</option>
+                </select>
+            </div>
+            <div class="row mt-4">
+                <div class="form-floating col" id="divInteres">
+                    <div class="dropdown">
+                        <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownIntereses" data-bs-toggle="dropdown" aria-expanded="false" style="width: 100%;">
+                            Seleccionar intereses
+                        </button>
+                        <ul id="listaIntereses" class="dropdown-menu" aria-labelledby="dropdownIntereses" style="width: 100%; max-height: 200px; overflow-y: auto; padding-left: 5px;">
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <div class="row mt-4" style="border: 1px black solid; text-align: center; padding: 5px">
+                <div class="col" id="valoracion">
+                    <p class="h5">Valoración / Participación</p>
+                </div>
+                <div class="col" style="border-left: 1px black solid; text-align: center;" id="primerosContactos">
+                    <p class="h5">Primeros contactos</p>
+                </div>
+            </div>
+            
+            <div class=" row mt-4" style="border: 1px black solid; text-align: center; padding: 5px;" id="informeValoracion">
+                <p class="h5">Informe de valoración</p>
+                <div class="form-check">
+                    <button id="0" type="button" class="w-25">Voluntario interno</button>
+                </div>
+                <div class="form-check mt-2">
+                    <button id="1" type="button" class="w-25">Voluntario externo temporal</button>
+                </div>
+            </div>
+            <div class=" row mt-4 mb-3" style="border: 1px black solid; text-align: center; padding: 5px;" id="derivacion">
+                <div class="col">
+                    <p class="h5">Derivación</p>
+                </div>
+            </div>
+
+            <div class="input-group">
+                <span class="input-group-text">Observaciones:</span>
+                <textarea id="observaciones" class="form-control" placeholder="Observaciones sobre el voluntario" rows="4" maxlength="1000"></textarea>
+            </div>
+            <button type="submit" class="btn btn-danger mt-3 mb-3" id="modificacionVoluntario">Eliminar voluntario</button>
+            <button type="submit" class="btn btn-warning mt-3 mb-3" id="modificacionVoluntario">Dar de baja voluntario</button>
+            <button type="submit" class="btn btn-primary mt-3 mb-3" id="modificacionVoluntario" style="float: right;">Modificar datos</button>
+		</div>
+	</div>
+</body>
+</html>
