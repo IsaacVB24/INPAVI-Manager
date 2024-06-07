@@ -12,32 +12,22 @@ document.addEventListener('DOMContentLoaded', () => {
             get('username').innerHTML = respuesta.nombre;
             get('rol').innerHTML = respuesta.rol;
             const divBotones = get('botonesDinamicos');
-            respuesta.botones.forEach(boton => {
-                const nvoA = crear('a');
-                nvoA.href = boton.ruta;
-                nvoA.classList.add('btn');
-                nvoA.classList.add('btn-primary');
-                if(boton.inactivo) nvoA.classList.add('disabled');
-                nvoA.classList.add('ml-1');
-                nvoA.classList.add('mr-1');
-                nvoA.innerHTML = boton.nombre;
-                divBotones.appendChild(nvoA);
-            });
+            const flagRespuesta = respuesta;
             const rol = respuesta.id_rol;
-            if(rol === 1 || rol === 2 || rol === 3 || rol === 5) {
+            if([1,2,3,5].includes(rol)) {
                 const divElementosExtra = get('elementosExtra');
                 divElementosExtra.innerHTML = `
                 <div class="table-responsive" id="tablaVoluntarios">      
-                    <table class="table table-hover" style="text-align: center;">
+                    <table class="table" style="text-align: center;">
                         <thead>
                             <tr id="encabezados">
-                                <th>Nombre(s)</th>
-                                <th>Apellido paterno</th>
-                                <th>Ocupación</th>
-                                <th>Derivación</th>
-                                <th>Intereses</th>
-                                <th>Primeros contactos</th>
-                                <th>Tipo de voluntario</th>
+                                <th class='align-middle'>Nombre(s)</th>
+                                <th class='align-middle'>Apellido paterno</th>
+                                <th class='align-middle'>Ocupación</th>
+                                <th class='align-middle'>Derivación</th>
+                                <th class='align-middle'>Intereses</th>
+                                <th class='align-middle'>Primeros contactos</th>
+                                <th class='align-middle'>Tipo de voluntario</th>
                             </tr>
                         </thead>
                         <tbody id="contenidoTabla">
@@ -46,7 +36,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 </div>`;
                 if(rol === 1 || (rol === 2 && respuesta.id_sede === 1)) {
                     const encabezadoSede = crear('th');
-                    encabezadoSede.innerHTML = 'Sede'
+                    encabezadoSede.innerHTML = 'Sede';
+                    encabezadoSede.classList.add('align-middle');
                     get('encabezados').appendChild(encabezadoSede);
                 }
                 fetch('/obtenerVoluntariosEquipoDirecto', {
@@ -94,11 +85,85 @@ document.addEventListener('DOMContentLoaded', () => {
                             <td class='align-middle'>${primerosContactos || 'Sin información'}</td>
                             <td class='align-middle'>${informacion.informe_valoracion}</td>
                         `;
-                        if(rol === 1 || (rol === 2 || respuesta.id_sede === 1)) {
+                        if(rol === 1 || (rol === 2 && flagRespuesta.id_sede === 1)) {
                             fila.innerHTML += `<td class='align-middle'>${informacion.sede}</td>`;
                         }
-                        fila.addEventListener('click', () => {seleccionVoluntario(informacion.id_voluntario)});
                         tabla.appendChild(fila);
+                        if([1,2,3,5].includes(rol)) {
+                            const nvoTd = crear('td');
+                            nvoTd.style.height = '30px';
+                            nvoTd.classList.add('align-middle');
+                            nvoTd.style.backgroundColor = 'transparent';
+                            nvoTd.style.border = 'none';
+                            nvoTd.style.padding = '5px';
+                            const nvoIcono = crear('img');
+                            nvoIcono.src = '../img/vista.png';
+                            nvoIcono.alt = 'Ícono ojo de Freepik';
+                            nvoIcono.style.height = '30px';
+                            nvoIcono.id = `ver_${informacion.id_voluntario}`;
+                            const nvoDiv = crear('div');
+                            nvoDiv.style.width = '100%';
+                            nvoDiv.style.padding = '5px';
+                            nvoDiv.style.border = '2px solid black';
+                            nvoDiv.style.borderRadius = '5px';
+                            nvoDiv.style.backgroundColor = 'white';
+                            nvoDiv.appendChild(nvoIcono);
+                            nvoTd.appendChild(nvoDiv);
+                            fila.appendChild(nvoTd);
+                            get(`ver_${informacion.id_voluntario}`).addEventListener('click', () => {
+                                let ruta = '';
+                                localStorage.setItem('id', informacion.id_voluntario);
+                                flagRespuesta.botones.forEach(boton => {
+                                    if(boton.nombre === 'Ver la información de un voluntario') ruta = boton.ruta;
+                                });
+                                window.location = ruta;
+                            });
+                            //fila.addEventListener('click', () => {seleccionVoluntario(informacion.id_voluntario)});
+                        }
+                        if([2,3].includes(rol)) {
+                            const nvoTd = crear('td');
+                            nvoTd.style.height = '30px';
+                            nvoTd.classList.add('align-middle');
+                            nvoTd.style.backgroundColor = 'transparent';
+                            nvoTd.style.border = 'none';
+                            nvoTd.style.padding = '3px';
+                            const nvoIcono = crear('img');
+                            nvoIcono.src = '../img/editar.png';
+                            nvoIcono.alt = 'Ícono editar de Graphics Plazza';
+                            nvoIcono.style.height = '30px';
+                            nvoIcono.id = `modificar_${informacion.id_voluntario}`;
+                            const nvoDiv = crear('div');
+                            nvoDiv.style.width = '100%';
+                            nvoDiv.style.padding = '5px';
+                            nvoDiv.style.border = '2px solid black';
+                            nvoDiv.style.borderRadius = '5px';
+                            nvoDiv.style.backgroundColor = 'white';
+                            nvoDiv.appendChild(nvoIcono);
+                            nvoTd.appendChild(nvoDiv);
+                            fila.appendChild(nvoTd);
+                            get(`modificar_${informacion.id_voluntario}`).addEventListener('click', () => {
+                                let ruta = '';
+                                localStorage.setItem('id', informacion.id_voluntario);
+                                flagRespuesta.botones.forEach(boton => {
+                                    if(boton.nombre === 'Modificar información de un voluntario') ruta = boton.ruta;
+                                });
+                                window.location = ruta;
+                            });
+                        }
+                    });
+                    
+                    flagRespuesta.botones.forEach(boton => {
+                        if(boton.tipo === 'button') {
+                            const nvoA = crear('a');
+                            nvoA.href = boton.ruta;
+                            nvoA.classList.add('btn');
+                            nvoA.classList.add('btn-primary');
+                            if(boton.inactivo) nvoA.classList.add('disabled');
+                            nvoA.classList.add('ml-1');
+                            nvoA.classList.add('mr-1');
+                            nvoA.innerHTML = boton.nombre;
+                            divBotones.appendChild(nvoA);
+                        }
                     });
                 })
                 .catch(error => {

@@ -2,7 +2,7 @@
     max-height: 400px;
     overflow-y: auto;
 }
-tr td:hover {
+table img:hover {
     cursor: pointer;
 }
 #noVoluntarios {

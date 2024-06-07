@@ -673,20 +673,21 @@ router.get('/obtenerBotones', (req, res) => {
       switch (id_rol) {
         case 1: // Supervisor
           botones = [
-            { nombre: 'Ver la información de un voluntario', ruta: '/datosVoluntario', inactivo: true }
+            { nombre: 'Ver la información de un voluntario', ruta: '/datosVoluntario', inactivo: true, tipo: 'icon' }
           ];
           break;
         case 2: // Delegado
           botones = [
-            { nombre: 'Registrar a un voluntario', ruta: '/altaVoluntario', inactivo: false },
-            { nombre: 'Ver la información de un voluntario', ruta: '/datosVoluntario', inactivo: true }
+            { nombre: 'Registrar a un voluntario', ruta: '/altaVoluntario', inactivo: false, tipo: 'button' },
+            { nombre: 'Modificar información de un voluntario', ruta: '/modificarVoluntario', inactivo: true, tipo: 'icon' },
+            { nombre: 'Ver la información de un voluntario', ruta: '/datosVoluntario', inactivo: true, tipo: 'icon' }
           ];
           break;
         case 3: // Coordinador DAS
           botones = [
-            { nombre: 'Registrar a un voluntario', ruta: '/altaVoluntario', inactivo: false },
-            { nombre: 'Modificar información de un voluntario', ruta: '/modificarVoluntario', inactivo: true },
-            { nombre: 'Ver la información de un voluntario', ruta: '/datosVoluntario', inactivo: true }
+            { nombre: 'Registrar a un voluntario', ruta: '/altaVoluntario', inactivo: false, tipo: 'button' },
+            { nombre: 'Modificar información de un voluntario', ruta: '/modificarVoluntario', inactivo: true, tipo: 'icon' },
+            { nombre: 'Ver la información de un voluntario', ruta: '/datosVoluntario', inactivo: true, tipo: 'icon' }
           ];
           break;
         case 4: // Coordinador Entrada
@@ -695,8 +696,8 @@ router.get('/obtenerBotones', (req, res) => {
           break;
         case 5: // Equipo directo DAS
           botones = [
-            { nombre: 'Registrar a un voluntario', ruta: '/altaVoluntario', inactivo: false },
-            { nombre: 'Ver la información de un voluntario', ruta: '/datosVoluntario', inactivo: true }
+            { nombre: 'Registrar a un voluntario', ruta: '/altaVoluntario', inactivo: false, tipo: 'button' },
+            { nombre: 'Ver la información de un voluntario', ruta: '/datosVoluntario', inactivo: true, tipo: 'icon' }
           ];
           break;
         case 6: // Equipo directo Entrada
