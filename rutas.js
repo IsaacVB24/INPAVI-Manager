@@ -8,7 +8,7 @@ const nodemailer = require('nodemailer');
 const crypto = require('crypto');
 
 const puerto = '8444';
-const dominio = `${process.env.DOMINIO}:${puerto}`;
+const dominio = `${process.env.DOMINIO}`;
 // Variables definidas en ~/.bashrc en Linux
 const correoParaEnvios = process.env.CORREO_ENVIOS;
 const claveCorreoEnvios = process.env.CLAVE;

@@ -27,6 +27,7 @@
         "express": "^4.17.1",
         "helmet": "^4.6.0",
         "express-session": "^1.17.1",
-        "path": "^0.12.7"
+        "path": "^0.12.7",
+        "nodemailer": "^6.9.13"
       }
 }
