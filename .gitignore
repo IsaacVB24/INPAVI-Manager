@@ -1,2 +1,4 @@
 *.db
 *.zip
+*.crt
+*.key
