@@ -163,9 +163,11 @@ db.serialize(() => {
     observaciones TEXT,
     id_sede INT NOT NULL,
     personaContacto TEXT,
+    id_usuarioQueDaDeAlta INT NOT NULL,
     FOREIGN KEY (id_voluntarioAsignado) REFERENCES voluntarios(id_voluntario),
     FOREIGN KEY (id_ocupacion) REFERENCES ocupaciones(id_ocupacion),
-    FOREIGN KEY (id_sede) REFERENCES sedes(id_sede)
+    FOREIGN KEY (id_sede) REFERENCES sedes(id_sede),
+    FOREIGN KEY (id_usuarioQueDaDeAlta) REFERENCES usuarios(id_usuario)
   )`);
 
   // Crear índices para la tabla de voluntarios

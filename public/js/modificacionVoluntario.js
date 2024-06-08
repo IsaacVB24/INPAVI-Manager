@@ -107,7 +107,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     selectInternoAsignado.selectedIndex = voluntario.id_voluntarioAsignado;
                     observaciones.value = voluntario.observaciones || '-';
 
-                    const interesesVoluntario = voluntario.intereses.split(',');
+                    let interesesVoluntario;
+                    if(voluntario.intereses) interesesVoluntario = voluntario.intereses.split(',');
                     intereses.forEach((elemento, indice) => {
                         const interes = elemento.interes;
                       
@@ -126,8 +127,8 @@ document.addEventListener('DOMContentLoaded', () => {
                         nvoLi.id = 'interes_' + (indice + 1);
                         nvoLi.appendChild(nvoInput);
                       
-                        if (interesesVoluntario.includes(interes)) {
-                          nvoInput.checked = true;
+                        if (interesesVoluntario) {
+                          if (interesesVoluntario.includes(interes)) nvoInput.checked = true;
                         }
                       
                         nvoLi.appendChild(nvoLabel);

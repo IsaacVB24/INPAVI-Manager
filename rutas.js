@@ -157,7 +157,7 @@ router.post('/login', async (req, res) => {
 
   try {
     // Buscar el usuario en la base de datos por correo
-    db.get('SELECT contraseña, status, id_rol, nombre_usuario, id_sede FROM usuarios WHERE correo = ?', [correo], async (err, row) => {
+    db.get('SELECT contraseña, status, id_rol, nombre_usuario, id_sede, id_usuario FROM usuarios WHERE correo = ?', [correo], async (err, row) => {
       if (err) {
         console.error('Error al buscar usuario:', err);
         res.status(500).json({ mensaje: 'Error al buscar usuario en la base de datos' });
@@ -167,7 +167,7 @@ router.post('/login', async (req, res) => {
           const match = await bcrypt.compare(contraseña, row.contraseña);
           if (match) {
             // Establecer la sesión del usuario
-            req.session.usuario = { correo, status: row.status, id_rol: row.id_rol, nombre: row.nombre_usuario, id_sede: row.id_sede }; // Puedes agregar más información del usuario si lo necesitas
+            req.session.usuario = { correo, status: row.status, id_rol: row.id_rol, nombre: row.nombre_usuario, id_sede: row.id_sede, id_usuario: row.id_usuario }; // Puedes agregar más información del usuario si lo necesitas
             if(row.status === 0) res.status(404).json({ mensaje: 'Correo no encontrado' });
             if(row.status === 1) res.status(200).json({ mensaje: 'Inicio de sesión correcto', ruta: '/tablero' });
             if(row.status === 2) res.status(200).json({ mensaje: 'Inicio de sesión correcto', ruta: '/ingresarToken', tipoUsuario: row.status });
@@ -723,7 +723,7 @@ router.get('/obtenerBotones', (req, res) => {
 });
 
 router.get('/obtenerOcupaciones', verificarSesionYStatus, (req, res) => {
-  db.all('SELECT * FROM ocupaciones', (err, rows) => {
+  db.all('SELECT * FROM ocupaciones ORDER BY ocupacion', (err, rows) => {
     if(err) {
       res.status(500).json({ mensaje: 'Error al consultar las ocupaciones en la base de datos' });
     } else {
@@ -741,7 +741,7 @@ router.get('/obtenerOcupaciones', verificarSesionYStatus, (req, res) => {
 });
 
 router.get('/obtenerIntereses', verificarSesionYStatus, (req, res) => {
-  db.all('SELECT * FROM intereses', (err, rows) => {
+  db.all('SELECT * FROM intereses ORDER BY interes', (err, rows) => {
     if(err) {
       res.status(500).json({ mensaje: 'Error al consultar los intereses de los voluntarios en la base de datos' });
     } else {
@@ -761,23 +761,32 @@ router.get('/obtenerIntereses', verificarSesionYStatus, (req, res) => {
 router.get('/obtenerNombreVoluntarios', (req, res) => {
   if (req.session && req.session.usuario) {
     const { id_sede } = req.session.usuario;
-    db.all('SELECT nombre_v, apellido_paterno_v, apellido_materno_v FROM voluntarios WHERE estado=1 AND id_sede=?', id_sede, (err, rows) => {
+    const voluntarios = [];
+    db.all('SELECT nombre_usuario, apellido_paterno, apellido_materno FROM usuarios WHERE status=1 AND id_sede=? AND id_rol IN(2,3,4,5,6) ORDER BY nombre_usuario', [id_sede], (err, rows) => {
       if(err) {
-        res.status(500).json({ mensaje: 'Error al consultar los voluntarios actuales en la base de datos' });
+        return res.status(500).json({ mensaje: 'Error al consultar los voluntarios usuariosdel sistema ' + err });
       } else {
         if(rows) {
-          const voluntarios = [];
-          rows.forEach(voluntario => {
-            voluntarios.push(`${voluntario.nombre_v} ${voluntario.apellido_paterno_v} ${voluntario.apellido_materno_v}`);
+          rows.forEach(usuario => {
+            voluntarios.push(`${usuario.nombre_usuario} ${usuario.apellido_paterno} ${usuario.apellido_materno}`);
           });
-          res.status(200).json(voluntarios);
+          db.all('SELECT nombre_v, apellido_paterno_v, apellido_materno_v FROM voluntarios WHERE estado=1 AND id_sede=? ORDER BY nombre_v', [id_sede], (err, rows) => {
+            if(err) {
+              return res.status(500).json({ mensaje: 'Error al consultar los voluntarios del sistema' });
+            }
+            if(rows) {
+              rows.forEach(voluntario => {
+                voluntarios.push(`${voluntario.nombre_v} ${voluntario.apellido_paterno_v} ${voluntario.apellido_materno_v}`);
+              });
+            }
+            res.status(200).json(voluntarios.sort());
+          });
         }
       }
     });
   } else {
     res.redirect('/');
   }
-  
 });
 
 router.get('/obtenerVoluntariosEquipoDirecto', (req, res) => {
@@ -790,6 +799,7 @@ router.get('/obtenerVoluntariosEquipoDirecto', (req, res) => {
       v.nombre_v,
       v.apellido_paterno_v,
       v.informe_valoracion,
+      v.estado,
       o.ocupacion,
       i.interes,
       p.programa AS derivacion,
@@ -806,11 +816,9 @@ router.get('/obtenerVoluntariosEquipoDirecto', (req, res) => {
         LEFT JOIN sedes s ON v.id_sede = s.id_sede
         `;
     let parametros = [];
-    if(id_rol === 1) {
-      consulta += ' WHERE v.estado=1';
-    } else if(id_rol === 2 && id_sede === 1) {
+    if(id_rol === 2 && id_sede === 1) {
       consulta += ' WHERE v.estado=1 AND v.id_sede IN (1,2,3,4)';
-    } else if(id_rol !== 2) {
+    } else if(!(id_rol === 2 && id_sede === 1) && id_rol !== 1) {
       consulta += ' WHERE v.estado=1 AND v.id_sede=?';
       parametros.push(id_sede);
     }
@@ -833,7 +841,8 @@ router.get('/obtenerVoluntariosEquipoDirecto', (req, res) => {
                   intereses: [],
                   derivacion: [],
                   primeros_contactos: [],
-                  sede: row.sede
+                  sede: row.sede,
+                  estado: row.estado
                 };
               }
               if (row.interes) {
@@ -909,7 +918,7 @@ router.get('/obtenerPrimerosContactos', verificarSesionYStatus, (req,res) => {
 
 router.post('/voluntarioNuevo', (req, res) => {
   if (req.session && req.session.usuario) {
-    const { id_sede } = req.session.usuario;
+    const { id_sede, id_usuario } = req.session.usuario;
     const { nombre, apellidoP, apellidoM, fechaNacimiento, identificacion, telefono, correo, ocupacion, personaContacto, voluntarioIntAsignado, intereses, valoracion, primerosContactos, informeValoracion, derivacion, observaciones } = req.body;
     //console.log('Datos recibidos:' + JSON.stringify({ nombre, apellidoP, apellidoM, fechaNacimiento, identificacion, telefono, correo, ocupacion, personaContacto, voluntarioIntAsignado, intereses, valoracion, primerosContactos, informeValoracion, derivacion, observaciones }));
     
@@ -946,8 +955,8 @@ router.post('/voluntarioNuevo', (req, res) => {
             let id_ocupacion;
     
             const insertVoluntario = () => {
-              db.run('INSERT INTO voluntarios(id_voluntarioAsignado, estado, fecha_captacion, fecha_alta, nombre_v, apellido_paterno_v, apellido_materno_v, identificacion, fecha_nacimiento, telefono_v, correo_v, id_ocupacion, informe_valoracion, observaciones, id_sede, personaContacto) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)', 
-              [voluntarioIntAsignado, estado, fechaFormateada, fechaAlta, nombre, apellidoP, apellidoM, identificacion, fechaNacimiento, telefono, correo, id_ocupacion, informeValoracion, observaciones, id_sede, personaContacto], 
+              db.run('INSERT INTO voluntarios(id_voluntarioAsignado, estado, fecha_captacion, fecha_alta, nombre_v, apellido_paterno_v, apellido_materno_v, identificacion, fecha_nacimiento, telefono_v, correo_v, id_ocupacion, informe_valoracion, observaciones, id_sede, personaContacto, id_usuarioQueDaDeAlta) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)', 
+              [voluntarioIntAsignado, estado, fechaFormateada, fechaAlta, nombre, apellidoP, apellidoM, identificacion, fechaNacimiento, telefono, correo, id_ocupacion, informeValoracion, observaciones, id_sede, personaContacto, id_usuario], 
               function (err) {
                 if (err) {
                   if(err.code === 'SQLITE_CONSTRAINT') {

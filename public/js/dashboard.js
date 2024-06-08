@@ -42,6 +42,12 @@ document.addEventListener('DOMContentLoaded', () => {
                     encabezadoSede.classList.add('align-middle');
                     get('encabezados').appendChild(encabezadoSede);
                 }
+                if (rol === 1) {
+                    const encabezadoEstado = crear('th');
+                    encabezadoEstado.innerHTML = 'Estado';
+                    encabezadoEstado.classList.add('align-middle');
+                    get('encabezados').appendChild(encabezadoEstado);
+                }
     
                 fetch('/obtenerVoluntariosEquipoDirecto', {
                     method: 'GET',
@@ -88,13 +94,17 @@ document.addEventListener('DOMContentLoaded', () => {
                             <td class='align-middle'>${informacion.nombre}</td>
                             <td class='align-middle'>${informacion.apellido_paterno}</td>
                             <td class='align-middle'>${informacion.ocupacion}</td>
-                            <td class='align-middle'>${derivacion}</td>
+                            <td class='align-middle'>${derivacion || 'Sin datos'}</td>
                             <td class='align-middle'>${intereses}</td>
                             <td class='align-middle'>${primerosContactos || 'Sin información'}</td>
                             <td class='align-middle'>${informacion.informe_valoracion}</td>
                         `;
                         if (rol === 1 || (rol === 2 && flagRespuesta.id_sede === 1)) {
                             fila.innerHTML += `<td class='align-middle'>${informacion.sede}</td>`;
+                        }
+                        const estado = (informacion.estado === 0 ? 'Dado de baja' : (informacion.estado === 1 ? 'Alta' : 'Registrado'));
+                        if (rol === 1) {
+                            fila.innerHTML += `<td class='align-middle'>${estado}</td>`;
                         }
                         tabla.appendChild(fila);
                         
