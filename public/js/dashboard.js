@@ -105,6 +105,7 @@ document.addEventListener('DOMContentLoaded', () => {
                                 const headerActions = crear('th');
                                 headerActions.colSpan = 2;
                                 headerActions.textContent = 'Acciones';
+                                headerActions.classList.add('align-middle');
                                 headerRow.appendChild(headerActions);
                                 accionesAgregadas = true;
                             }
