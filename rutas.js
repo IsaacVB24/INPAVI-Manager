@@ -34,6 +34,12 @@ const verificarSesionYStatus = (req, res, next) => {
     return;
   }
 
+  /*
+  req.session.destroy(() => {
+    res.redirect('/mantenimiento');
+  });
+  */
+
   // Obtener el estado y ruta a acceder del usuario
   const status = usuario.status;
   const ruta = req.path;
@@ -752,20 +758,26 @@ router.get('/obtenerIntereses', verificarSesionYStatus, (req, res) => {
   });
 });
 
-router.get('/obtenerNombreVoluntarios', verificarSesionYStatus, (req, res) => {
-  db.all('SELECT nombre_v, apellido_paterno_v, apellido_materno_v FROM voluntarios WHERE estado=1', (err, rows) => {
-    if(err) {
-      res.status(500).json({ mensaje: 'Error al consultar los voluntarios actuales en la base de datos' });
-    } else {
-      if(rows) {
-        const voluntarios = [];
-        rows.forEach(voluntario => {
-          voluntarios.push(`${voluntario.nombre_v} ${voluntario.apellido_paterno_v} ${voluntario.apellido_materno_v}`);
-        });
-        res.status(200).json(voluntarios);
+router.get('/obtenerNombreVoluntarios', (req, res) => {
+  if (req.session && req.session.usuario) {
+    const { id_sede } = req.session.usuario;
+    db.all('SELECT nombre_v, apellido_paterno_v, apellido_materno_v FROM voluntarios WHERE estado=1 AND id_sede=?', id_sede, (err, rows) => {
+      if(err) {
+        res.status(500).json({ mensaje: 'Error al consultar los voluntarios actuales en la base de datos' });
+      } else {
+        if(rows) {
+          const voluntarios = [];
+          rows.forEach(voluntario => {
+            voluntarios.push(`${voluntario.nombre_v} ${voluntario.apellido_paterno_v} ${voluntario.apellido_materno_v}`);
+          });
+          res.status(200).json(voluntarios);
+        }
       }
-    }
-  });
+    });
+  } else {
+    res.redirect('/');
+  }
+  
 });
 
 router.get('/obtenerVoluntariosEquipoDirecto', (req, res) => {
