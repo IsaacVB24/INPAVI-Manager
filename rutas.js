@@ -1135,7 +1135,11 @@ router.post('/infoVoluntario', verificarSesionYStatus, (req, res) => {
       GROUP_CONCAT(DISTINCT i.interes) AS intereses,
       GROUP_CONCAT(DISTINCT d.programa) AS derivacion,
       GROUP_CONCAT(DISTINCT p.programa) AS valoracion,
-      GROUP_CONCAT(DISTINCT pc.contacto) AS primerosContactos
+      GROUP_CONCAT(DISTINCT pc.contacto) AS primerosContactos,
+      u.nombre_usuario AS nombre_usuarioAlta,
+      u.apellido_paterno AS apPat_usuarioAlta,
+      u.apellido_materno AS apMat_usuarioAlta,
+      su.sede AS sede_usuarioAlta
     FROM 
       voluntarios v
     LEFT JOIN 
@@ -1160,8 +1164,13 @@ router.post('/infoVoluntario', verificarSesionYStatus, (req, res) => {
       primerosContactos pc ON pcv.id_contacto = pc.id_contacto
     LEFT JOIN 
       sedes s ON v.id_sede = s.id_sede
+    LEFT JOIN 
+      usuarios u ON v.id_usuarioQueDaDeAlta = u.id_usuario
+    LEFT JOIN
+      sedes su ON u.id_sede = su.id_sede
     WHERE v.id_voluntario = ?`, [id_voluntario], (err, row) => {
       if(err) {
+        console.error(err);
         return res.status(500).json({ mensaje: 'Error al consultar datos del voluntario en la base de datos' });
       }
       if(row) {
