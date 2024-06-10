@@ -393,6 +393,10 @@ function modificarDatosVoluntario() {
             mostrarModal('Correo inválido', 'Se debe ingresar un correo válido, por ejemplo: nombreCorreo@dominio.mx', modal);
             return;
         }
+        if(get('proyecto') && get('nombreProyecto').value === '') {
+            mostrarModal('Proyecto incompleto', 'Se debe colocar el nombre del proyecto, en caso contrario, se debe deseleccionar dicho campo.', modal);
+            return;
+        }
         get(idHModal).innerHTML = '¿Deseas realizar los cambios?';
         get(idBModal).innerHTML = `A continuación se muestra la información cambiada: <br><br>
         <ul id='datosModificados'>
