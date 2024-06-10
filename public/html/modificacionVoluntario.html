@@ -11,6 +11,7 @@
     <link rel="stylesheet" href="../css/modificacionVoluntario.css">
     <link rel="stylesheet" href="../css/altaVoluntario.css">
 	<script src="../bootstrap-5.3.3-dist/js/bootstrap.bundle.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.7.2/font/bootstrap-icons.min.css">
 	<script src="../js/modificacionVoluntario.js" defer></script>
     <script src="../js/altaVoluntario.js" defer></script>
     <script src="../js/general.js"></script>
@@ -66,9 +67,12 @@
                 <span class="input-group-text">Identificacion:</span>
                 <input type="text" id="identificacion" class="form-control" placeholder="Identificación" maxlength="20">
             </div>
-            <div class="input-group mb-3">
+            <div class="input-group" id="divOcupacion">
                 <span class="input-group-text">Ocupación:</span>
-                <select id="ocupacion" class="form-select"></select>
+                <select id="ocupacionV" class="form-select"></select>
+            </div>
+            <div class="mb-3 p-1" id="divEnlacesOcupacion">
+                <a href="#" data-bs-toggle="modal" data-bs-target="#myModal" id="agregarOcupacion">Añadir ocupación</a>
             </div>
 
             <div class="input-group mb-1" id="divFechaCaptacion">
@@ -110,14 +114,6 @@
                 </div>
             </div>
             
-            <div class=" row mt-4" style="border: 1px black solid; text-align: center; padding: 5px;" id="informeValoracion">
-                <p class="h5">Informe de valoración</p>
-                <div class="form-check">
-                    <button id="0" type="button" class="w-25">Voluntario interno</button>
-                </div>
-                <div class="form-check mt-2">
-                    <button id="1" type="button" class="w-25">Voluntario externo temporal</button>
-                </div>
             </div>
             <div class=" row mt-4 mb-3" style="border: 1px black solid; text-align: center; padding: 5px;" id="derivacion">
                 <div class="col">
@@ -129,10 +125,11 @@
                 <span class="input-group-text">Observaciones:</span>
                 <textarea id="observaciones" class="form-control" placeholder="Observaciones sobre el voluntario" rows="4" maxlength="1000"></textarea>
             </div>
-            <button type="submit" class="btn btn-danger mt-3 mb-3" id="modificacionVoluntario">Eliminar voluntario</button>
-            <button type="submit" class="btn btn-warning mt-3 mb-3" id="modificacionVoluntario">Dar de baja voluntario</button>
+            <button type="submit" class="btn btn-danger mt-3 mb-3" id="eliminacionVoluntario">Eliminar voluntario</button>
+            <button type="submit" class="btn btn-warning mt-3 mb-3" id="bajaVoluntario">Dar de baja voluntario</button>
             <button type="submit" class="btn btn-primary mt-3 mb-3" id="modificacionVoluntario" style="float: right;">Modificar datos</button>
 		</div>
 	</div>
+    <style>a:hover{cursor: pointer;}</style>
 </body>
 </html>

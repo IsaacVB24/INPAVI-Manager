@@ -2,6 +2,7 @@ const ventanaModal = '<div class="modal" id="myModal" style="display=block;"><di
 const idHModal = 'hModal';
 const idBModal = 'bModal';
 const idBotonModal = 'btnModal';
+const idSeccionBotonesModal = 'botonesModal';
 const barraNav = `<nav class="navbar navbar-expand-lg">
 <a class="navbar-brand" href="#">Integración Para La Vida</a>
 <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
@@ -79,14 +80,27 @@ function formateoArregloParaImpresion(arreglo) {
   } else {
       let total = '';
       arreglo.forEach((elemento, indice) => {
+        if(elemento !== '') {
           if((indice + 1) !== arreglo.length) {
               total += (elemento + ', ');
           } else {
               total += elemento;
           }
+        }
       });
       return total;
   }
+}
+
+function antiguoVsNuevo (stringElementosViejos, arregloElementosActuales) {
+  const arregloTratamiento = [];
+  stringElementosViejos.split(',').forEach(elementoViejo => {
+    arregloTratamiento.push(!arregloElementosActuales.includes(elementoViejo) ? `<span class='tachar'>${elementoViejo}</span>` : elementoViejo);
+  });
+  arregloElementosActuales.forEach(elementoActual => {
+    if(!stringElementosViejos.split(',').includes(elementoActual) && !arregloTratamiento.includes(elementoActual)) arregloTratamiento.push(`<span style='color: green;'>${elementoActual}</span>`);
+  });
+  return arregloTratamiento;
 }
 
 function permitirSoloNombres(campo) {

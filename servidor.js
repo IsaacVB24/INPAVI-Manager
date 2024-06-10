@@ -30,13 +30,15 @@ app.use(
         "https://stackpath.bootstrapcdn.com",
         "https://fonts.googleapis.com",
         "https://cdn.materialdesignicons.com",
-        "https://cdn.jsdelivr.net"
+        "https://cdn.jsdelivr.net",
+        "https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/"
       ],
       fontSrc: [
         "'self'",
         "https://fonts.gstatic.com",
         "https://cdn.materialdesignicons.com",
-        "https://cdn.jsdelivr.net"
+        "https://cdn.jsdelivr.net",
+        "https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/"
       ],
       imgSrc: ["'self'", "data:"],
       connectSrc: ["'self'"]

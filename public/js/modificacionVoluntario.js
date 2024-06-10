@@ -1,3 +1,6 @@
+let datosActuales = {};
+let ocupacionGlobal = '';
+
 document.addEventListener('DOMContentLoaded', () => {
     document.querySelectorAll('textarea').forEach(textarea => {textarea.style.resize = 'none';});
     const id_voluntario = localStorage.getItem('id');
@@ -46,7 +49,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     const correo = get('correo');
                     const telefono = get('telefono');
                     const identificacion = get('identificacion');
-                    const selectOcupacion = get('ocupacion');
+                    const selectOcupacion = get('ocupacionV');
                     const fechaCaptacion = get('fechaCaptacion');
                     const selectSede = get('sede');
                     const personaContacto = get('personaContacto');
@@ -55,13 +58,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     const ulIntereses = get('listaIntereses');
                     const divValoracion = get('valoracion');
                     const divPrimerosContactos = get('primerosContactos');
-                    const divInformeValoracion = get('informeValoracion');
-                    divInformeValoracion.querySelectorAll('button').forEach(boton => {
-                        boton.addEventListener('click', () => {
-                            botonSeleccionado(boton);
-                        });
-                        if(voluntario.informe_valoracion === parseInt(boton.id)) boton.click();
-                    });
                     const divDerivacion = get('derivacion');
                     const observaciones = get('observaciones');
                     const soloNombres = [nombres, apPat, apMat, personaContacto];
@@ -70,14 +66,22 @@ document.addEventListener('DOMContentLoaded', () => {
                     });
                     permitirSoloNumeros(telefono);
                     nombres.value = voluntario.nombre_v;
+                    datosActuales.nombres = voluntario.nombre_v;
                     apPat.value = voluntario.apellido_paterno_v;
+                    datosActuales.apellidoPaterno = voluntario.apellido_paterno_v;
                     apMat.value = voluntario.apellido_materno_v;
+                    datosActuales.apellidoMaterno = voluntario.apellido_materno_v;
                     tipoVoluntario.selectedIndex = voluntario.informe_valoracion === 0 ? 1 : 2;
+                    datosActuales.tipoVoluntario = voluntario.informe_valoracion;
                     const nacimiento = new Date(voluntario.fecha_nacimiento);
                     fechaNacimiento.value = nacimiento.toISOString().slice(0, 10);
+                    datosActuales.fechaNacimiento = fechaNacimiento.value;
                     correo.value = voluntario.correo_v;
+                    datosActuales.correo = voluntario.correo_v;
                     telefono.value = voluntario.telefono_v;
+                    datosActuales.telefono = voluntario.telefono_v;
                     identificacion.value = voluntario.identificacion;
+                    datosActuales.identificacion = voluntario.identificacion;
                     ocupaciones.forEach(ocupacion => {
                         const option = crear('option');
                         option.value = ocupacion.id_ocupacion;
@@ -85,9 +89,12 @@ document.addEventListener('DOMContentLoaded', () => {
                         option.id = 'ocupacion_' + ocupacion.id_ocupacion;
                         selectOcupacion.appendChild(option);
                     });
-                    if(voluntario.id_ocupacion) ocupaciones.selectedIndex = voluntario.id_ocupacion;
+                    if(voluntario.id_ocupacion) selectOcupacion.selectedIndex = voluntario.id_ocupacion - 1;
+                    datosActuales.id_ocupacion = voluntario.id_ocupacion;
+                    datosActuales.ocupacion = selectOcupacion.options[selectOcupacion.selectedIndex].text;
                     const captacion = new Date(voluntario.fecha_captacion);
                     fechaCaptacion.value = captacion.toISOString().slice(0, 10);
+                    datosActuales.captacion = fechaCaptacion.value;
                     sedes.forEach(sede => {
                         const option = crear('option');
                         option.value = sede.id_sede;
@@ -95,8 +102,51 @@ document.addEventListener('DOMContentLoaded', () => {
                         option.id = 'sede_' + sede.id_sede;
                         selectSede.appendChild(option);
                     });
+                    const btnAgregarOcupacion = get('agregarOcupacion');
+                    btnAgregarOcupacion.addEventListener('click', () => {
+                        idInnerHTML(idHModal, 'Añadir ocupación');
+                        idInnerHTML(idBModal, '<input type="text" class="shadow form-control" id="ocupacionNva" placeholder="Ingrese la nueva ocupación" name="ocupacionNva" required autocomplete="off" maxlength="100">');
+                        idInnerHTML(idBotonModal, 'Añadir');
+                        const btnAgregar = get(idBotonModal);
+                        bloquearCaracteresEspeciales(get('ocupacionNva'));
+                        btnAgregar.classList.remove('btn-danger');
+                        btnAgregar.classList.add('btn-warning');
+                        enterEnInput(get('ocupacionNva'), idBotonModal);
+                        const ocupaciones = [];
+                        get('ocupacionV').querySelectorAll('option').forEach(opcion => {
+                            ocupaciones.push(opcion.text.toLowerCase());
+                        });
+                        const divOcupacion = get('divOcupacion');
+                        const actualesOcupaciones = divOcupacion.innerHTML;
+                        const divEnlacesOcupacion = get('divEnlacesOcupacion');
+                        const actualesEnlaces = divEnlacesOcupacion.innerHTML;
+                        btnAgregar.addEventListener('click', () => {
+                            const ocupacionNueva = get('ocupacionNva').value.trim().toLowerCase();
+                            if (ocupacionNueva !== '') {
+                                if (ocupaciones.includes(ocupacionNueva)) {
+                                    alert('Esa ocupación ya existe');
+                                } else {
+                                    ocupacionGlobal = ocupacionNueva;
+                                    divOcupacion.innerHTML = `
+                                        <span class="input-group-text">Ocupación:</span>
+                                        <input type="text" class="form-control" id="ocupacionAgregada" placeholder="Ocupación nueva" readonly style='user-select: no; cursor: default;'>
+                                    `;
+                                    get('ocupacionAgregada').setAttribute('value', get('ocupacionNva').value.trim());
+                                    divEnlacesOcupacion.innerHTML = `<a href="#" data-bs-toggle="modal" data-bs-target="#myModal" id="agregarOcupacion" style='color: #df950d;'>Modificar ocupación</a><a class='text-danger' id="eliminarOcupacion" style='float: right;'>Eliminar ocupación</a>`;
+                                    get('eliminarOcupacion').addEventListener('click', () => {
+                                        divOcupacion.innerHTML = actualesOcupaciones;
+                                        divEnlacesOcupacion.innerHTML = actualesEnlaces;
+                                        get('ocupacionNva').value = '';
+                                    });
+                                }
+                            }
+                        });
+                    });
                     selectSede.selectedIndex = voluntario.id_sede - 1;
+                    datosActuales.id_sede = voluntario.id_sede;
+                    datosActuales.sede = selectSede.options[selectSede.selectedIndex].text;
                     personaContacto.value = voluntario.personaContacto || '-';
+                    datosActuales.personaContacto = voluntario.personaContacto || '-';
                     voluntarios.forEach((voluntario, indice) => {
                         const option = crear('option');
                         option.value = indice + 1;
@@ -105,10 +155,14 @@ document.addEventListener('DOMContentLoaded', () => {
                         if(voluntario !== `${nombres.value} ${apPat.value} ${apMat.value}`) selectInternoAsignado.appendChild(option);
                     });
                     selectInternoAsignado.selectedIndex = voluntario.id_voluntarioAsignado;
+                    datosActuales.id_voluntarioAsignado = voluntario.id_voluntarioAsignado;
+                    datosActuales.voluntarioAsignado = selectInternoAsignado.options[selectInternoAsignado.selectedIndex].text;
                     observaciones.value = voluntario.observaciones || '-';
+                    datosActuales.observaciones = voluntario.observaciones || '-';
 
                     let interesesVoluntario;
                     if(voluntario.intereses) interesesVoluntario = voluntario.intereses.split(',');
+                    datosActuales.intereses = voluntario.intereses;
                     intereses.forEach((elemento, indice) => {
                         const interes = elemento.interes;
                       
@@ -134,7 +188,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         nvoLi.appendChild(nvoLabel);
                       
                         ulIntereses.appendChild(nvoLi);
-                      });
+                    });
               
                     const nvoDiv = crear('div');
                     nvoDiv.id = 'nvosIntereses';
@@ -158,7 +212,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     otroDiv.appendChild(nvoA);
                     otroLi.appendChild(otroDiv);
                     ulIntereses.appendChild(otroLi);
-
                     programas.forEach(programa => {
                         const nuevoDiv = crear('div');
                         nuevoDiv.classList.add('form-check');
@@ -186,6 +239,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
                     const valoracion = voluntario.valoracion.split(',');
                     const derivacion = voluntario.derivacion.split(',');
+                    datosActuales.valoracion = voluntario.valoracion;
+                    datosActuales.derivacion = voluntario.derivacion;
                     divDerivacion.innerHTML += seccionProyecto;
                     const botonesValoracion = divValoracion.querySelectorAll('button');
                     botonesValoracion.forEach(boton => {
@@ -210,12 +265,17 @@ document.addEventListener('DOMContentLoaded', () => {
                         nuevoDiv.appendChild(btnContacto);
                         divPrimerosContactos.appendChild(nuevoDiv);
                     });
-                    const contactosVoluntario = voluntario.primerosContactos.split(',')
+                    const contactosVoluntario = voluntario.primerosContactos.split(',');
+                    datosActuales.primerosContactos = voluntario.primerosContactos;
                     const botonesPrimerosContactos = divPrimerosContactos.querySelectorAll('button');
                     botonesPrimerosContactos.forEach(boton => {
                         boton.addEventListener('click', () => {botonSeleccionado(boton);});
                         if(contactosVoluntario.includes(boton.textContent)) boton.click();
                     });
+                    const btnModificar = get('modificacionVoluntario');
+                    btnModificar.setAttribute('data-bs-toggle', 'modal');
+                    btnModificar.setAttribute('data-bs-target', '#myModal');
+                    btnModificar.onclick = () => {modificarDatosVoluntario()};
                 })
                 .catch(error => {
                 console.error('Error al cargar los datos:', error);
@@ -230,3 +290,145 @@ document.addEventListener('DOMContentLoaded', () => {
             alert('Error al cargar sedes');
         });
 });
+
+function modificarDatosVoluntario() {
+    const modal = bootstrap.Modal.getInstance(get('myModal'));
+    const nombres = get('nombres').value.trim();
+    const apPat = get('apPat').value.trim();
+    const apMat = get('apMat').value.trim();
+    const tipoVoluntario = get('tipoVoluntario').options[get('tipoVoluntario').selectedIndex].id - 1;
+    const nombreTipoVoluntario = tipoVoluntario === 0 ? 'Interno' : 'Externo temporal';
+    const nombreTipoVoluntarioAntiguo = datosActuales.tipoVoluntario === 0 ? 'Interno' : 'Externo temporal';
+    const fechaNacimiento = get('fechaNacimiento').value;
+    const correo = get('correo').value.trim();
+    const correoValido = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/.test(correo);
+    const telefono = get('telefono').value.trim();
+    const identificacion = get('identificacion').value.trim();
+    const ocupacion = (get('ocupacionAgregada') ? ocupacionGlobal : get('ocupacionV').options[get('ocupacionV').selectedIndex].text);
+    const fechaCaptacion = get('fechaCaptacion').value;
+    const sede = get('sede').options[get('sede').selectedIndex].text;
+    const personaContacto = get('personaContacto').value.trim() || '-';
+    const internoAsignado = get('internoAsignado').options[get('internoAsignado').selectedIndex].text;
+    const ulIntereses = get('listaIntereses').querySelectorAll('li');
+    const interesesActuales = [];
+    ulIntereses.forEach(li => {
+        if(li.querySelector('label') && li.querySelector('input').checked) interesesActuales.push(li.querySelector('label').innerText.trim());
+    });
+    const divValoracion = get('valoracion');
+    const divPrimerosContactos = get('primerosContactos');
+    const divDerivacion = get('derivacion');
+    const valoracionActual = [];
+    divValoracion.querySelectorAll('div button.seleccionado').forEach(boton => {
+        valoracionActual.push(boton.textContent);
+    });
+    const primerosContactosActuales = [];
+    divPrimerosContactos.querySelectorAll('div button.seleccionado').forEach(boton => {
+        primerosContactosActuales.push(boton.textContent);
+    });
+    const derivacionActual = [];
+    divDerivacion.querySelectorAll('div button.seleccionado').forEach(boton => {
+        derivacionActual.push(boton.textContent === 'Proyecto' ? get('nombreProyecto').value.trim() : boton.textContent);
+    });
+    const observaciones = get('observaciones').value.trim() || '-';
+    
+    // Validar si hay cambios
+    const idsModificados = [];
+    if(nombres !== datosActuales.nombres) idsModificados.push('nombres');
+    if(apPat !== datosActuales.apellidoPaterno) idsModificados.push('apPat');
+    if(apMat !== datosActuales.apellidoMaterno) idsModificados.push('apMat');
+    if(tipoVoluntario !== datosActuales.tipoVoluntario) idsModificados.push('tipoVoluntario');
+    if(fechaNacimiento !== datosActuales.fechaNacimiento) idsModificados.push('fechaNacimiento');
+    if(correo !== datosActuales.correo) idsModificados.push('correo');
+    if(telefono !== datosActuales.telefono) idsModificados.push('telefono');
+    if(identificacion !== datosActuales.identificacion) idsModificados.push('identificacion');
+    if(ocupacion !== datosActuales.ocupacion) idsModificados.push('ocupacionV');
+    if(fechaCaptacion !== datosActuales.captacion) idsModificados.push('fechaCaptacion');
+    if(sede !== datosActuales.sede) idsModificados.push('sede');
+    if(personaContacto !== datosActuales.personaContacto) idsModificados.push('personaContacto');
+    if(internoAsignado !== datosActuales.voluntarioAsignado) idsModificados.push('internoAsignado');
+    if(!(interesesActuales == datosActuales.intereses)) idsModificados.push('listaIntereses');
+    if(!(valoracionActual == datosActuales.valoracion)) idsModificados.push('valoracion');
+    if(!(primerosContactosActuales == datosActuales.primerosContactos)) idsModificados.push('primerosContactos');
+    if(!(derivacionActual == datosActuales.derivacion)) idsModificados.push('derivacion');
+    if(observaciones !== datosActuales.observaciones) idsModificados.push('observaciones');
+
+    const seccionBotones = get(idSeccionBotonesModal);
+    if(idsModificados.length === 0) {
+        get(idHModal).innerHTML = 'Sin cambios';
+        get(idBModal).innerHTML = 'No se modificó ningún dato del voluntario';
+        if(!get('volverTablero')) seccionBotones.innerHTML += `<button type='button' class='btn btn-primary' id='volverTablero'>Volver al tablero</button>`;
+        get('volverTablero').style.display = 'block';
+        get(idBotonModal).onclick = () => {modal.hide();};
+        const btnSeguirEditando = get(idBotonModal);
+        btnSeguirEditando.innerHTML = 'Editar datos';
+        btnSeguirEditando.classList.add('btn-primary');
+        btnSeguirEditando.classList.remove('btn-warning', 'btn-danger');
+        get('myModal').addEventListener('hidden.bs.modal', function (event) {
+            get('volverTablero').style.display = 'none';
+            btnSeguirEditando.classList.remove('btn-primary');
+        });
+        get('volverTablero').onclick = () => {window.location.href = '/tablero';};
+    } else {
+        get(idBotonModal).innerHTML = 'Entendido';
+        get(idBotonModal).classList.add('btn-success');
+        get(idBotonModal).classList.remove('btn-danger');
+        if(!nombres || !apPat || !apMat || !fechaNacimiento || !correo || !telefono || !identificacion || !fechaCaptacion || valoracionActual.length === 0 || primerosContactosActuales.length === 0 || derivacionActual.length === 0) {
+            mostrarModal('Información incompleta', 'Los únicos campos que pueden quedar vacíos son:<br><br>Persona de contacto, intereses y observaciones', modal);
+            return;
+        }
+        const añoActual = new Date().getFullYear();
+        if(fechaNacimiento.length > 10 || fechaNacimiento.split('-')[0] > añoActual) {
+            mostrarModal('Error en la fecha de nacimiento', 'Se debe ingresar una fecha de nacimiento válida.', modal);
+            return;
+        }
+        if(fechaCaptacion.length > 10 || fechaCaptacion.split('-')[0] > añoActual) {
+            mostrarModal('Error en la fecha de captación', 'Se debe ingresar una fecha de captación válida.', modal);
+            return;
+        }
+        if(telefono.length !== 10) {
+            mostrarModal('Error en el teléfono', 'Se debe ingresar un teléfono a 10 dígitos.', modal);
+            return;
+        }
+        if(!correoValido) {
+            mostrarModal('Correo inválido', 'Se debe ingresar un correo válido, por ejemplo: nombreCorreo@dominio.mx', modal);
+            return;
+        }
+        get(idHModal).innerHTML = '¿Deseas realizar los cambios?';
+        get(idBModal).innerHTML = `A continuación se muestra la información cambiada: <br><br>
+        <ul id='datosModificados'>
+            <li><p><span class="fw-bold">Nombre completo:</span> <span class='tachar'>${idsModificados.includes('nombres') ? datosActuales.nombres : ''}</span> ${nombres}</p></li>
+            <li><p><span class="fw-bold">Apellido paterno:</span> <span class='tachar'>${idsModificados.includes('apPat') ? datosActuales.apellidoPaterno : ''}</span> ${apPat}</p></li>
+            <li><p><span class="fw-bold">Apellido materno:</span> <span class='tachar'>${idsModificados.includes('apMat') ? datosActuales.apellidoMaterno : ''}</span> ${apMat}</p></li>
+            <li><p><span class="fw-bold">Informe de valoración:</span> <span class='tachar'>${idsModificados.includes('tipoVoluntario') ? nombreTipoVoluntarioAntiguo : ''}</span> ${nombreTipoVoluntario}</p></li>
+            <li><p><span class="fw-bold">Fecha de nacimiento:</span> <span class='tachar'>${idsModificados.includes('fechaNacimiento') ? tratarFecha(datosActuales.fechaNacimiento) : ''}</span> ${tratarFecha(fechaNacimiento)}</p></li>
+            <li><p><span class="fw-bold">Correo electrónico:</span> <span class='tachar'>${idsModificados.includes('correo') ? datosActuales.correo : ''}</span> ${correo}</p></li>
+            <li><p><span class="fw-bold">Teléfono:</span> <span class='tachar'>${idsModificados.includes('telefono') ? datosActuales.telefono : ''}</span> ${telefono}</p></li>
+            <li><p><span class="fw-bold">Identificación:</span> <span class='tachar'>${idsModificados.includes('identificacion') ? datosActuales.identificacion : ''}</span> ${identificacion}</p></li>
+            <li><p><span class="fw-bold">Ocupación:</span> <span class='tachar'>${idsModificados.includes('ocupacionV') ? datosActuales.ocupacion : ''}</span> ${ocupacion}</p></li>
+            <li><p><span class="fw-bold">Fecha captación:</span> <span class='tachar'>${idsModificados.includes('fechaCaptacion') ? tratarFecha(datosActuales.captacion) : ''}</span> ${tratarFecha(fechaCaptacion)}</p></li>
+            <li><p><span class="fw-bold">Sede:</span> ${idsModificados.includes('sede') ? `<i class='bi bi-exclamation-triangle-fill' style='color: #FFA500;'></i> <span class='fw-bold'>¡Cuidado!</span> Se está realizando un cambio de sede. <i class='bi bi-exclamation-triangle-fill' style='color: #FFA500;'></i> <span class='tachar'>${datosActuales.sede}</span>` : ''} ${sede}</p></li>
+            <li><p><span class="fw-bold">Persona de contacto:</span> <span class='tachar'>${idsModificados.includes('personaContacto') ? datosActuales.personaContacto : ''}</span> ${personaContacto}</p></li>
+            <li><p><span class="fw-bold">Voluntario interno asignado:</span> <span class='tachar'>${idsModificados.includes('internoAsignado') ? datosActuales.voluntarioAsignado : ''}</span> ${internoAsignado}</p></li>
+            <li><p><span class="fw-bold">Intereses:</span> ${formateoArregloParaImpresion(antiguoVsNuevo(datosActuales.intereses, interesesActuales))}</p></li>
+            <li><p><span class="fw-bold">Valoración / Participación:</span> ${formateoArregloParaImpresion(antiguoVsNuevo(datosActuales.valoracion, valoracionActual))}</p></li>
+            <li><p><span class="fw-bold">Primeros contactos:</span> ${formateoArregloParaImpresion(antiguoVsNuevo(datosActuales.primerosContactos, primerosContactosActuales))}</p></li>
+            <li><p><span class="fw-bold">Derivación:</span> ${formateoArregloParaImpresion(antiguoVsNuevo(datosActuales.derivacion, derivacionActual))}</p></li>
+            <li><p><span class="fw-bold">Observaciones:</span> <span class='tachar'>${idsModificados.includes('observaciones') ? datosActuales.observaciones : ''}</span> ${observaciones}</p></li>
+        </ul>
+        `;
+        document.querySelectorAll('span.tachar').forEach(span => {
+            span.style.textDecoration = 'line-through';
+            span.style.textDecorationColor = 'red';
+        });
+        const btnModal = get(idBotonModal);
+        btnModal.classList.remove('btn-danger', 'btn-primary', 'btn-warning', 'btn-success');
+        btnModal.innerHTML = 'Seguir editando';
+        btnModal.classList.add('btn-secondary');
+        if(!get('guardarCambios')) seccionBotones.innerHTML += `<button type='button' class='btn btn-success' id='guardarCambios'>Guardar cambios</button>`;
+        get('guardarCambios').style.display = 'block';
+        get('myModal').addEventListener('hidden.bs.modal', function (event) {
+            get('guardarCambios').style.display = 'none';
+            btnModal.classList.remove('btn-secondary');
+        });
+    }
+}
