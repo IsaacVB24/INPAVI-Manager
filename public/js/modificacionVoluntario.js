@@ -89,7 +89,16 @@ document.addEventListener('DOMContentLoaded', () => {
                         option.id = 'ocupacion_' + ocupacion.id_ocupacion;
                         selectOcupacion.appendChild(option);
                     });
-                    if(voluntario.id_ocupacion) selectOcupacion.selectedIndex = voluntario.id_ocupacion - 1;
+                    if(voluntario.id_ocupacion) {
+                        const idOcupacion = voluntario.id_ocupacion;
+
+                        for (let i = 0; i < selectOcupacion.options.length; i++) {
+                            if (selectOcupacion.options[i].value == idOcupacion) {
+                                selectOcupacion.selectedIndex = i;
+                                break;
+                            }
+                        }
+                    }
                     datosActuales.id_ocupacion = voluntario.id_ocupacion;
                     datosActuales.ocupacion = selectOcupacion.options[selectOcupacion.selectedIndex].text;
                     const captacion = new Date(voluntario.fecha_captacion);

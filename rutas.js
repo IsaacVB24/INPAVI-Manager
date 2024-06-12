@@ -1236,7 +1236,7 @@ router.post('/modificarDatosVoluntario', verificarSesionYStatus, (req, res) => {
     parametros.push(personaContacto);
   }
 
-  console.log('Datos recibidos en el body: ', req.body);
+  //console.log('Datos recibidos en el body: ', req.body);
 
   db.get('SELECT nombre_v FROM voluntarios WHERE id_voluntario = ?', [id_voluntario], (err, row) => {
     if (err) {
@@ -1385,6 +1385,7 @@ router.post('/modificarDatosVoluntario', verificarSesionYStatus, (req, res) => {
       }
 
       if (ocupacion) {
+        console.log('Sí hay ocupación por procesar');
         db.get('SELECT id_ocupacion FROM ocupaciones WHERE ocupacion = ?', [ocupacion], (err, row) => {
           if (err) {
             return hacerRollback(500, 'No fue posible saber si la ocupación seleccionada ya existe', res, err);
@@ -1403,15 +1404,15 @@ router.post('/modificarDatosVoluntario', verificarSesionYStatus, (req, res) => {
 
               const conjuntoSet = sets.join(', ');
               parametros.push(id_voluntario);
-              console.log(`La instrucción sería: UPDATE voluntarios SET ${conjuntoSet} WHERE id_voluntario = ${id_voluntario}`);
-              console.log(`Los parámetros son: ${parametros}`);
+              //console.log(`1. La instrucción sería: UPDATE voluntarios SET ${conjuntoSet} WHERE id_voluntario = ${id_voluntario}`);
+              //console.log(`Los parámetros son: ${parametros}`);
 
               db.run(`UPDATE voluntarios SET ${conjuntoSet} WHERE id_voluntario = ?`, parametros, (err) => {
                 if (err) {
                   return hacerRollback(500, 'Error al actualizar los datos del voluntario', res, err);
                 }
 
-                realizarCommit(res, 200, `Los datos del voluntario ${nombreVoluntario} fueron modificados correctamente.`);
+                realizarCommit(res, 200, `Los datos del voluntario "${nombreVoluntario}" fueron modificados correctamente.`);
               });
             });
           } else {
@@ -1420,29 +1421,30 @@ router.post('/modificarDatosVoluntario', verificarSesionYStatus, (req, res) => {
 
             const conjuntoSet = sets.join(', ');
             parametros.push(id_voluntario);
-            console.log(`La instrucción sería: UPDATE voluntarios SET ${conjuntoSet} WHERE id_voluntario = ${id_voluntario}`);
-            console.log(`Los parámetros son: ${parametros}`);
+            //console.log(`2. La instrucción sería: UPDATE voluntarios SET ${conjuntoSet} WHERE id_voluntario = ${id_voluntario}`);
+            //console.log(`Los parámetros son: ${parametros}`);
             db.run(`UPDATE voluntarios SET ${conjuntoSet} WHERE id_voluntario = ?`, parametros, (err) => {
               if (err) {
                 return hacerRollback(500, 'Error al actualizar los datos del voluntario', res, err);
               }
 
-              realizarCommit(res, 200, `Los datos del voluntario ${nombreVoluntario} fueron modificados correctamente.`);
+              realizarCommit(res, 200, `Los datos del voluntario "${nombreVoluntario}" fueron modificados correctamente.`);
             });
           }
         });
       } else {
-        const conjuntoSet = sets.join(', ');
-        parametros.push(id_voluntario);
-        console.log(`La instrucción sería: UPDATE voluntarios SET ${conjuntoSet} WHERE id_voluntario = ${id_voluntario}`);
-        console.log(`Los parámetros son: ${parametros}`);
-        db.run(`UPDATE voluntarios SET ${conjuntoSet} WHERE id_voluntario = ?`, parametros, (err) => {
-          if (err) {
-            return hacerRollback(500, 'Error al actualizar los datos del voluntario', res, err);
-          }
-
-          realizarCommit(res, 200, `Los datos del voluntario ${nombreVoluntario} fueron modificados correctamente.`);
-        });
+        if (sets.length > 0) {
+          const conjuntoSet = sets.join(', ');
+          parametros.push(id_voluntario);
+          //console.log(`3. La instrucción sería: UPDATE voluntarios SET ${conjuntoSet} WHERE id_voluntario = ${id_voluntario}`);
+          //console.log(`Los parámetros son: ${parametros}`);
+          db.run(`UPDATE voluntarios SET ${conjuntoSet} WHERE id_voluntario = ?`, parametros, (err) => {
+            if (err) {
+              return hacerRollback(500, 'Error al actualizar los datos del voluntario', res, err);
+            }
+          });
+        }
+        realizarCommit(res, 200, `Los datos del voluntario "${nombreVoluntario}" fueron modificados correctamente.`);
       }
     });
   });
@@ -1493,7 +1495,7 @@ function realizarCommit(res, codigo, mensajeExito) {
       console.error(`Error al realizar commit: ${err}`);
       return hacerRollback(500, `Error al hacer commit de la transacción`, res, err);
     }
-    console.log('Se realizó commit correctamente');
+    //console.log('Se realizó commit correctamente');
     return res.status(codigo).json({ mensaje: mensajeExito });
   });
 }
