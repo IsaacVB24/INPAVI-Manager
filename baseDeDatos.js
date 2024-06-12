@@ -112,13 +112,13 @@ db.serialize(() => {
   // Crear tabla de ocupaciones si no existe
   db.run(`CREATE TABLE IF NOT EXISTS ocupaciones (
     id_ocupacion INTEGER PRIMARY KEY AUTOINCREMENT,
-    ocupacion TEXT NOT NULL
+    ocupacion TEXT NOT NULL UNIQUE
   )`);
 
   // Crear tabla de programas si no existe
   db.run(`CREATE TABLE IF NOT EXISTS programas (
     id_programa INTEGER PRIMARY KEY AUTOINCREMENT,
-    programa TEXT NOT NULL
+    programa TEXT NOT NULL UNIQUE
   )`);
 
   // Insertar datos de programas si la tabla está vacía
@@ -179,7 +179,7 @@ db.serialize(() => {
   // Crear tabla de intereses si no existe
   db.run(`CREATE TABLE IF NOT EXISTS intereses (
     id_interes INTEGER PRIMARY KEY AUTOINCREMENT,
-    interes TEXT NOT NULL
+    interes TEXT NOT NULL UNIQUE
   )`);
 
   // Crear tabla de interesesVoluntario si no existe
@@ -209,7 +209,7 @@ db.serialize(() => {
   // Crear tabla de primerosContactos si no existe
   db.run(`CREATE TABLE IF NOT EXISTS primerosContactos (
     id_contacto INTEGER PRIMARY KEY AUTOINCREMENT,
-    contacto TEXT NOT NULL
+    contacto TEXT NOT NULL UNIQUE
   )`);
 
   // Crear tabla de primerosContactosVoluntario si no existe

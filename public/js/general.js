@@ -94,13 +94,34 @@ function formateoArregloParaImpresion(arreglo) {
 
 function antiguoVsNuevo (stringElementosViejos, arregloElementosActuales) {
   const arregloTratamiento = [];
-  stringElementosViejos.split(',').forEach(elementoViejo => {
+  const elementosViejos = stringElementosViejos || [];
+  elementosViejos.split(',').forEach(elementoViejo => {
     arregloTratamiento.push(!arregloElementosActuales.includes(elementoViejo) ? `<span class='tachar'>${elementoViejo}</span>` : elementoViejo);
   });
   arregloElementosActuales.forEach(elementoActual => {
-    if(!stringElementosViejos.split(',').includes(elementoActual) && !arregloTratamiento.includes(elementoActual)) arregloTratamiento.push(`<span style='color: green;'>${elementoActual}</span>`);
+    if(!elementosViejos.split(',').includes(elementoActual) && !arregloTratamiento.includes(elementoActual)) arregloTratamiento.push(`<span style='color: green;'>${elementoActual}</span>`);
   });
   return arregloTratamiento;
+}
+
+function arreglosIguales(arr1, arr2) {
+  // Primero, comprueba si ambos arreglos tienen la misma longitud
+  if (arr1.length !== arr2.length) {
+      return false;
+  }
+
+  // Luego, crea copias de los arreglos y ordénalos
+  let sortedArr1 = [...arr1].sort();
+  let sortedArr2 = [...arr2].sort();
+
+  // Finalmente, compara los arreglos ordenados elemento por elemento
+  for (let i = 0; i < sortedArr1.length; i++) {
+      if (sortedArr1[i] !== sortedArr2[i]) {
+          return false;
+      }
+  }
+
+  return true;
 }
 
 function permitirSoloNombres(campo) {

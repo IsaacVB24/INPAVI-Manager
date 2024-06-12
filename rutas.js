@@ -1182,6 +1182,272 @@ router.post('/infoVoluntario', verificarSesionYStatus, (req, res) => {
   );
 });
 
+router.post('/modificarDatosVoluntario', verificarSesionYStatus, (req, res) => {
+  const { id_voluntario, id_internoAsignado, fechaCaptacion, nombres, apPat, apMat, identificacion, fechaNacimiento, telefono, correo, ocupacion, tipoVoluntario, observaciones, id_sede, personaContacto, intereses, valoracion, primerosContactos, derivacion, proyectoNuevo } = req.body;
+  let sets = [];
+  let parametros = [];
+
+  if (fechaCaptacion) {
+    sets.push('fecha_captacion = ?');
+    parametros.push(fechaCaptacion);
+  }
+  if (nombres) {
+    sets.push('nombre_v = ?');
+    parametros.push(nombres);
+  }
+  if (apPat) {
+    sets.push('apellido_paterno_v = ?');
+    parametros.push(apPat);
+  }
+  if (apMat) {
+    sets.push('apellido_materno_v = ?');
+    parametros.push(apMat);
+  }
+  if (identificacion) {
+    sets.push('identificacion = ?');
+    parametros.push(identificacion);
+  }
+  if (fechaNacimiento) {
+    sets.push('fecha_nacimiento = ?');
+    parametros.push(fechaNacimiento);
+  }
+  if (telefono) {
+    sets.push('telefono_v = ?');
+    parametros.push(telefono);
+  }
+  if (correo) {
+    sets.push('correo_v = ?');
+    parametros.push(correo);
+  }
+  if (tipoVoluntario) {
+    sets.push('informe_valoracion = ?');
+    parametros.push(tipoVoluntario);
+  }
+  if (observaciones) {
+    sets.push('observaciones = ?');
+    parametros.push(observaciones);
+  }
+  if (id_sede) {
+    sets.push('id_sede = ?');
+    parametros.push(id_sede);
+  }
+  if (personaContacto) {
+    sets.push('personaContacto = ?');
+    parametros.push(personaContacto);
+  }
+
+  console.log('Datos recibidos en el body: ', req.body);
+
+  db.get('SELECT nombre_v FROM voluntarios WHERE id_voluntario = ?', [id_voluntario], (err, row) => {
+    if (err) {
+      return res.status(500).json({ mensaje: 'Error al buscar el voluntario en la base de datos' });
+    }
+    if (!row) {
+      return res.status(404).json({ mensaje: 'El voluntario no fue encontrado' });
+    }
+
+    const nombreVoluntario = row.nombre_v;
+
+    db.serialize(() => {
+      db.run('BEGIN TRANSACTION');
+
+      if (intereses !== null) {
+        if (intereses.length === 0) {
+          db.run('DELETE FROM interesesVoluntario WHERE id_voluntario = ?', [id_voluntario], (err) => {
+            if (err) {
+              return hacerRollback(500, 'Error al eliminar los intereses anteriores del voluntario.', res, err);
+            }
+          });
+        } else {
+          db.run('DELETE FROM interesesVoluntario WHERE id_voluntario = ?', [id_voluntario], (err) => {
+            if (err) {
+              return hacerRollback(500, 'Error al eliminar los intereses anteriores del voluntario.', res, err);
+            }
+            
+            intereses.forEach((interes) => {
+              db.get('SELECT id_interes FROM intereses WHERE interes = ?', [interes], (err, row) => {
+                if (err) {
+                  return hacerRollback(500, `Error al verificar si el interés "${interes}" existe en la base de datos`, res, err);
+                }
+
+                if (!row) {
+                  db.run('INSERT INTO intereses (interes) VALUES (?)', [interes], function(err) {
+                    if (err) {
+                      return hacerRollback(500, `Error al insertar el interés "${interes}"`, res, err);
+                    }
+
+                    const id_interes = this.lastID;
+                    db.run('INSERT INTO interesesVoluntario (id_voluntario, id_interes) VALUES (?, ?)', [id_voluntario, id_interes], (err) => {
+                      if (err) {
+                        return hacerRollback(500, `Error al asociar el interés "${interes}" con el voluntario "${nombreVoluntario}"`, res, err);
+                      }
+                    });
+                  });
+                } else {
+                  const id_interes = row.id_interes;
+                  db.run('INSERT INTO interesesVoluntario (id_voluntario, id_interes) VALUES (?, ?)', [id_voluntario, id_interes], (err) => {
+                    if (err) {
+                      return hacerRollback(500, `Error al asociar el interés "${interes}" con el voluntario "${nombreVoluntario}"`, res, err);
+                    }
+                  });
+                }
+              });
+            });
+          });
+        }
+      }
+
+      if (valoracion !== null) {
+        if (valoracion.length === 0) {
+          return hacerRollback(400, `Se debe seleccionar al menos un programa de valoración para el voluntario "${nombreVoluntario}".`, res, 'Arreglo de valoración nulo');
+        } else {
+          db.run('DELETE FROM valoracionVoluntario WHERE id_voluntario = ?', [id_voluntario], (err) => {
+            if (err) {
+              return hacerRollback(500, 'Error al eliminar los programas de valoración anteriores del voluntario', res, err);
+            }
+
+            const stmt = db.prepare('INSERT INTO valoracionVoluntario (id_voluntario, id_valoracion) VALUES (?, ?)');
+            valoracion.forEach((id_programa) => {
+              stmt.run([id_voluntario, id_programa], (err) => {
+                if (err) {
+                  return hacerRollback(500, `Error al relacionar el programa con id ${id_programa} con el voluntario "${nombreVoluntario}"`, res, err);
+                }
+              });
+            });
+            stmt.finalize((err) => {
+              if (err) {
+                return hacerRollback(500, `Error al completar la relación de los programas de valoración con el voluntario "${nombreVoluntario}"`, res, err);
+              }
+            });
+          });
+        }
+      }
+      
+      if (primerosContactos !== null) {
+        if (primerosContactos.length === 0) {
+          return hacerRollback(400, `Se debe seleccionar al menos un contacto para el voluntario`, res, 'Primeros contactos vacíos');
+        } else {
+          db.run('DELETE FROM primerosContactosVoluntario WHERE id_voluntario = ?', [id_voluntario], (err) => {
+            if (err) {
+              return hacerRollback(500, `Error al eliminar los primeros contactos antiguos del voluntario "${nombreVoluntario}"`, res, err);
+            }
+
+            const stmt = db.prepare('INSERT INTO primerosContactosVoluntario (id_voluntario, id_contacto) VALUES (?, ?)');
+            primerosContactos.forEach((id_contacto) => {
+              stmt.run([id_voluntario, id_contacto], (err) => {
+                if (err) {
+                  return hacerRollback(500, `Error al relacionar el contacto con ID "${id_contacto}" con el voluntario "${nombreVoluntario}"`, res, err);
+                }
+              });
+            });
+            stmt.finalize((err) => {
+              if (err) {
+                return hacerRollback(500, `Error al completar la relación de contactos con el voluntario "${nombreVoluntario}"`, res, err);
+              }
+            });
+          });
+        }
+      }
+
+      if (derivacion !== null) {
+        if (derivacion.length === 0) {
+          return hacerRollback(400, `Se debe seleccionar al menos un programa de derivación para el voluntario`, res, 'Derivación incompleta');
+        } else {
+          db.run('DELETE FROM derivacionVoluntario WHERE id_voluntario = ?', [id_voluntario], (err) => {
+            if (err) {
+              return hacerRollback(500, `Error al eliminar los programas de derivación anteriores del voluntario`, res, err);
+            }
+
+            if (proyectoNuevo) {
+              db.run('INSERT INTO programas (programa) VALUES (?)', [proyectoNuevo], function(err) {
+                if (err) {
+                  return hacerRollback(500, `Error al insertar el programa "${proyectoNuevo}" a la tabla de programas`, res, err);
+                }
+
+                const id_programaNuevo = this.lastID;
+                db.run('INSERT INTO derivacionVoluntario (id_voluntario, id_derivacion) VALUES (?, ?)', [id_voluntario, id_programaNuevo], (err) => {
+                  if (err) {
+                    return hacerRollback(500, `Error al relacionar el nuevo programa "${proyectoNuevo}", de ID ${id_programaNuevo} con el voluntario "${nombreVoluntario}"`, res, err);
+                  }
+                });
+              });
+            }
+
+            derivacion.forEach((id_programa) => {
+              db.run('INSERT INTO derivacionVoluntario (id_voluntario, id_derivacion) VALUES (?, ?)', [id_voluntario, id_programa], (err) => {
+                if (err) {
+                  return hacerRollback(500, `Error al asociar el programa con ID "${id_programa}" con el voluntario "${nombreVoluntario}"`, res, err);
+                }
+              });
+            });
+          });
+        }
+      }
+
+      if (ocupacion) {
+        db.get('SELECT id_ocupacion FROM ocupaciones WHERE ocupacion = ?', [ocupacion], (err, row) => {
+          if (err) {
+            return hacerRollback(500, 'No fue posible saber si la ocupación seleccionada ya existe', res, err);
+          }
+
+          let id_ocupacion = row ? row.id_ocupacion : null;
+          if (!id_ocupacion) {
+            db.run('INSERT INTO ocupaciones (ocupacion) VALUES (?)', [ocupacion], function(err) {
+              if (err) {
+                return hacerRollback(500, `Error al insertar la nueva ocupación "${ocupacion}"`, res, err);
+              }
+
+              id_ocupacion = this.lastID;
+              sets.push('id_ocupacion = ?');
+              parametros.push(id_ocupacion);
+
+              const conjuntoSet = sets.join(', ');
+              parametros.push(id_voluntario);
+              console.log(`La instrucción sería: UPDATE voluntarios SET ${conjuntoSet} WHERE id_voluntario = ${id_voluntario}`);
+              console.log(`Los parámetros son: ${parametros}`);
+
+              db.run(`UPDATE voluntarios SET ${conjuntoSet} WHERE id_voluntario = ?`, parametros, (err) => {
+                if (err) {
+                  return hacerRollback(500, 'Error al actualizar los datos del voluntario', res, err);
+                }
+
+                realizarCommit(res, 200, `Los datos del voluntario ${nombreVoluntario} fueron modificados correctamente.`);
+              });
+            });
+          } else {
+            sets.push('id_ocupacion = ?');
+            parametros.push(id_ocupacion);
+
+            const conjuntoSet = sets.join(', ');
+            parametros.push(id_voluntario);
+            console.log(`La instrucción sería: UPDATE voluntarios SET ${conjuntoSet} WHERE id_voluntario = ${id_voluntario}`);
+            console.log(`Los parámetros son: ${parametros}`);
+            db.run(`UPDATE voluntarios SET ${conjuntoSet} WHERE id_voluntario = ?`, parametros, (err) => {
+              if (err) {
+                return hacerRollback(500, 'Error al actualizar los datos del voluntario', res, err);
+              }
+
+              realizarCommit(res, 200, `Los datos del voluntario ${nombreVoluntario} fueron modificados correctamente.`);
+            });
+          }
+        });
+      } else {
+        const conjuntoSet = sets.join(', ');
+        parametros.push(id_voluntario);
+        console.log(`La instrucción sería: UPDATE voluntarios SET ${conjuntoSet} WHERE id_voluntario = ${id_voluntario}`);
+        console.log(`Los parámetros son: ${parametros}`);
+        db.run(`UPDATE voluntarios SET ${conjuntoSet} WHERE id_voluntario = ?`, parametros, (err) => {
+          if (err) {
+            return hacerRollback(500, 'Error al actualizar los datos del voluntario', res, err);
+          }
+
+          realizarCommit(res, 200, `Los datos del voluntario ${nombreVoluntario} fueron modificados correctamente.`);
+        });
+      }
+    });
+  });
+});
+
 // Función para enviar correo para reestablecer contraseña
 function enviarCorreoReestablecerContraseña(correo, token) {
   const mailOptions = {
@@ -1212,6 +1478,24 @@ async function encriptar(contraseña) {
   } catch (error) {
     throw error;
   }
+}
+
+function hacerRollback(codigo, mensaje, res, error) {
+  db.run('ROLLBACK', () => {
+    console.error(`Error al hacer rollback: ${err}`);
+    return res.status(codigo).json({ mensaje: mensaje });
+  });
+}
+
+function realizarCommit(res, codigo, mensajeExito) {
+  db.run('COMMIT', (err) => {
+    if(err) {
+      console.error(`Error al realizar commit: ${err}`);
+      return hacerRollback(500, `Error al hacer commit de la transacción`, res, err);
+    }
+    console.log('Se realizó commit correctamente');
+    return res.status(codigo).json({ mensaje: mensajeExito });
+  });
 }
 
 // Middleware para manejar rutas no encontradas
