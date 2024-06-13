@@ -164,7 +164,7 @@ db.serialize(() => {
     id_sede INT NOT NULL,
     personaContacto TEXT,
     id_usuarioQueDaDeAlta INT NOT NULL,
-    FOREIGN KEY (id_voluntarioAsignado) REFERENCES voluntarios(id_voluntario),
+    FOREIGN KEY (id_voluntarioAsignado) REFERENCES conjuntoVoluntarios(id_voluntario),
     FOREIGN KEY (id_ocupacion) REFERENCES ocupaciones(id_ocupacion),
     FOREIGN KEY (id_sede) REFERENCES sedes(id_sede),
     FOREIGN KEY (id_usuarioQueDaDeAlta) REFERENCES usuarios(id_usuario)
@@ -252,6 +252,19 @@ db.serialize(() => {
       }
     }
   });
+
+  // Crear tabla de voluntarios, incluyendo usuarios
+  db.run(`CREATE TABLE IF NOT EXISTS conjuntoVoluntarios (
+    id_voluntario INTEGER PRIMARY KEY AUTOINCREMENT,
+    nombreCompleto TEXT NOT NULL,
+    id_sede INTEGER NOT NULL,
+    tipoPersona INTEGER NOT NULL,   -- 0 -> Usuario (tabla usuarios) | 1 -> Voluntario (tabla voluntarios)
+    id_filaUsuarios INTEGER,
+    id_filaVoluntarios INTEGER,
+    FOREIGN KEY (id_sede) REFERENCES sedes(id_sede),
+    FOREIGN KEY (id_filaUSuarios) REFERENCES usuarios(id_usuario),
+    FOREIGN KEY (id_filaVoluntarios) REFERENCES voluntario(id_voluntario)
+  )`)
 });
 
 /* En sqlite3 las fechas se guardan como texto pero se pueden formatear la consulta con strftime('%d-%m-%Y %H:%M:%S', atributo en la BD). la fecha de captación se almacenará de forma automática */

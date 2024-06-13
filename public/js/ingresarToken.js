@@ -14,11 +14,11 @@ document.addEventListener('DOMContentLoaded', () => {
     .then(data => {
         if (data) {
             localStorage.removeItem('correo');
-            get('nombres').value = data.nombres;
-            get('apPat').value = data.apPat;
-            get('apMat').value = data.apMat;
+            get('nombres').value = data.nombres.trim();
+            get('apPat').value = data.apPat.trim();
+            get('apMat').value = data.apMat.trim();
             get('telefono').value = data.telefono;
-            get('email').value = data.correo;
+            get('email').value = data.correo.trim();
             get('rol').value = data.rol;
             get('sede').value = data.sede;
         } else {

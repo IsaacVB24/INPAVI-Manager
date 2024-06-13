@@ -26,7 +26,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 const urls = [
                     '/obtenerOcupaciones',
                     '/obtenerIntereses',
-                    '/obtenerNombreVoluntarios',
                     '/obtenerProgramas',
                     '/obtenerPrimerosContactos',
                     '/obtenerSedes'
@@ -39,7 +38,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                     throw new Error(`Error al obtener datos desde ${url}`);
                 })))
-                .then(([ocupaciones, intereses, voluntarios, programas, primerosContactos, sedes]) => {
+                .then(([ocupaciones, intereses, programas, primerosContactos, sedes]) => {
                     const voluntario = data.row;
                     const nombres = get('nombres');
                     const apPat = get('apPat');
@@ -111,6 +110,38 @@ document.addEventListener('DOMContentLoaded', () => {
                         option.id = 'sede_' + sede.id_sede;
                         selectSede.appendChild(option);
                     });
+                    selectSede.addEventListener('change', (event) => {
+                        const idSedeSeleccionada = selectSede.options[selectSede.selectedIndex].value;
+                        fetch('/obtenerNombreVoluntarios', {
+                            method: 'POST',
+                            headers: {
+                                'Content-type': 'application/json'
+                            },
+                            body: JSON.stringify({ id_sede: idSedeSeleccionada })
+                        })
+                        .then(response => {
+                            if (!response.ok) {
+                                throw new Error('Hubo un problema con la solicitud: ' + response.status);
+                            }
+                            return response.json();
+                        })
+                        .then(voluntarios => {
+                            selectInternoAsignado.innerHTML = `<option value="0" selected>Sin asignación</option>`;
+                            voluntarios.forEach((voluntario) => {
+                                //console.log(voluntario, indice);
+                                const option = crear('option');
+                                option.value = voluntario.id_voluntario;
+                                option.innerHTML = voluntario.nombreCompleto;
+                                option.id = `voluntario_${voluntario.id_voluntario}`;
+                                //console.log(option);
+                                if (voluntario.nombreCompleto !== `${nombres.value} ${apPat.value} ${apMat.value}`) selectInternoAsignado.appendChild(option);
+                            });
+                            selectInternoAsignado.selectedIndex = 0;
+                        })
+                        .catch(error => {
+                            console.error('Error al realizar la solicitud: ' + error);
+                        });
+                    })
                     const btnAgregarOcupacion = get('agregarOcupacion');
                     btnAgregarOcupacion.addEventListener('click', () => {
                         idInnerHTML(idHModal, 'Añadir ocupación');
@@ -156,16 +187,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     datosActuales.sede = selectSede.options[selectSede.selectedIndex].text;
                     personaContacto.value = voluntario.personaContacto || '-';
                     datosActuales.personaContacto = voluntario.personaContacto || '-';
-                    voluntarios.forEach((voluntario, indice) => {
-                        const option = crear('option');
-                        option.value = indice + 1;
-                        option.innerHTML = voluntario;
-                        option.id = `voluntario_${indice + 1}`;
-                        if(voluntario !== `${nombres.value} ${apPat.value} ${apMat.value}`) selectInternoAsignado.appendChild(option);
-                    });
-                    selectInternoAsignado.selectedIndex = voluntario.id_voluntarioAsignado;
-                    datosActuales.id_voluntarioAsignado = voluntario.id_voluntarioAsignado;
-                    datosActuales.voluntarioAsignado = selectInternoAsignado.options[selectInternoAsignado.selectedIndex].text;
                     observaciones.value = voluntario.observaciones || '-';
                     datosActuales.observaciones = voluntario.observaciones || '-';
 
@@ -285,6 +306,45 @@ document.addEventListener('DOMContentLoaded', () => {
                     btnModificar.setAttribute('data-bs-toggle', 'modal');
                     btnModificar.setAttribute('data-bs-target', '#myModal');
                     btnModificar.onclick = () => {modificarDatosVoluntario()};
+                    //
+                    const id_sede = selectSede.options[selectSede.selectedIndex].value;
+                    fetch('/obtenerNombreVoluntarios', {
+                        method: 'POST',
+                        headers: {
+                            'Content-type': 'application/json'
+                        },
+                        body: JSON.stringify({ id_sede: id_sede })
+                    })
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Hubo un problema con la solicitud: ' + response.status);
+                        }
+                        return response.json();
+                    })
+                    .then(voluntarios => {
+                        selectInternoAsignado.innerHTML = `<option value="0" selected>Sin asignación</option>`;
+                        voluntarios.forEach((voluntario) => {
+                            //console.log(voluntario);
+                            const option = crear('option');
+                            option.value = voluntario.id_voluntario;
+                            option.innerHTML = voluntario.nombreCompleto;
+                            option.id = `voluntario_${voluntario.id_voluntario}`;
+                            //console.log(option);
+                            if (voluntario.nombreCompleto !== `${nombres.value} ${apPat.value} ${apMat.value}`) selectInternoAsignado.appendChild(option);
+                        });
+                        for (let i = 0; i < selectInternoAsignado.options.length; i++) {
+                            if (parseInt(selectInternoAsignado.options[i].value) === voluntario.id_voluntarioAsignado) {
+                                selectInternoAsignado.selectedIndex = i;
+                                break;
+                            }
+                        }
+                        datosActuales.id_voluntarioAsignado = voluntario.id_voluntarioAsignado;
+                        datosActuales.voluntarioAsignado = selectInternoAsignado.options[selectInternoAsignado.selectedIndex].text;
+                    })
+                    .catch(error => {
+                        console.error('Error al realizar la solicitud: ' + error);
+                    });
+                    //
                 })
                 .catch(error => {
                 console.error('Error al cargar los datos:', error);
@@ -301,14 +361,13 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 function modificarDatosVoluntario() {
-    //console.log(datosActuales);
+    console.log(datosActuales);
     const modal = bootstrap.Modal.getInstance(get('myModal'));
     const nombres = get('nombres').value.trim();
     const apPat = get('apPat').value.trim();
     const apMat = get('apMat').value.trim();
     const tipoVoluntario = get('tipoVoluntario').options[get('tipoVoluntario').selectedIndex].id - 1;
     const nombreTipoVoluntario = tipoVoluntario === 0 ? 'Interno' : 'Externo temporal';
-    const nombreTipoVoluntarioAntiguo = datosActuales.tipoVoluntario === 0 ? 'Interno' : 'Externo temporal';
     const fechaNacimiento = get('fechaNacimiento').value;
     const correo = get('correo').value.trim();
     const correoValido = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/.test(correo);
@@ -320,6 +379,7 @@ function modificarDatosVoluntario() {
     const id_sede = get('sede').options[get('sede').selectedIndex].value;
     const personaContacto = get('personaContacto').value.trim() || '-';
     const internoAsignado = get('internoAsignado').options[get('internoAsignado').selectedIndex].text;
+    const id_internoAsignado = get('internoAsignado').options[get('internoAsignado').selectedIndex].value;
     const ulIntereses = get('listaIntereses').querySelectorAll('li');
     const interesesActuales = [];
     ulIntereses.forEach(li => {
@@ -473,6 +533,7 @@ function modificarDatosVoluntario() {
                 },
                 body: JSON.stringify({
                     id_voluntario: localStorage.getItem('id'),
+                    id_internoAsignado: idsModificados.includes('internoAsignado') ? id_internoAsignado : null,
                     fechaCaptacion: idsModificados.includes('fechaCaptacion') ? fechaCaptacion : null,
                     nombres: idsModificados.includes('nombres') ? nombres : null,
                     apPat: idsModificados.includes('apPat') ? apPat : null,

@@ -31,7 +31,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const urls = [
         '/obtenerOcupaciones',
         '/obtenerIntereses',
-        '/obtenerNombreVoluntarios',
         '/obtenerProgramas',
         '/obtenerPrimerosContactos'
     ];
@@ -43,7 +42,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         throw new Error(`Error al obtener datos desde ${url}`);
       })))
-      .then(([ocupaciones, intereses, voluntarios, programas, primerosContactos]) => {
+      .then(([ocupaciones, intereses, programas, primerosContactos]) => {
         // Procesar ocupaciones
         ocupaciones.forEach((ocupacion, indice) => {
           const nuevaOpcion = crear('option');
@@ -101,15 +100,6 @@ document.addEventListener('DOMContentLoaded', () => {
         otroDiv.appendChild(nvoA);
         otroLi.appendChild(otroDiv);
         ulIntereses.appendChild(otroLi);
-        
-        // Procesar voluntarios
-        voluntarios.forEach((voluntario, indice) => {
-          const nuevaOpcion = crear('option');
-          nuevaOpcion.id = 'voluntario_' + (indice + 1);
-          nuevaOpcion.value = indice + 1;
-          nuevaOpcion.textContent = voluntario;
-          selectVoluntarios.appendChild(nuevaOpcion);
-        });
 
         // Procesar programas
         programas.forEach(programa => {
@@ -162,6 +152,32 @@ document.addEventListener('DOMContentLoaded', () => {
         const botonesPrimerosContactos = divPrimerosContactos.querySelectorAll('button');
         botonesPrimerosContactos.forEach(boton => {
             boton.addEventListener('click', () => {botonSeleccionado(boton);});
+        });
+        
+        fetch('/obtenerNombreVoluntarios', {
+            method: 'POST',
+            headers: {
+                'Content-type': 'application/json'
+            },
+            body: JSON.stringify({ id_sede: null })
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Hubo un problema con la solicitud: ' + response.status);
+            }
+            return response.json();
+        })
+        .then(voluntarios => {
+            voluntarios.forEach((voluntario) => {
+            const nuevaOpcion = crear('option');
+            nuevaOpcion.id = 'voluntario_' + (voluntario.id_voluntario);
+            nuevaOpcion.value = voluntario.id_voluntario;
+            nuevaOpcion.textContent = voluntario.nombreCompleto;
+            selectVoluntarios.appendChild(nuevaOpcion);
+            });
+        })
+        .catch(error => {
+            console.error('Error al realizar la solicitud: ' + error);
         });
       })
       .catch(error => {

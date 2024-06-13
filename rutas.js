@@ -353,81 +353,92 @@ router.post('/validarToken', async (req, res) => {
                         return res.status(500).json({ mensaje: 'Error al borrar el token en la base de datos' });
                       });
                     } else {
-                      db.get('SELECT id_usuario, id_sede, id_rol, nombre_usuario, apellido_paterno, apellido_materno FROM usuarios WHERE correo=?', [correo], (err, row) => {
-                        if(err) {
-                          res.status(500).json({ mensaje: 'Error al obtener los datos del usuario para el envío de correo' });
-                        }
-                        if(!row) res.status(404).json({ mensaje: 'No se eencontró al usuario'});
-
-                        const nombre_usuario = row.nombre_usuario;
-                        const apellido_paterno = row.apellido_paterno;
-                        const apellido_materno = row.apellido_materno;
-                        const id_usuario = row.id_usuario;
-                        const id_sede = row.id_sede;
-                        const id_rol = row.id_rol;
-                        db.get('SELECT rol FROM roles WHERE id_rol=?', [id_rol], (err, row) => {
-                          if(err) {
-                            res.status(500).json({ mensaje: 'Error al consultar el rol'});
-                          } else {
-                            if(!row) res.status(404).json({ mensaje: 'No se encontró el rol'});
-                            const rol = row.rol;
-                            db.get('SELECT sede FROM sedes WHERE id_sede=?', [id_sede], (err, row) => {
-                              if(err) res.status(500).json({ mensaje: 'Error al consultar la sede' });
-                              if(!row) res.status(404).json({ mensaje: 'No se encontró la sede' });
-                              const sede = row.sede;
-                              // Enviar correo al delegado
-                      db.get('SELECT correo, nombre_usuario FROM usuarios WHERE id_rol = ? AND id_sede = ?', [2, id_sede], (err, delegadoRow) => { // Suponiendo que id_rol = 1 es el rol del delegado
+                      db.get('SELECT nombre_usuario, apellido_paterno, apellido_materno, id_sede, id_usuario FROM usuarios WHERE correo = ?', [correo], (err, row) => {
                         if (err) {
-                          console.error('Error al obtener el correo del delegado:', err);
-                          return res.status(500).json({ mensaje: 'Error al obtener el correo del delegado' });
+                          return hacerRollback(500, `Error al obtener los datos del voluntario tras eliminar token`, res, err);
                         }
-
-                        if (delegadoRow) {
-                          const delegadoMailOptions = {
-                            from: correoParaEnvios,
-                            to: delegadoRow.correo,
-                            subject: 'Solicitud de aprobación de usuario - INPAVI MANAGER',
-                            html: `Hola, ${delegadoRow.nombre_usuario}.
-                            
-                              <p>Se ha registrado un nuevo usuario en su sede. A continuación, se muestran los datos del usuario:</p>
-                              <ul>
-                                <li>Nombre: ${nombre_usuario}</li>
-                                <li>Apellido Paterno: ${apellido_paterno}</li>
-                                <li>Apellido Materno: ${apellido_materno}</li>
-                                <li>Correo: ${correo}</li>
-                                <li>Rol: ${rol}</li>
-                                <li>Sede: ${sede}</li>
-                              </ul>
-                              <p>Por favor, apruebe o rechace esta solicitud:</p>
-                              <a href="${dominio}/aceptarUsuario/${id_usuario}"><button style="color: green; text-decoration: none; font-weight: bold;">Aceptar</button></a>
-                              <br>
-                              <a href="${dominio}/declinarUsuario/${id_usuario}"><button style="color: red; text-decoration: none; font-weight: bold;">Declinar</button></a>
-                            `
-                          };
-
-                          transporter.sendMail(delegadoMailOptions, (error, info) => {
-                            if (error) {
-                              console.error('Error al enviar correo al delegado:', error);
-                              db.run('COMMIT', (commitErr) => {
-                                if (commitErr) {
-                                  console.error('Error al hacer commit:', commitErr);
-                                  return res.status(500).json({ mensaje: 'Error al hacer commit en la base de datos' });
-                                }
+                        if(!row) {
+                          return hacerRollback(404, `No se encontró al voluntario buscado`, res, err);
+                        }
+                        const nombreCompleto = `${row.nombre_usuario} ${row.apellido_paterno} ${row.apellido_materno}`;
+                        const id_sede = row.id_sede;
+                        const id_usuario = row.id_usuario;
+                        db.get('SELECT id_usuario, id_sede, id_rol, nombre_usuario, apellido_paterno, apellido_materno FROM usuarios WHERE correo=?', [correo], (err, row) => {
+                          if(err) {
+                            res.status(500).json({ mensaje: 'Error al obtener los datos del usuario para el envío de correo' });
+                          }
+                          if(!row) res.status(404).json({ mensaje: 'No se eencontró al usuario'});
+  
+                          const nombre_usuario = row.nombre_usuario;
+                          const apellido_paterno = row.apellido_paterno;
+                          const apellido_materno = row.apellido_materno;
+                          const id_usuario = row.id_usuario;
+                          const id_sede = row.id_sede;
+                          const id_rol = row.id_rol;
+                          db.get('SELECT rol FROM roles WHERE id_rol=?', [id_rol], (err, row) => {
+                            if(err) {
+                              res.status(500).json({ mensaje: 'Error al consultar el rol'});
+                            } else {
+                              if(!row) res.status(404).json({ mensaje: 'No se encontró el rol'});
+                              const rol = row.rol;
+                              db.get('SELECT sede FROM sedes WHERE id_sede=?', [id_sede], (err, row) => {
+                                if(err) res.status(500).json({ mensaje: 'Error al consultar la sede' });
+                                if(!row) res.status(404).json({ mensaje: 'No se encontró la sede' });
+                                const sede = row.sede;
+                                // Enviar correo al delegado
+                                db.get('SELECT correo, nombre_usuario FROM usuarios WHERE id_rol = ? AND id_sede = ?', [2, id_sede], (err, delegadoRow) => { // Suponiendo que id_rol = 1 es el rol del delegado
+                                  if (err) {
+                                    console.error('Error al obtener el correo del delegado:', err);
+                                    return res.status(500).json({ mensaje: 'Error al obtener el correo del delegado' });
+                                  }
+  
+                                  if (delegadoRow) {
+                                    const delegadoMailOptions = {
+                                      from: correoParaEnvios,
+                                      to: delegadoRow.correo,
+                                      subject: 'Solicitud de aprobación de usuario - INPAVI MANAGER',
+                                      html: `Hola, ${delegadoRow.nombre_usuario}.
+                                      
+                                        <p>Se ha registrado un nuevo usuario en su sede. A continuación, se muestran los datos del usuario:</p>
+                                        <ul>
+                                          <li>Nombre: ${nombre_usuario}</li>
+                                          <li>Apellido Paterno: ${apellido_paterno}</li>
+                                          <li>Apellido Materno: ${apellido_materno}</li>
+                                          <li>Correo: ${correo}</li>
+                                          <li>Rol: ${rol}</li>
+                                          <li>Sede: ${sede}</li>
+                                        </ul>
+                                        <p>Por favor, apruebe o rechace esta solicitud:</p>
+                                        <a href="${dominio}/aceptarUsuario/${id_usuario}"><button style="color: green; text-decoration: none; font-weight: bold;">Aceptar</button></a>
+                                        <br>
+                                        <a href="${dominio}/declinarUsuario/${id_usuario}"><button style="color: red; text-decoration: none; font-weight: bold;">Declinar</button></a>
+                                      `
+                                    };
+  
+                                    transporter.sendMail(delegadoMailOptions, (error, info) => {
+                                      if (error) {
+                                        console.error('Error al enviar correo al delegado:', error);
+                                        db.run('COMMIT', (commitErr) => {
+                                          if (commitErr) {
+                                            console.error('Error al hacer commit:', commitErr);
+                                            return res.status(500).json({ mensaje: 'Error al hacer commit en la base de datos' });
+                                          }
+                                        });
+                                      }
+                                    });
+                                  } else {
+                                    console.error('No se encontró el correo del delegado');
+                                    db.run('ROLLBACK', rollbackErr => {
+                                      if (rollbackErr) {
+                                        console.error('Error al hacer rollback:', rollbackErr);
+                                      }
+                                      return res.status(500).json({ mensaje: 'No se encontró el correo del delegado' });
+                                    });
+                                  }
+                                });
                               });
-                            }
+                            };
                           });
-                        } else {
-                          console.error('No se encontró el correo del delegado');
-                          db.run('ROLLBACK', rollbackErr => {
-                            if (rollbackErr) {
-                              console.error('Error al hacer rollback:', rollbackErr);
-                            }
-                            return res.status(500).json({ mensaje: 'No se encontró el correo del delegado' });
-                          });
-                        }
-                      });
-                            });
-                          };
                         });
                       });
                       db.run('COMMIT', (commitErr) => {
@@ -460,31 +471,53 @@ router.post('/validarToken', async (req, res) => {
 router.get('/aceptarUsuario/:id_usuario', (req, res) => {
   const {id_usuario} = req.params;
 
-  db.get('SELECT status FROM usuarios WHERE id_usuario=?', [id_usuario], (err, row) => {
+  db.get('SELECT nombre_usuario, apellido_paterno, apellido_materno, id_sede, status FROM usuarios WHERE id_usuario=?', [id_usuario], (err, row) => {
     if(err) res.status(500).json({ mensaje: 'Error al buscar al usuario' });
     if(row) {
+      const nombreCompleto = `${row.nombre_usuario} ${row.apellido_paterno} ${row.apellido_materno}`;
+      const id_sede = row.id_sede;
       if(row.status === 1) {
         res.redirect('/aceptadoPreviamente');
       } else if(row.status === 3) {
-        db.run('UPDATE usuarios SET status=? WHERE id_usuario=?', [1, id_usuario], (err) => {
-          if(err) res.status(500).json({ mensaje: 'Error al actualizar el status del usuario' });
-          db.get('SELECT correo, nombre_usuario FROM usuarios WHERE id_usuario=?', [id_usuario], (err, row) => {
-            if(err) res.status(500).json({ mensaje: 'Error al obtener los datos del usuario' });
-            const opcionesCorreo = {
-              from: correoParaEnvios,
-              to: row.correo,
-              subject: 'Aceptación de cuenta - INPAVI MANAGER',
-              html: `
-                <p>Hola, ${row.nombre_usuario}. <br><br> Tu solicitud de alta ha sido Aceptada. Ya puedes ingresar a <a href="${dominio}/">INPAVI Manager</a>.</p>
-              `
-            };
-        
-            transporter.sendMail(opcionesCorreo, (error, info) => {
-              if (error) {
-                console.error('Error al enviar correo al usuario aceptado:', error);
-              } else {
-                res.redirect('/usuarioAceptado');
+        db.serialize(() => {
+          db.run('BEGIN TRANSACTION');
+
+          db.run('INSERT INTO conjuntoVoluntarios (nombreCompleto, id_sede, tipoPersona, id_filaUsuarios) VALUES (?, ?, ?, ?)', [nombreCompleto, id_sede, 0, id_usuario], (err) => {
+            if (err) {
+              hacerRollback(500, `Error al insertar al usuario en la tabla general de voluntarios`, res, err);
+            }
+
+            db.run('UPDATE usuarios SET status=? WHERE id_usuario=?', [1, id_usuario], (err) => {
+              if(err) {
+                hacerRollback(500, `Error al modificar el estado del usuario`, res, err);
               }
+              db.get('SELECT correo, nombre_usuario FROM usuarios WHERE id_usuario=?', [id_usuario], (err, row) => {
+                if(err) {
+                  hacerRollback(500, `Error al obtener los datos del usuario para el envío de correo`, res, err);
+                }
+                const opcionesCorreo = {
+                  from: correoParaEnvios,
+                  to: row.correo,
+                  subject: 'Aceptación de cuenta - INPAVI MANAGER',
+                  html: `
+                    <p>Hola, ${row.nombre_usuario}. <br><br> Tu solicitud de alta ha sido Aceptada. Ya puedes ingresar a <a href="${dominio}/">INPAVI Manager</a>.</p>
+                  `
+                };
+            
+                transporter.sendMail(opcionesCorreo, (error, info) => {
+                  if (error) {
+                    console.error('Error al enviar correo al usuario aceptado:', error);
+                  } else {
+                    db.run('COMMIT', (err) => {
+                      if(err) {
+                        console.error(`Error al realizar commit: ${err}`);
+                        return hacerRollback(500, `Error al hacer commit de la transacción`, res, err);
+                      }
+                      return res.redirect('/usuarioAceptado');
+                    });
+                  }
+                });
+              });
             });
           });
         });
@@ -520,10 +553,30 @@ router.get('/declinarUsuario/:id_usuario', (req, res) => {
           transporter.sendMail(opcionesCorreo, (error, info) => {
             if (error) {
               console.error('Error al enviar correo al delegado:', error);
+              return res.status(500);
             } else {
-              db.run('DELETE FROM usuarios WHERE id_usuario=?', [id_usuario], (err) => {
-                if(err) res.status(500).json({ mensaje: 'Error al eliminar el usuario' });
-                res.redirect('/usuarioDeclinado');
+              db.serialize(() => {
+                db.run('BEGIN TRANSACTION');
+                
+                db.run('DELETE FROM usuarios WHERE id_usuario=?', [id_usuario], (err) => {
+                  if(err) {
+                    hacerRollback(500, `Error al eliminar al usuario de la tabla de usuarios`, res, err);
+                  }
+  
+                  db.run('DELETE FROM conjuntoVoluntarios WHERE id_voluntario = ?', [id_usuario], (err) => {
+                    if (err) {
+                      return hacerRollback(500, `Error al eliminar el usuario de la tabla de voluntarios`, res, err);
+                    }
+                    
+                    db.run('COMMIT', (err) => {
+                      if(err) {
+                        console.error(`Error al realizar commit: ${err}`);
+                        return hacerRollback(500, `Error al hacer commit de la transacción`, res, err);
+                      }
+                      return res.redirect('/usuarioDeclinado');
+                    });
+                  });
+                });
               });
             }
           });
@@ -758,30 +811,20 @@ router.get('/obtenerIntereses', verificarSesionYStatus, (req, res) => {
   });
 });
 
-router.get('/obtenerNombreVoluntarios', (req, res) => {
+router.post('/obtenerNombreVoluntarios', (req, res) => {
   if (req.session && req.session.usuario) {
-    const { id_sede } = req.session.usuario;
+    const id_sede = req.body.id_sede || req.session.usuario.id_sede;
     const voluntarios = [];
-    db.all('SELECT nombre_usuario, apellido_paterno, apellido_materno FROM usuarios WHERE status=1 AND id_sede=? AND id_rol IN(2,3,4,5,6) ORDER BY nombre_usuario', [id_sede], (err, rows) => {
+    db.all('SELECT id_voluntario, nombreCompleto FROM conjuntoVoluntarios WHERE id_sede=?', [id_sede], (err, rows) => {
       if(err) {
-        return res.status(500).json({ mensaje: 'Error al consultar los voluntarios usuariosdel sistema ' + err });
+        return res.status(500).json({ mensaje: 'Error al consultar la tabla de voluntarios del sistema ' + err });
       } else {
         if(rows) {
           rows.forEach(usuario => {
-            voluntarios.push(`${usuario.nombre_usuario} ${usuario.apellido_paterno} ${usuario.apellido_materno}`);
-          });
-          db.all('SELECT nombre_v, apellido_paterno_v, apellido_materno_v FROM voluntarios WHERE estado=1 AND id_sede=? ORDER BY nombre_v', [id_sede], (err, rows) => {
-            if(err) {
-              return res.status(500).json({ mensaje: 'Error al consultar los voluntarios del sistema' });
-            }
-            if(rows) {
-              rows.forEach(voluntario => {
-                voluntarios.push(`${voluntario.nombre_v} ${voluntario.apellido_paterno_v} ${voluntario.apellido_materno_v}`);
-              });
-            }
-            res.status(200).json(voluntarios.sort());
+            voluntarios.push(usuario);
           });
         }
+        res.status(200).json(voluntarios.sort());
       }
     });
   } else {
@@ -1061,13 +1104,27 @@ router.post('/voluntarioNuevo', (req, res) => {
                 }
     
                 Promise.all(tasks).then(() => {
+                  const nombreCompleto = `${nombre} ${apellidoP} ${apellidoM}`;
+                  if(estado === 1) {
+                    db.run('INSERT INTO conjuntoVoluntarios (nombreCompleto, id_sede, tipoPersona, id_filaVoluntarios) VALUES (?, ?, ?, ?)', [nombreCompleto, id_sede, 1, id_voluntario], (err) => {
+                      if (err) {
+                        return hacerRollback(500, `Error al insertar al voluntario en la tabla general`, res, err);
+                      }
+                      db.run('COMMIT', (commitErr) => {
+                        if (commitErr) {
+                          console.error('Error al hacer commit:', commitErr);
+                          return res.status(500).json({ mensaje: 'Error al hacer commit en la base de datos' });
+                        }
+                        return res.status(201).json({ mensaje: 'Voluntario registrado correctamente' });
+                      });
+                    });
+                  }
                   db.run('COMMIT', (commitErr) => {
                     if (commitErr) {
                       console.error('Error al hacer commit:', commitErr);
                       return res.status(500).json({ mensaje: 'Error al hacer commit en la base de datos' });
                     }
-                    //console.log('Transacción completada y datos insertados');
-                    res.status(201).json({ mensaje: 'Voluntario registrado correctamente' });
+                    return res.status(201).json({ mensaje: 'Voluntario registrado correctamente' });
                   });
                 }).catch(err => {
                   console.error('Error durante la transacción:', err);
@@ -1143,7 +1200,7 @@ router.post('/infoVoluntario', verificarSesionYStatus, (req, res) => {
     FROM 
       voluntarios v
     LEFT JOIN 
-      voluntarios va ON v.id_voluntarioAsignado = va.id_voluntario
+      voluntarios va ON v.id_voluntarioAsignado = va.id_voluntarioAsignado
     LEFT JOIN 
       ocupaciones o ON v.id_ocupacion = o.id_ocupacion
     LEFT JOIN 
@@ -1174,6 +1231,7 @@ router.post('/infoVoluntario', verificarSesionYStatus, (req, res) => {
         return res.status(500).json({ mensaje: 'Error al consultar datos del voluntario en la base de datos' });
       }
       if(row) {
+        //console.log(row);
         return res.status(200).json({ row });
       } else {
         return res.status(404).json({ mensaje: 'No se encontró el voluntario buscado' });
@@ -1187,6 +1245,10 @@ router.post('/modificarDatosVoluntario', verificarSesionYStatus, (req, res) => {
   let sets = [];
   let parametros = [];
 
+  if (id_internoAsignado) {
+    sets.push('id_voluntarioAsignado = ?');
+    parametros.push(id_internoAsignado);
+  }
   if (fechaCaptacion) {
     sets.push('fecha_captacion = ?');
     parametros.push(fechaCaptacion);
@@ -1385,7 +1447,7 @@ router.post('/modificarDatosVoluntario', verificarSesionYStatus, (req, res) => {
       }
 
       if (ocupacion) {
-        console.log('Sí hay ocupación por procesar');
+        //console.log('Sí hay ocupación por procesar');
         db.get('SELECT id_ocupacion FROM ocupaciones WHERE ocupacion = ?', [ocupacion], (err, row) => {
           if (err) {
             return hacerRollback(500, 'No fue posible saber si la ocupación seleccionada ya existe', res, err);
@@ -1484,7 +1546,7 @@ async function encriptar(contraseña) {
 
 function hacerRollback(codigo, mensaje, res, error) {
   db.run('ROLLBACK', () => {
-    console.error(`Error al hacer rollback: ${err}`);
+    console.error(`Error al hacer rollback: ${error}`);
     return res.status(codigo).json({ mensaje: mensaje });
   });
 }

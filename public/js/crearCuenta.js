@@ -22,11 +22,11 @@ function validarNuevaCuenta(){
         if (input.value === '' && numeroInput < 7) completo = false;
     });
 
-    const nombre_usuario = valorDe('nombres');
-    const apellido_paterno = valorDe('apPat');
-    const apellido_materno = valorDe('apMat');
-    const telefono = valorDe('telefono');
-    const correo = valorDe('email');
+    const nombre_usuario = valorDe('nombres').trim();
+    const apellido_paterno = valorDe('apPat').trim();
+    const apellido_materno = valorDe('apMat').trim();
+    const telefono = valorDe('telefono').trim();
+    const correo = valorDe('email').trim();
     const contraseña = valorDe('pwd');
     const id_rol = roles.selectedIndex;
     const id_sede = sedes.selectedIndex;
