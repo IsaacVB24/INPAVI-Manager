@@ -1,10 +1,11 @@
+const ruta = window.location.pathname;
 const ventanaModal = '<div class="modal" id="myModal" style="display=block;"><div class="modal-dialog"><div class="modal-content"><div class="modal-header"><h4 class="modal-title" id="hModal">Header de modal dinámico</h4><button type="button" class="btn-close" data-bs-dismiss="modal" id="cerrarModal"></button></div><div class="modal-body" id="bModal">Cuerpo del modal dinámico..</div><div class="modal-footer" id="botonesModal"><button type="button" class="btn btn-danger" data-bs-dismiss="modal" id="btnModal">Contenido botón</button></div></div></div></div>';
 const idHModal = 'hModal';
 const idBModal = 'bModal';
 const idBotonModal = 'btnModal';
 const idSeccionBotonesModal = 'botonesModal';
 const barraNav = `<nav class="navbar navbar-expand-lg">
-<a class="navbar-brand" href="#">Integración Para La Vida</a>
+<a class="navbar-brand" ${ruta !== '/tablero' ? `href='/tablero'` : ''}>Integración Para La Vida</a>
 <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
   <span class="navbar-toggler-icon"></span>
 </button>
@@ -25,7 +26,6 @@ const barraNav = `<nav class="navbar navbar-expand-lg">
   </ul>
 </div>
 </nav>`;
-const ruta = window.location.pathname;
 
 function idInnerHTML(id, contenido){
   get(id).innerHTML = contenido;

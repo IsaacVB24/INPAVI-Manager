@@ -151,6 +151,10 @@ router.get('/modificarVoluntario', verificarSesionYStatus, (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'html', 'modificacionVoluntario.html'));
 });
 
+router.get('/programas', verificarSesionYStatus, (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'html', 'sitioEnConstruccion.html'));
+});
+
 // Ruta para el inicio de sesión
 router.post('/login', async (req, res) => {
   const { correo, contraseña } = req.body;
@@ -500,7 +504,7 @@ router.get('/aceptarUsuario/:id_usuario', (req, res) => {
                   to: row.correo,
                   subject: 'Aceptación de cuenta - INPAVI MANAGER',
                   html: `
-                    <p>Hola, ${row.nombre_usuario}. <br><br> Tu solicitud de alta ha sido Aceptada. Ya puedes ingresar a <a href="${dominio}/">INPAVI Manager</a>.</p>
+                    <p>Hola, ${row.nombre_usuario}. <br><br> Te damos la bienvenida a INPAVI Manager. <br><br>Da clic <a href="${dominio}/">aquí</a> para comenzar a ayudar.</p>
                   `
                 };
             
@@ -738,6 +742,7 @@ router.get('/obtenerBotones', (req, res) => {
         case 2: // Delegado
           botones = [
             { nombre: 'Registrar a un voluntario', ruta: '/altaVoluntario', inactivo: false, tipo: 'button' },
+            { nombre: 'Explorar programas', ruta: '/programas', inactivo: false, tipo: 'button' },
             { nombre: 'Modificar información de un voluntario', ruta: '/modificarVoluntario', inactivo: true, tipo: 'icon' },
             { nombre: 'Ver la información de un voluntario', ruta: '/datosVoluntario', inactivo: true, tipo: 'icon' }
           ];
@@ -1241,59 +1246,59 @@ router.post('/infoVoluntario', verificarSesionYStatus, (req, res) => {
 });
 
 router.post('/modificarDatosVoluntario', verificarSesionYStatus, (req, res) => {
-  const { id_voluntario, id_internoAsignado, fechaCaptacion, nombres, apPat, apMat, identificacion, fechaNacimiento, telefono, correo, ocupacion, tipoVoluntario, observaciones, id_sede, personaContacto, intereses, valoracion, primerosContactos, derivacion, proyectoNuevo } = req.body;
+  const { id_voluntario, id_internoAsignado, fechaCaptacion, nombres, apPat, apMat, identificacion, fechaNacimiento, telefono, correo, ocupacion, tipoVoluntario, observaciones, id_sede, personaContacto, intereses, valoracion, primerosContactos, derivacion } = req.body;
   let sets = [];
   let parametros = [];
 
-  if (id_internoAsignado) {
+  if (id_internoAsignado !== null) {
     sets.push('id_voluntarioAsignado = ?');
     parametros.push(id_internoAsignado);
   }
-  if (fechaCaptacion) {
+  if (fechaCaptacion !== null) {
     sets.push('fecha_captacion = ?');
     parametros.push(fechaCaptacion);
   }
-  if (nombres) {
+  if (nombres !== null) {
     sets.push('nombre_v = ?');
     parametros.push(nombres);
   }
-  if (apPat) {
+  if (apPat !== null) {
     sets.push('apellido_paterno_v = ?');
     parametros.push(apPat);
   }
-  if (apMat) {
+  if (apMat !== null) {
     sets.push('apellido_materno_v = ?');
     parametros.push(apMat);
   }
-  if (identificacion) {
+  if (identificacion !== null) {
     sets.push('identificacion = ?');
     parametros.push(identificacion);
   }
-  if (fechaNacimiento) {
+  if (fechaNacimiento !== null) {
     sets.push('fecha_nacimiento = ?');
     parametros.push(fechaNacimiento);
   }
-  if (telefono) {
+  if (telefono !== null) {
     sets.push('telefono_v = ?');
     parametros.push(telefono);
   }
-  if (correo) {
+  if (correo !== null) {
     sets.push('correo_v = ?');
     parametros.push(correo);
   }
-  if (tipoVoluntario) {
+  if (tipoVoluntario !== null) {
     sets.push('informe_valoracion = ?');
     parametros.push(tipoVoluntario);
   }
-  if (observaciones) {
+  if (observaciones !== null) {
     sets.push('observaciones = ?');
     parametros.push(observaciones);
   }
-  if (id_sede) {
+  if (id_sede !== null) {
     sets.push('id_sede = ?');
     parametros.push(id_sede);
   }
-  if (personaContacto) {
+  if (personaContacto !== null) {
     sets.push('personaContacto = ?');
     parametros.push(personaContacto);
   }
@@ -1447,7 +1452,7 @@ router.post('/modificarDatosVoluntario', verificarSesionYStatus, (req, res) => {
       }
 
       if (ocupacion) {
-        //console.log('Sí hay ocupación por procesar');
+        //console.log('Sí hay ocupación por procesar, y es: ' + ocupacion);
         db.get('SELECT id_ocupacion FROM ocupaciones WHERE ocupacion = ?', [ocupacion], (err, row) => {
           if (err) {
             return hacerRollback(500, 'No fue posible saber si la ocupación seleccionada ya existe', res, err);
@@ -1466,14 +1471,15 @@ router.post('/modificarDatosVoluntario', verificarSesionYStatus, (req, res) => {
 
               const conjuntoSet = sets.join(', ');
               parametros.push(id_voluntario);
-              //console.log(`1. La instrucción sería: UPDATE voluntarios SET ${conjuntoSet} WHERE id_voluntario = ${id_voluntario}`);
-              //console.log(`Los parámetros son: ${parametros}`);
+              console.log(`1. La instrucción sería: UPDATE voluntarios SET ${conjuntoSet} WHERE id_voluntario = ${id_voluntario}`);
+              console.log(`Los parámetros son: ${parametros}`);
 
               db.run(`UPDATE voluntarios SET ${conjuntoSet} WHERE id_voluntario = ?`, parametros, (err) => {
                 if (err) {
                   return hacerRollback(500, 'Error al actualizar los datos del voluntario', res, err);
                 }
 
+                console.log(`1. Los parámetros son: ${parametros}`);
                 realizarCommit(res, 200, `Los datos del voluntario "${nombreVoluntario}" fueron modificados correctamente.`);
               });
             });
@@ -1483,13 +1489,14 @@ router.post('/modificarDatosVoluntario', verificarSesionYStatus, (req, res) => {
 
             const conjuntoSet = sets.join(', ');
             parametros.push(id_voluntario);
-            //console.log(`2. La instrucción sería: UPDATE voluntarios SET ${conjuntoSet} WHERE id_voluntario = ${id_voluntario}`);
-            //console.log(`Los parámetros son: ${parametros}`);
+            console.log(`2. La instrucción sería: UPDATE voluntarios SET ${conjuntoSet} WHERE id_voluntario = ${id_voluntario}`);
+            console.log(`Los parámetros son: ${parametros}`);
             db.run(`UPDATE voluntarios SET ${conjuntoSet} WHERE id_voluntario = ?`, parametros, (err) => {
               if (err) {
                 return hacerRollback(500, 'Error al actualizar los datos del voluntario', res, err);
               }
 
+              console.log(`2. Los parámetros son: ${parametros}`);
               realizarCommit(res, 200, `Los datos del voluntario "${nombreVoluntario}" fueron modificados correctamente.`);
             });
           }
@@ -1498,14 +1505,15 @@ router.post('/modificarDatosVoluntario', verificarSesionYStatus, (req, res) => {
         if (sets.length > 0) {
           const conjuntoSet = sets.join(', ');
           parametros.push(id_voluntario);
-          //console.log(`3. La instrucción sería: UPDATE voluntarios SET ${conjuntoSet} WHERE id_voluntario = ${id_voluntario}`);
-          //console.log(`Los parámetros son: ${parametros}`);
+          console.log(`3. La instrucción sería: UPDATE voluntarios SET ${conjuntoSet} WHERE id_voluntario = ${id_voluntario}`);
+          console.log(`Los parámetros son: ${parametros}`);
           db.run(`UPDATE voluntarios SET ${conjuntoSet} WHERE id_voluntario = ?`, parametros, (err) => {
             if (err) {
               return hacerRollback(500, 'Error al actualizar los datos del voluntario', res, err);
             }
           });
         }
+        console.log(`3. Los parámetros son: ${parametros}`);
         realizarCommit(res, 200, `Los datos del voluntario "${nombreVoluntario}" fueron modificados correctamente.`);
       }
     });

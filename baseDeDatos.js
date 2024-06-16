@@ -118,7 +118,11 @@ db.serialize(() => {
   // Crear tabla de programas si no existe
   db.run(`CREATE TABLE IF NOT EXISTS programas (
     id_programa INTEGER PRIMARY KEY AUTOINCREMENT,
-    programa TEXT NOT NULL UNIQUE
+    programa TEXT NOT NULL UNIQUE,
+    descripcion TEXT NOT NULL,
+    cantidadInvolucrados INTEGER,
+    fechaInicio TEXT,
+    fechaFin TEXT
   )`);
 
   // Insertar datos de programas si la tabla está vacía
@@ -128,14 +132,14 @@ db.serialize(() => {
     } else {
       if (row.count === 0) {
         const programas = [
-          { programa: 'Entrada' },
-          { programa: 'Integra' },
-          { programa: 'D.A.S.' }, // Desarrollando Acciones Solidarias
-          { programa: 'C.V.C.' }  // Centro de Vida Cristiana
+          { programa: 'Entrada', descripcion: 'Programa encargado de detectar y suplir las necesidades básicas de las personas afectadas por la pobreza y miseria. Se busca proveer ayudas destinadas a disminuir el grado de pobreza en el que se encuentran las familias beneficiadas.' },
+          { programa: 'Integra', descripcion: '' },
+          { programa: 'D.A.S.', descripcion: ' El programa "Desarrollando Acciones Solidarias" busca ofrecer oportunidades reales a las personas para que se involucren en acciones contretas a favor de otras personas mediante voluntariado, donaciones en especie y/o monetarias, prestaciones de servicios, apadrinamiento, socios, entre otras.' }, // Desarrollando Acciones Solidarias
+          { programa: 'C.V.C.', descripcion: '' }  // Centro de Vida Cristiana
         ];
-        const stmt = db.prepare("INSERT INTO programas (programa) VALUES (?)");
+        const stmt = db.prepare("INSERT INTO programas (programa, descripcion) VALUES (?, ?)");
         programas.forEach((programa) => {
-          stmt.run(programa.programa);
+          stmt.run(programa.programa, programa.descripcion);
         });
         stmt.finalize();
         console.log('Datos de programas insertados correctamente');

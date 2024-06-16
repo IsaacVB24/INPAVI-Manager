@@ -117,16 +117,6 @@ document.addEventListener('DOMContentLoaded', () => {
             divValoracion.appendChild(clon1);
             divDerivacion.appendChild(clon2);
         });
-        const siguienteIDProgramas = programas.length + 1;
-        const seccionProyecto = `
-        <div class="form-check mt-2">
-                        <button type="button" class="w-50" id="proyecto">Proyecto</button>
-                    </div>
-                    <div class="form-check mt-2" style="text-align: center;">
-                        <textarea name="${siguienteIDProgramas}" id="nombreProyecto" cols="30" rows="2" style="resize: none; padding: 6px; display: none;" maxlength="200" placeholder="Nombre del proyecto"></textarea>
-                    </div>
-        `;
-        divDerivacion.innerHTML += seccionProyecto;
         const botonesValoracion = divValoracion.querySelectorAll('button');
         botonesValoracion.forEach(boton => {
             boton.addEventListener('click', () => {botonSeleccionado(boton);});

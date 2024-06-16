@@ -40,7 +40,7 @@ app.use(
         "https://cdn.jsdelivr.net",
         "https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/"
       ],
-      imgSrc: ["'self'", "data:"],
+      imgSrc: ["'self'", "data:", "https://img.icons8.com/"],
       connectSrc: ["'self'"]
     }
   })

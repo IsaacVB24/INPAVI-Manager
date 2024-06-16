@@ -260,21 +260,10 @@ document.addEventListener('DOMContentLoaded', () => {
                         divValoracion.appendChild(clon1);
                         divDerivacion.appendChild(clon2);
                     });
-                    const siguienteIDProgramas = programas.length + 1;
-                    const seccionProyecto = `
-                    <div class="form-check mt-2">
-                                    <button type="button" class="w-50" id="proyecto">Proyecto</button>
-                                </div>
-                                <div class="form-check mt-2" style="text-align: center;">
-                                    <textarea name="${siguienteIDProgramas}" id="nombreProyecto" cols="30" rows="2" style="resize: none; padding: 6px; display: none;" maxlength="200" placeholder="Nombre del proyecto"></textarea>
-                                </div>
-                    `;
-
                     const valoracion = voluntario.valoracion.split(',');
                     const derivacion = voluntario.derivacion.split(',');
                     datosActuales.valoracion = voluntario.valoracion;
                     datosActuales.derivacion = voluntario.derivacion;
-                    divDerivacion.innerHTML += seccionProyecto;
                     const botonesValoracion = divValoracion.querySelectorAll('button');
                     botonesValoracion.forEach(boton => {
                         boton.addEventListener('click', () => {botonSeleccionado(boton);});
@@ -424,7 +413,6 @@ function modificarDatosVoluntario() {
     if(sede !== datosActuales.sede) idsModificados.push('sede');
     if(personaContacto !== datosActuales.personaContacto) idsModificados.push('personaContacto');
     if(internoAsignado !== datosActuales.voluntarioAsignado) idsModificados.push('internoAsignado');
-    if(get('proyecto').classList.contains('seleccionado') && get('nombreProyecto').textContent) idsModificados.push('nombreProyecto');
     if(!(interesesActuales.length === 0 && datosActuales.intereses === null)) {
         if(!(interesesActuales == datosActuales.intereses) && !(arreglosIguales(interesesActuales, datosActuales.intereses.split(',')))) {
             idsModificados.push('listaIntereses');
@@ -475,25 +463,6 @@ function modificarDatosVoluntario() {
         if(!correoValido) {
             mostrarModal('Correo inválido', 'Se debe ingresar un correo válido, por ejemplo: nombreCorreo@dominio.mx', modal);
             return;
-        }
-        if(get('proyecto').classList.contains('seleccionado') && get('nombreProyecto').value === '') {
-            mostrarModal('Proyecto incompleto', 'Se debe colocar el nombre del proyecto, en caso contrario, se debe deseleccionar dicho campo.', modal);
-            return;
-        } else {
-            const proyectoNuevo = get('nombreProyecto').value.trim().toLowerCase();
-            const botonesDerivacion = get('derivacion').querySelectorAll('button');
-            const nombresDerivacion = [];
-            botonesDerivacion.forEach(boton => {
-                nombresDerivacion.push(boton.textContent.toLowerCase());
-            });
-            if(proyectoNuevo === 'proyecto'.toLowerCase()) {
-                mostrarModal('Nombre de proyecto inválido', 'Se debe escribir un nombre de proyecto válido.', modal);
-                return;
-            }
-            if(nombresDerivacion.includes(proyectoNuevo)) {
-                mostrarModal('Proyecto duplicado', 'El nombre del nuevo proyecto ya existe actualmente', modal);
-                return;
-            }
         }
         get(idHModal).innerHTML = '¿Deseas realizar los cambios?';
         get(idBModal).innerHTML = `A continuación se muestra el registro actualizado: <br><br>
@@ -551,8 +520,7 @@ function modificarDatosVoluntario() {
                     intereses: idsModificados.includes('listaIntereses') ? interesesActuales : null,
                     valoracion: idsModificados.includes('valoracion') ? idsValoracionActual : null,
                     primerosContactos: idsModificados.includes('primerosContactos') ? idsContactosActuales : null,
-                    derivacion: idsModificados.includes('derivacion') ? idsDerivacionActual : null,
-                    proyectoNuevo: (get('proyecto').classList.contains('seleccionado') && get('nombreProyecto').value.trim() !== '') ? get('nombreProyecto').value.trim() : null 
+                    derivacion: idsModificados.includes('derivacion') ? idsDerivacionActual : null
                 })
             })
             .then(response => {

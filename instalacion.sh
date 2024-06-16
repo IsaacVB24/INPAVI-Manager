@@ -9,6 +9,7 @@ sudo apt install npm
 sudo npm install -g express
 sudo apt install npm
 sudo npm install pm2 -g
+sudo apt install sqlite3
 npm install sqlite3
 npm install nodemailer crypto
 npm install bcrypt
