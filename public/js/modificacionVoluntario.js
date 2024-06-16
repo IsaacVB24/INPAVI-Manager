@@ -1,10 +1,13 @@
 let datosActuales = {};
 let ocupacionGlobal = '';
+let modal;
 
 document.addEventListener('DOMContentLoaded', () => {
     document.querySelectorAll('textarea').forEach(textarea => {textarea.style.resize = 'none';});
     const id_voluntario = localStorage.getItem('id');
     get('alertas').innerHTML = ventanaModal;
+    const elementoModal = get('myModal');
+    modal = new bootstrap.Modal(elementoModal);
     //localStorage.clear();
     //return;
     fetch('/infoVoluntario', {
@@ -344,7 +347,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     .catch(error => {
                         console.error('Error al realizar la solicitud: ' + error);
                     });
-                    //
+                    get('bajaVoluntario').onclick =  () => {darDeBajaVoluntario()};
                 })
                 .catch(error => {
                 console.error('Error al cargar los datos:', error);
@@ -361,8 +364,6 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 function modificarDatosVoluntario() {
-    console.log(datosActuales);
-    const modal = bootstrap.Modal.getInstance(get('myModal'));
     const nombres = get('nombres').value.trim();
     const apPat = get('apPat').value.trim();
     const apMat = get('apMat').value.trim();
@@ -577,4 +578,53 @@ function modificarDatosVoluntario() {
             btnModal.classList.remove('btn-secondary');
         });
     }
+}
+
+function darDeBajaVoluntario() {
+    const nombres = get('nombres').value.trim();
+    const apPat = get('apPat').value.trim();
+    const apMat = get('apMat').value.trim();
+    const nombreCompleto = `${nombres} ${apPat} ${apMat}`;
+
+    const btn = get(idBotonModal);
+    btn.innerHTML = 'Confirmar baja';
+    btn.classList.remove('btn-danger', 'btn-info', 'btn-success');
+    btn.classList.add('btn-warning');
+    mostrarModal('Dar de baja voluntario', `¿Realmente deseas dar de baja a "${nombreCompleto}"?<br><br>Esto significa, si se hicieron cambios en esta pantalla de sus datos, no se realizarán, solamente se cambiará su estado de "alta" a "registrado". <br><br><div class="form-group">
+    <label for="pwd" class="fw-bold">Si confirmas esta acción, escribe la contraseña que utilizas para iniciar sesión:</label>
+    <input type="password" class="form-control" id="contrBaja" placeholder='Ingresa tu contraseña' maxlength=30>
+    </div>`, modal);
+    btn.addEventListener('click', () => {
+        const inputContrBaja = get('contrBaja');
+        if(inputContrBaja.value === '') {
+            alert('Se debe ingresar una contraseña');
+            mostrarModal('Dar de baja voluntario', `¿Realmente deseas dar de baja a "${nombreCompleto}"?<br><br>Esto significa, si se hicieron cambios en esta pantalla de sus datos, no se realizarán, solamente se cambiará su estado de "alta" a "registrado". <br><br><div class="form-group">
+                <label for="pwd" class="fw-bold">Si confirmas esta acción, escribe la contraseña que utilizas para iniciar sesión:</label>
+                <input type="password" class="form-control" id="contrBaja" placeholder='Ingresa tu contraseña' maxlength=30>
+                </div>`, modal);
+        } else {
+            const clave = get('contrBaja').value;
+            fetch('/bajaVoluntario', {
+                method: 'POST',
+                headers: {
+                    'Content-type': 'application/json'
+                },
+                body: JSON.stringify({ idVoluntario: localStorage.getItem('id'), clave: clave })
+            })
+            .then(response => {
+                if (!response.ok && response.status !== 401) {
+                    throw new Error('Hubo un problema con la solicitud: ' + response.status);
+                }
+                return response.json();
+            })
+            .then(data => {
+                alert(data.mensaje);
+                if(data.status !== 401 && data.status !== 500) window.location.href = '/tablero';
+            })
+            .catch(error => {
+                console.error('Error al realizar la solicitud: ' + error);
+                alert('Hubo un error al intentar dar de baja al voluntario');
+            });
+        }
+    });
 }

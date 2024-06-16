@@ -1512,6 +1512,49 @@ router.post('/modificarDatosVoluntario', verificarSesionYStatus, (req, res) => {
   });
 });
 
+// Ruta para dar de baja a un voluntario
+router.post('/bajaVoluntario', verificarSesionYStatus, (req, res) => {
+  const { idVoluntario, clave } = req.body;
+  const { id_usuario } = req.session.usuario;
+  console.log(req.body);
+
+  db.get('SELECT contraseña FROM usuarios WHERE id_usuario = ?', [id_usuario], async (err, row) => {
+    if(err) {
+      console.error(`Error al buscar al usuario que da de baja: ${err}`);
+      return res.status(500).json({ mensaje: 'Error al localizar al usuario que da de baja' });
+    }
+
+    if(!row) {
+      return res.status(404).json({ mensaje: 'No se localizó al usuario que da de baja' });
+    } else {
+      console.log('Se encontró la contraseña');
+      const match = await bcrypt.compare(clave, row.contraseña);
+      console.log(match);
+      if(match) {
+        db.serialize(() => {
+          db.run('BEGIN TRANSACTION');
+
+          db.run('UPDATE voluntarios SET estado = ? WHERE id_voluntario = ?', [2, idVoluntario], (err) => {
+            if (err) {
+              return hacerRollback(500, `Error al actualizar el estado del voluntario`, res, err);
+            }
+
+            db.run('DELETE FROM conjuntoVoluntarios WHERE id_filaVoluntarios = ?', [idVoluntario], (err) => {
+              if(err) {
+                return hacerRollback(500, `Error al eliminar al voluntario de la tabla general`, res, err);
+              }
+
+              realizarCommit(res, 200, `Se dio de baja correctamente al voluntario.`);
+            });
+          });
+        });
+      } else {
+        return res.status(401).json({ status: 401, mensaje: 'Contraseña incorrecta.' });
+      }
+    }
+  });
+});
+
 // Función para enviar correo para reestablecer contraseña
 function enviarCorreoReestablecerContraseña(correo, token) {
   const mailOptions = {

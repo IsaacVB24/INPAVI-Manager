@@ -65,7 +65,11 @@ function crear(elemento) {
 function mostrarModal(titulo, mensaje, modal) {
   get(idHModal).innerHTML = titulo;
   get(idBModal).innerHTML = mensaje;
-  modal.show();
+  if(modal) {
+    modal.show();
+  } else {
+    console.log('El modal no está inicializado');
+  }
 }
 
 function tratarFecha(fecha) {
