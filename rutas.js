@@ -152,7 +152,7 @@ router.get('/modificarVoluntario', verificarSesionYStatus, (req, res) => {
 });
 
 router.get('/programas', verificarSesionYStatus, (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'html', 'sitioEnConstruccion.html'));
+  res.sendFile(path.join(__dirname, 'public', 'html', 'programasSociales.html'));
 });
 
 // Ruta para el inicio de sesión
@@ -968,195 +968,119 @@ router.post('/voluntarioNuevo', (req, res) => {
   if (req.session && req.session.usuario) {
     const { id_sede, id_usuario } = req.session.usuario;
     const { nombre, apellidoP, apellidoM, fechaNacimiento, identificacion, telefono, correo, ocupacion, personaContacto, voluntarioIntAsignado, intereses, valoracion, primerosContactos, informeValoracion, derivacion, observaciones } = req.body;
-    //console.log('Datos recibidos:' + JSON.stringify({ nombre, apellidoP, apellidoM, fechaNacimiento, identificacion, telefono, correo, ocupacion, personaContacto, voluntarioIntAsignado, intereses, valoracion, primerosContactos, informeValoracion, derivacion, observaciones }));
     
     const fechaActual = new Date();
     const year = fechaActual.getUTCFullYear();
     const month = String(fechaActual.getUTCMonth() + 1).padStart(2, '0');
     const day = String(fechaActual.getUTCDate()).padStart(2, '0');
     const fechaFormateada = `${year}-${month}-${day}`;
-    //console.log(fechaFormateada);
     
     let estado = derivacion.length === 0 ? 2 : 1;
     let fechaAlta = estado === 1 ? fechaFormateada : '';
 
     db.get('SELECT 1 FROM voluntarios WHERE nombre_v = ? AND apellido_paterno_v = ? AND apellido_materno_v = ? AND fecha_nacimiento = ?', [nombre, apellidoP, apellidoM, fechaNacimiento], function (err, row) {
       if(err) {
-        res.status(500).json({ mensaje: 'Error al consultar la existencia del voluntario: ' + err });
+        console.error(`Error al consultar la existencia del voluntario: ${err}`);
+        return res.status(500).json({ mensaje: 'Error al consultar la existencia del voluntario' });
       }
       if(row) {
-        res.status(409).json({ mensaje: 'El voluntario que se quiere registrar ya existe.' });
+        return res.status(409).json({ mensaje: 'El voluntario que se quiere registrar ya existe' });
       } else {
         db.serialize(() => {
           db.run('BEGIN TRANSACTION');
-          //console.log('Inicio de transacción');
-    
+
           db.get('SELECT id_ocupacion FROM ocupaciones WHERE ocupacion = ?', [ocupacion], (err, row) => {
-            if (err) {
-              //console.log('Error al consultar las ocupaciones');
-              return db.run('ROLLBACK', () => {
-                res.status(500).json({ mensaje: 'Error al consultar las ocupaciones' });
-              });
+            if(err) {
+              return hacerRollback(500, `Error al consular si la ocupación existe actualmente`, res, err);
             }
-            
-            //console.log(`No hubo error en consultar el id_de ocupación de: '${ocupacion}'`);
             let id_ocupacion;
-    
-            const insertVoluntario = () => {
-              db.run('INSERT INTO voluntarios(id_voluntarioAsignado, estado, fecha_captacion, fecha_alta, nombre_v, apellido_paterno_v, apellido_materno_v, identificacion, fecha_nacimiento, telefono_v, correo_v, id_ocupacion, informe_valoracion, observaciones, id_sede, personaContacto, id_usuarioQueDaDeAlta) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)', 
-              [voluntarioIntAsignado, estado, fechaFormateada, fechaAlta, nombre, apellidoP, apellidoM, identificacion, fechaNacimiento, telefono, correo, id_ocupacion, informeValoracion, observaciones, id_sede, personaContacto, id_usuario], 
-              function (err) {
-                if (err) {
-                  if(err.code === 'SQLITE_CONSTRAINT') {
-                    return db.run('ROLLBACK', () => {
-                      res.status(409).json({ mensaje: 'El voluntario con esta identificación ya existe.' });
-                    });
-                  } else {
-                    return db.run('ROLLBACK', () => {
-                    console.error('Error al insertar los datos del voluntario: ' + err);
-                    res.status(500).json({ mensaje: 'Error al insertar los datos del voluntario' });
-                  });
-                }
-                  
-                }
-    
-                const id_voluntario = this.lastID;
-                //console.log(`No hubo error al insertar al nuevo voluntario '${nombre}' con nuevo ID: ${id_voluntario}`);
-    
-                const tasks = [];
-    
-                if (valoracion.length > 0) {
-                  valoracion.forEach(id_programa => {
-                    tasks.push(new Promise((resolve, reject) => {
-                      db.run('INSERT INTO valoracionVoluntario(id_voluntario, id_valoracion) VALUES (?,?)', [id_voluntario, id_programa], (err) => {
-                        if (err) {
-                          reject(err);
-                        } else {
-                          resolve();
-                        }
-                      });
-                    }));
-                  });
-                }
-    
-                if (intereses.length > 0) {
-                  intereses.forEach(interes => {
-                    tasks.push(new Promise((resolve, reject) => {
-                      db.get('SELECT id_interes FROM intereses WHERE interes = ?', [interes], (err, row) => {
-                        if (err) {
-                          reject(err);
-                        } else if (row) {
-                          db.run('INSERT INTO interesesVoluntario(id_voluntario, id_interes) VALUES (?,?)', [id_voluntario, row.id_interes], (err) => {
-                            if (err) {
-                              reject(err);
-                            } else {
-                              resolve();
-                            }
-                          });
-                        } else {
-                          db.run('INSERT INTO intereses(interes) VALUES(?)', [interes], function (err) {
-                            if (err) {
-                              reject(err);
-                            } else {
-                              const id_interes = this.lastID;
-                              db.run('INSERT INTO interesesVoluntario(id_voluntario, id_interes) VALUES (?,?)', [id_voluntario, id_interes], (err) => {
-                                if (err) {
-                                  reject(err);
-                                } else {
-                                  resolve();
-                                }
-                              });
-                            }
-                          });
-                        }
-                      });
-                    }));
-                  });
-                }
-    
-                if (primerosContactos.length > 0) {
-                  primerosContactos.forEach(id_contacto => {
-                    tasks.push(new Promise((resolve, reject) => {
-                      db.run('INSERT INTO primerosContactosVoluntario(id_voluntario, id_contacto) VALUES (?,?)', [id_voluntario, id_contacto], (err) => {
-                        if (err) {
-                          reject(err);
-                        } else {
-                          resolve();
-                        }
-                      });
-                    }));
-                  });
-                }
-    
-                if (derivacion.length > 0) {
-                  derivacion.forEach(programa => {
-                    tasks.push(new Promise((resolve, reject) => {
-                      db.run('INSERT OR IGNORE INTO programas(id_programa, programa) VALUES (?,?)', [programa[0], programa[1]], function (err) {
-                        if (err) {
-                          reject(err);
-                        } else {
-                          db.run('INSERT INTO derivacionVoluntario(id_voluntario, id_derivacion) VALUES (?,?)', [id_voluntario, programa[0]], (err) => {
-                            if (err) {
-                              reject(err);
-                            } else {
-                              resolve();
-                            }
-                          });
-                        }
-                      });
-                    }));
-                  });
-                }
-    
-                Promise.all(tasks).then(() => {
-                  const nombreCompleto = `${nombre} ${apellidoP} ${apellidoM}`;
-                  if(estado === 1) {
-                    db.run('INSERT INTO conjuntoVoluntarios (nombreCompleto, id_sede, tipoPersona, id_filaVoluntarios) VALUES (?, ?, ?, ?)', [nombreCompleto, id_sede, 1, id_voluntario], (err) => {
-                      if (err) {
-                        return hacerRollback(500, `Error al insertar al voluntario en la tabla general`, res, err);
-                      }
-                      db.run('COMMIT', (commitErr) => {
-                        if (commitErr) {
-                          console.error('Error al hacer commit:', commitErr);
-                          return res.status(500).json({ mensaje: 'Error al hacer commit en la base de datos' });
-                        }
-                        return res.status(201).json({ mensaje: 'Voluntario registrado correctamente' });
-                      });
-                    });
-                  }
-                  db.run('COMMIT', (commitErr) => {
-                    if (commitErr) {
-                      console.error('Error al hacer commit:', commitErr);
-                      return res.status(500).json({ mensaje: 'Error al hacer commit en la base de datos' });
-                    }
-                    return res.status(201).json({ mensaje: 'Voluntario registrado correctamente' });
-                  });
-                }).catch(err => {
-                  console.error('Error durante la transacción:', err);
-                  db.run('ROLLBACK', () => {
-                    res.status(500).json({ mensaje: 'Error al registrar al voluntario' });
-                  });
-                });
-              });
-            };
-    
-            if (!row) {
-              db.run('INSERT INTO ocupaciones(ocupacion) VALUES (?)', [ocupacion], function (err) {
-                if (err) {
-                  return db.run('ROLLBACK', () => {
-                    console.error('Error al insertar la ocupación: ' + err);
-                    res.status(500).json({ mensaje: 'Error al insertar la ocupación' });
-                  });
+            if(!row) {
+              db.run('INSERT INTO ocupaciones(ocupacion) VALUES (?)', [ocupacion], function(err) {
+                if(err) {
+                  return hacerRollback(500, `Error al insertar la nueva ocupación "${ocupacion}"`, res, err);
                 }
                 id_ocupacion = this.lastID;
-                //console.log('No hubo problema al insertar una ocupación nueva con ID: ' + id_ocupacion);
-                insertVoluntario();
               });
             } else {
               id_ocupacion = row.id_ocupacion;
-              //console.log(`Como ya existe la ocupación '${ocupacion}', su ID es: ${id_ocupacion}`);
-              insertVoluntario();
             }
+            db.run('INSERT INTO voluntarios(id_voluntarioAsignado, estado, fecha_captacion, fecha_alta, nombre_v, apellido_paterno_v, apellido_materno_v, identificacion, fecha_nacimiento, telefono_v, correo_v, id_ocupacion, informe_valoracion, observaciones, id_sede, personaContacto, id_usuarioQueDaDeAlta) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)', [voluntarioIntAsignado, estado, fechaFormateada, fechaAlta, nombre, apellidoP, apellidoM, identificacion, fechaNacimiento, telefono, correo, id_ocupacion, informeValoracion, observaciones, id_sede, personaContacto, id_usuario], function(err) {
+              if(err) {
+                if(err.code === 'SQLITE_CONSTRAINT') {
+                  return hacerRollback(409, `El voluntario con esta identificación ya existe.`, res, err);
+                } else {
+                  return hacerRollback(500, `Error al insertar los datos del voluntario`, res, err);
+                }
+              }
+              const id_voluntario = this.lastID;
+
+              if (valoracion.length > 0) {
+                valoracion.forEach(id_programa => {
+                  db.run('INSERT INTO valoracionVoluntario(id_voluntario, id_valoracion) VALUES (?,?)', [id_voluntario, id_programa], (err) => {
+                    if (err) {
+                      return hacerRollback(500, `Error al asociar el programa de valoración con id ${id_programa} con el voluntario "${nombre}"`, res, err);
+                    }
+                  });
+                });
+              }
+
+              if (intereses.length > 0) {
+                intereses.forEach(interes => {
+                  db.get('SELECT id_interes FROM intereses WHERE interes = ?', [interes], (err, row) => {
+                    if (err) {
+                      return hacerRollback(500, `Error al consultar si el interés ya existe`, res, err);
+                    } else if (row) {
+                      db.run('INSERT INTO interesesVoluntario(id_voluntario, id_interes) VALUES (?,?)', [id_voluntario, row.id_interes], (err) => {
+                        if (err) {
+                          return hacerRollback(500, `Error al asociar el interés con ID ${row.id_interes} con el voluntario "${nombre}"`, res, err);
+                        }
+                      });
+                    } else {
+                      db.run('INSERT INTO intereses(interes) VALUES(?)', [interes], function (err) {
+                        if (err) {
+                          return hacerRollback(500, `Error al insertar el nuevo interés "${interes}"`, res, err);
+                        } else {
+                          const id_interes = this.lastID;
+                          db.run('INSERT INTO interesesVoluntario(id_voluntario, id_interes) VALUES (?,?)', [id_voluntario, id_interes], (err) => {
+                            if (err) {
+                              return hacerRollback(500, `Error al asociar el nuevo interés "${interes}" con el voluntario "${nombre}"`, res, err);
+                            }
+                          });
+                        }
+                      });
+                    }
+                  });
+                });
+              }
+
+              if (primerosContactos.length > 0) {
+                primerosContactos.forEach(id_contacto => {
+                  db.run('INSERT INTO primerosContactosVoluntario(id_voluntario, id_contacto) VALUES (?,?)', [id_voluntario, id_contacto], (err) => {
+                    if (err) {
+                      return hacerRollback(500, `Error al asociar el primer contacto con ID ${id_contacto} con el voluntario "${nombre}"`, res, err);
+                    }
+                  });
+                });
+              }
+  
+              if (derivacion.length > 0) {
+                derivacion.forEach(programa => {
+                  db.run('INSERT INTO derivacionVoluntario(id_voluntario, id_derivacion) VALUES (?,?)', [id_voluntario, programa[0]], (err) => {
+                    if (err) {
+                      return hacerRollback(500, `Error al asociar el programa de derivación "${programa[1]}" con el voluntario "${nombre}"`, res, err);
+                    } else {
+                      db.run('UPDATE programasSede SET cantidadInvolucrados = cantidadInvolucrados + 1 WHERE id_programa = ? AND id_sede = ?', [programa[0], id_sede], (err) => {
+                        if (err) {
+                          return hacerRollback(500, `Error al actualizar la cantidad de voluntarios para el programa "${programa[1]}"`, res, err);
+                        }
+                      });
+                    }
+                  });
+                });
+              }
+
+              return realizarCommit(res, 201, `Voluntario registrado correctamente`);
+            });
           });
         });
       }
@@ -1471,15 +1395,15 @@ router.post('/modificarDatosVoluntario', verificarSesionYStatus, (req, res) => {
 
               const conjuntoSet = sets.join(', ');
               parametros.push(id_voluntario);
-              console.log(`1. La instrucción sería: UPDATE voluntarios SET ${conjuntoSet} WHERE id_voluntario = ${id_voluntario}`);
-              console.log(`Los parámetros son: ${parametros}`);
+              //console.log(`1. La instrucción sería: UPDATE voluntarios SET ${conjuntoSet} WHERE id_voluntario = ${id_voluntario}`);
+              //console.log(`Los parámetros son: ${parametros}`);
 
               db.run(`UPDATE voluntarios SET ${conjuntoSet} WHERE id_voluntario = ?`, parametros, (err) => {
                 if (err) {
                   return hacerRollback(500, 'Error al actualizar los datos del voluntario', res, err);
                 }
 
-                console.log(`1. Los parámetros son: ${parametros}`);
+                //console.log(`1. Los parámetros son: ${parametros}`);
                 realizarCommit(res, 200, `Los datos del voluntario "${nombreVoluntario}" fueron modificados correctamente.`);
               });
             });
@@ -1489,14 +1413,14 @@ router.post('/modificarDatosVoluntario', verificarSesionYStatus, (req, res) => {
 
             const conjuntoSet = sets.join(', ');
             parametros.push(id_voluntario);
-            console.log(`2. La instrucción sería: UPDATE voluntarios SET ${conjuntoSet} WHERE id_voluntario = ${id_voluntario}`);
-            console.log(`Los parámetros son: ${parametros}`);
+            //console.log(`2. La instrucción sería: UPDATE voluntarios SET ${conjuntoSet} WHERE id_voluntario = ${id_voluntario}`);
+            //console.log(`Los parámetros son: ${parametros}`);
             db.run(`UPDATE voluntarios SET ${conjuntoSet} WHERE id_voluntario = ?`, parametros, (err) => {
               if (err) {
                 return hacerRollback(500, 'Error al actualizar los datos del voluntario', res, err);
               }
 
-              console.log(`2. Los parámetros son: ${parametros}`);
+              //console.log(`2. Los parámetros son: ${parametros}`);
               realizarCommit(res, 200, `Los datos del voluntario "${nombreVoluntario}" fueron modificados correctamente.`);
             });
           }
@@ -1505,15 +1429,15 @@ router.post('/modificarDatosVoluntario', verificarSesionYStatus, (req, res) => {
         if (sets.length > 0) {
           const conjuntoSet = sets.join(', ');
           parametros.push(id_voluntario);
-          console.log(`3. La instrucción sería: UPDATE voluntarios SET ${conjuntoSet} WHERE id_voluntario = ${id_voluntario}`);
-          console.log(`Los parámetros son: ${parametros}`);
+          //console.log(`3. La instrucción sería: UPDATE voluntarios SET ${conjuntoSet} WHERE id_voluntario = ${id_voluntario}`);
+          //console.log(`Los parámetros son: ${parametros}`);
           db.run(`UPDATE voluntarios SET ${conjuntoSet} WHERE id_voluntario = ?`, parametros, (err) => {
             if (err) {
               return hacerRollback(500, 'Error al actualizar los datos del voluntario', res, err);
             }
           });
         }
-        console.log(`3. Los parámetros son: ${parametros}`);
+        //console.log(`3. Los parámetros son: ${parametros}`);
         realizarCommit(res, 200, `Los datos del voluntario "${nombreVoluntario}" fueron modificados correctamente.`);
       }
     });
@@ -1560,6 +1484,61 @@ router.post('/bajaVoluntario', verificarSesionYStatus, (req, res) => {
         return res.status(401).json({ status: 401, mensaje: 'Contraseña incorrecta.' });
       }
     }
+  });
+});
+
+router.post('/consultaPrograma', verificarSesionYStatus, (req, res) => {
+  const { id_programa } = req.body;
+  const id_sede = req.body.id_sede || req.session.usuario.id_sede;
+
+  db.get(`
+    SELECT *
+      FROM programas p
+        INNER JOIN programasSede ps
+          ON ps.id_programa = p.id_programa
+        LEFT JOIN sedes s
+          ON ps.id_sede = s.id_sede
+      WHERE ps.id_sede = ? AND ps.id_programa = ?`, [id_sede, id_programa], (err, row) => {
+    if(err) {
+      console.error(`Error al consultar los datos del programa: ` + err);
+      return res.status(500).json({ mensaje:'Error al consultar los datos del programa' });
+    }
+    if(!row) {
+      return res.status(404).json({ mensaje: `No se encontró el programa buscado` });
+    }
+    console.log(row);
+    return res.status(200).json({ mensaje: row });
+  });
+});
+
+router.post('/consultaProgramas', verificarSesionYStatus, (req, res) => {
+  const id_sede = req.body.id_sede || req.session.usuario.id_sede;
+  
+  let instruccion = `
+    SELECT *
+      FROM programas p
+        INNER JOIN programasSede ps
+          ON ps.id_programa = p.id_programa
+        LEFT JOIN sedes s
+          ON ps.id_sede = s.id_sede
+  `;
+  const params = [];
+  if(id_sede === 1) {
+    instruccion += "WHERE ps.id_sede IN (1, 2, 3, 4) ORDER BY sede";
+  } else {
+    instruccion += "WHERE ps.id_sede = ?";
+    params.push(id_sede);
+  }
+
+  db.all(instruccion, params, (err, rows) => {
+    if(err) {
+      console.error(`Error al consultar los datos de todos los programas sociales para esta sede`);
+      return res.status(500).json({ mensaje: 'Error al consultar todos los programas de esta sede' });
+    }
+    if(!rows) {
+      return res.status(404).json({ mensaje: 'No se encontraron programas sociales para esta sede' });
+    }
+    res.status(200).json(rows);
   });
 });
 

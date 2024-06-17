@@ -353,22 +353,6 @@ function altaVoluntario(){
     } else {
         informeValoracion = 3;
     }
-    if(altaHoy && get('proyecto').classList.contains('seleccionado') && !valorDe('nombreProyecto')) {
-        mostrarModal('Completar proyecto', 'Se debe ingresar el nombre del proyecto.', modal);
-        return;
-    } else if(altaHoy) {
-        const botonesProyectos = divDerivacion.querySelectorAll('button');
-        let duplicado = false;
-        botonesProyectos.forEach(boton => {
-            if(boton.textContent === valorDe('nombreProyecto').trim()) {
-                duplicado = true;
-            }
-        });
-        if(duplicado && get('proyecto').classList.contains('seleccionado')) {
-            mostrarModal('Nombre de proyecto incorrecto', 'El proyecto que se trata de registrar ya existe', modal);
-            return;
-        }
-    }
     
     const fechaNacimientoTratada = tratarFecha(fechaNacimiento);
     const [año, mes, dia] = fechaNacimiento.split('-');

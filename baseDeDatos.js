@@ -119,10 +119,17 @@ db.serialize(() => {
   db.run(`CREATE TABLE IF NOT EXISTS programas (
     id_programa INTEGER PRIMARY KEY AUTOINCREMENT,
     programa TEXT NOT NULL UNIQUE,
-    descripcion TEXT NOT NULL,
+    descripcion TEXT NOT NULL
+  )`);
+
+  db.run(`CREATE TABLE IF NOT EXISTS programasSede (
+    id_programa INTEGER NOT NULL,
+    id_sede INTEGER NOT NULL,
     cantidadInvolucrados INTEGER,
     fechaInicio TEXT,
-    fechaFin TEXT
+    fechaFin TEXT,
+    FOREIGN KEY (id_programa) REFERENCES programas(id_programa),
+    FOREIGN KEY (id_sede) REFERENCES sedes(id_sede)
   )`);
 
   // Insertar datos de programas si la tabla está vacía
@@ -144,6 +151,46 @@ db.serialize(() => {
         stmt.finalize();
         console.log('Datos de programas insertados correctamente');
       }
+    }
+  });
+
+  db.get("SELECT COUNT(*) AS count FROM programasSede", (err, row) => {
+    if (err) {
+      return console.err('Error al verificar la tabla de programas sede: ' + err);
+    }
+    if(row.count === 0) {
+      const relaciones = [
+        { id_programa: 1, id_sede: 1, cantidadInvolucrados: 0, fechaInicio: '2024-01-01' },
+        { id_programa: 2, id_sede: 1, cantidadInvolucrados: 0, fechaInicio: '2024-01-01' },
+        { id_programa: 3, id_sede: 1, cantidadInvolucrados: 0, fechaInicio: '2024-01-01' },
+        { id_programa: 4, id_sede: 1, cantidadInvolucrados: 0, fechaInicio: '2024-01-01' },
+        { id_programa: 1, id_sede: 2, cantidadInvolucrados: 0, fechaInicio: '2024-01-01' },
+        { id_programa: 2, id_sede: 2, cantidadInvolucrados: 0, fechaInicio: '2024-01-01' },
+        { id_programa: 3, id_sede: 2, cantidadInvolucrados: 0, fechaInicio: '2024-01-01' },
+        { id_programa: 4, id_sede: 2, cantidadInvolucrados: 0, fechaInicio: '2024-01-01' },
+        { id_programa: 1, id_sede: 3, cantidadInvolucrados: 0, fechaInicio: '2024-01-01' },
+        { id_programa: 2, id_sede: 3, cantidadInvolucrados: 0, fechaInicio: '2024-01-01' },
+        { id_programa: 3, id_sede: 3, cantidadInvolucrados: 0, fechaInicio: '2024-01-01' },
+        { id_programa: 4, id_sede: 3, cantidadInvolucrados: 0, fechaInicio: '2024-01-01' },
+        { id_programa: 1, id_sede: 4, cantidadInvolucrados: 0, fechaInicio: '2024-01-01' },
+        { id_programa: 2, id_sede: 4, cantidadInvolucrados: 0, fechaInicio: '2024-01-01' },
+        { id_programa: 3, id_sede: 4, cantidadInvolucrados: 0, fechaInicio: '2024-01-01' },
+        { id_programa: 4, id_sede: 4, cantidadInvolucrados: 0, fechaInicio: '2024-01-01' },
+        { id_programa: 1, id_sede: 5, cantidadInvolucrados: 0, fechaInicio: '2024-01-01' },
+        { id_programa: 2, id_sede: 5, cantidadInvolucrados: 0, fechaInicio: '2024-01-01' },
+        { id_programa: 3, id_sede: 5, cantidadInvolucrados: 0, fechaInicio: '2024-01-01' },
+        { id_programa: 4, id_sede: 5, cantidadInvolucrados: 0, fechaInicio: '2024-01-01' },
+        { id_programa: 1, id_sede: 6, cantidadInvolucrados: 0, fechaInicio: '2024-01-01' },
+        { id_programa: 2, id_sede: 6, cantidadInvolucrados: 0, fechaInicio: '2024-01-01' },
+        { id_programa: 3, id_sede: 6, cantidadInvolucrados: 0, fechaInicio: '2024-01-01' },
+        { id_programa: 4, id_sede: 6, cantidadInvolucrados: 0, fechaInicio: '2024-01-01' }
+      ];
+      const stmt = db.prepare('INSERT INTO programasSede (id_programa, id_sede, cantidadInvolucrados, fechaInicio) VALUES (?, ?, ?, ?)');
+      relaciones.forEach(relacion => {
+        stmt.run(relacion.id_programa, relacion.id_sede, relacion.cantidadInvolucrados, relacion.fechaInicio);
+      });
+      stmt.finalize();
+      console.log('Relación de programas y sedes insertado correctamente');
     }
   });
 
