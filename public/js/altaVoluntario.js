@@ -27,7 +27,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // URL de las solicitudes
     const urls = [
-        '/obtenerIntereses',
         '/obtenerProgramas',
         '/obtenerPrimerosContactos'
     ];
@@ -39,30 +38,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         throw new Error(`Error al obtener datos desde ${url}`);
       })))
-      .then(([intereses, programas, primerosContactos]) => {
-
-        // Procesar intereses
-        intereses.forEach((elemento, indice) => {
-          const interes = elemento.interes;
-          const nvoInput = crear('input');
-          nvoInput.className = 'form-check-input';
-          nvoInput.type = 'checkbox';
-          nvoInput.id = 'chk_' + interes;
-          nvoInput.value = indice + 1;
-
-          const nvoLabel = crear('label');
-          nvoLabel.className = 'form-check-label';
-          nvoLabel.htmlFor = nvoInput.id;
-          nvoLabel.innerHTML = `&nbsp${interes}`;
-
-          const nvoLi = crear('li');
-          nvoLi.id = 'interes_' + (indice + 1);
-          nvoLi.appendChild(nvoInput);
-          nvoLi.appendChild(nvoLabel);
-
-          ulIntereses.appendChild(nvoLi);
-        });
-
+      .then(([programas, primerosContactos]) => {
         const nvoDiv = crear('div');
         nvoDiv.id = 'nvosIntereses';
         ulIntereses.appendChild(nvoDiv);

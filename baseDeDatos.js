@@ -220,18 +220,11 @@ db.serialize(() => {
   db.run(`CREATE INDEX IF NOT EXISTS idx_apellido_materno_voluntario ON voluntarios(apellido_materno_v)`);
   db.run(`CREATE INDEX IF NOT EXISTS idx_identificacion_voluntario ON voluntarios(identificacion)`);
 
-  // Crear tabla de intereses si no existe
-  db.run(`CREATE TABLE IF NOT EXISTS intereses (
-    id_interes INTEGER PRIMARY KEY AUTOINCREMENT,
-    interes TEXT NOT NULL UNIQUE
-  )`);
-
   // Crear tabla de interesesVoluntario si no existe
   db.run(`CREATE TABLE IF NOT EXISTS interesesVoluntario (
     id_voluntario INTEGER NOT NULL,
-    id_interes INTEGER NOT NULL,
-    FOREIGN KEY (id_voluntario) REFERENCES voluntarios(id_voluntario),
-    FOREIGN KEY (id_interes) REFERENCES intereses(id_interes)
+    interes TEXT NOT NULL,
+    FOREIGN KEY (id_voluntario) REFERENCES voluntarios(id_voluntario)
   )`);
 
   // Crear tabla de valoracionVoluntario si no existe
@@ -266,7 +259,6 @@ db.serialize(() => {
 
   // Crear índices para la tabla de primerosContactosVoluntario
   db.run(`CREATE INDEX IF NOT EXISTS idx_interesesVoluntario_id_voluntario ON interesesVoluntario(id_voluntario)`);
-  db.run(`CREATE INDEX IF NOT EXISTS idx_interesesVoluntario_id_interes ON interesesVoluntario(id_interes)`);
   db.run(`CREATE INDEX IF NOT EXISTS idx_valoracionVoluntario_id_voluntario ON valoracionVoluntario(id_voluntario)`);
   db.run(`CREATE INDEX IF NOT EXISTS idx_valoracionVoluntario_id_valoracion ON valoracionVoluntario(id_valoracion)`);
   db.run(`CREATE INDEX IF NOT EXISTS idx_derivacionVoluntario_id_voluntario ON derivacionVoluntario(id_voluntario)`);

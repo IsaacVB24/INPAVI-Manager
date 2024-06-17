@@ -24,9 +24,65 @@ document.addEventListener('DOMContentLoaded', () => {
         })
         .then(data => {
             if(data.row.nombre_v) {
+                const ulIntereses = get('listaIntereses');
+                console.log(data);
+                let interesesVoluntario;
+                datosActuales.intereses = data.row.intereses;
+                if(data.row.intereses) {
+                    interesesVoluntario = data.row.intereses.split(',');
+                    console.log(interesesVoluntario);
+                    interesesVoluntario.forEach((elemento, indice) => {
+                        const interes = elemento;
+                        
+                        const nvoInput = crear('input');
+                        nvoInput.className = 'form-check-input';
+                        nvoInput.type = 'checkbox';
+                        nvoInput.id = 'chk_' + interes;
+                        nvoInput.value = indice + 1;
+                        
+                        const nvoLabel = crear('label');
+                        nvoLabel.className = 'form-check-label';
+                        nvoLabel.htmlFor = nvoInput.id;
+                        nvoLabel.innerHTML = `&nbsp${interes}`;
+                        
+                        const nvoLi = crear('li');
+                        nvoLi.id = 'interes_' + (indice + 1);
+                        nvoLi.appendChild(nvoInput);
+                        
+                        if (interesesVoluntario) {
+                            if (interesesVoluntario.includes(interes)) nvoInput.checked = true;
+                        }
+                        
+                        nvoLi.appendChild(nvoLabel);
+                        
+                        ulIntereses.appendChild(nvoLi);
+                    });
+                }
+            
+                const nvoDiv = crear('div');
+                nvoDiv.id = 'nvosIntereses';
+                ulIntereses.appendChild(nvoDiv);
+        
+                const li = crear('li');
+                const nvoHr = crear('hr');
+                nvoHr.className = 'dropdown-divider';
+                li.appendChild(nvoHr);
+                ulIntereses.appendChild(li);
+        
+                const otroLi = crear('li');
+                const otroDiv = crear('div');
+                otroDiv.className = 'mt-1';
+                const nvoA = crear('a');
+                nvoA.href = '#';
+                nvoA.onclick = () => { agregarInteres(); get(idBotonModal).classList.remove('btn-danger'); get(idBotonModal).classList.add('btn-warning'); };
+                nvoA.setAttribute('data-bs-toggle', 'modal');
+                nvoA.setAttribute('data-bs-target', '#myModal');
+                nvoA.innerText = 'Añadir nuevo interés';
+                otroDiv.appendChild(nvoA);
+                otroLi.appendChild(otroDiv);
+                ulIntereses.appendChild(otroLi);
                 // URL de las solicitudes
                 const urls = [
-                    '/obtenerIntereses',
                     '/obtenerProgramas',
                     '/obtenerPrimerosContactos',
                     '/obtenerSedes'
@@ -39,7 +95,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                     throw new Error(`Error al obtener datos desde ${url}`);
                 })))
-                .then(([intereses, programas, primerosContactos, sedes]) => {
+                .then(([programas, primerosContactos, sedes]) => {
                     const voluntario = data.row;
                     get('ocupacion').value = voluntario.ocupacion;
                     const nombres = get('nombres');
@@ -54,8 +110,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     const selectSede = get('sede');
                     const personaContacto = get('personaContacto');
                     const selectInternoAsignado = get('internoAsignado');
-                    const divIntereses = get('divIntereses');
-                    const ulIntereses = get('listaIntereses');
                     const divValoracion = get('valoracion');
                     const divPrimerosContactos = get('primerosContactos');
                     const divDerivacion = get('derivacion');
@@ -132,59 +186,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     datosActuales.personaContacto = voluntario.personaContacto || '-';
                     observaciones.value = voluntario.observaciones || '-';
                     datosActuales.observaciones = voluntario.observaciones || '-';
-
-                    let interesesVoluntario;
-                    if(voluntario.intereses) interesesVoluntario = voluntario.intereses.split(',');
-                    datosActuales.intereses = voluntario.intereses;
-                    intereses.forEach((elemento, indice) => {
-                        const interes = elemento.interes;
-                      
-                        const nvoInput = crear('input');
-                        nvoInput.className = 'form-check-input';
-                        nvoInput.type = 'checkbox';
-                        nvoInput.id = 'chk_' + interes;
-                        nvoInput.value = indice + 1;
-                      
-                        const nvoLabel = crear('label');
-                        nvoLabel.className = 'form-check-label';
-                        nvoLabel.htmlFor = nvoInput.id;
-                        nvoLabel.innerHTML = `&nbsp${interes}`;
-                      
-                        const nvoLi = crear('li');
-                        nvoLi.id = 'interes_' + (indice + 1);
-                        nvoLi.appendChild(nvoInput);
-                      
-                        if (interesesVoluntario) {
-                          if (interesesVoluntario.includes(interes)) nvoInput.checked = true;
-                        }
-                      
-                        nvoLi.appendChild(nvoLabel);
-                      
-                        ulIntereses.appendChild(nvoLi);
-                    });
-              
-                    const nvoDiv = crear('div');
-                    nvoDiv.id = 'nvosIntereses';
-                    ulIntereses.appendChild(nvoDiv);
-            
-                    const li = crear('li');
-                    const nvoHr = crear('hr');
-                    nvoHr.className = 'dropdown-divider';
-                    li.appendChild(nvoHr);
-                    ulIntereses.appendChild(li);
-            
-                    const otroLi = crear('li');
-                    const otroDiv = crear('div');
-                    otroDiv.className = 'mt-1';
-                    const nvoA = crear('a');
-                    nvoA.href = '#';
-                    nvoA.onclick = () => { agregarInteres(); get(idBotonModal).classList.remove('btn-danger'); get(idBotonModal).classList.add('btn-warning'); };
-                    nvoA.setAttribute('data-bs-toggle', 'modal');
-                    nvoA.setAttribute('data-bs-target', '#myModal');
-                    nvoA.innerText = 'Añadir nuevo interés';
-                    otroDiv.appendChild(nvoA);
-                    otroLi.appendChild(otroDiv);
-                    ulIntereses.appendChild(otroLi);
+                    
                     programas.forEach(programa => {
                         const nuevoDiv = crear('div');
                         nuevoDiv.classList.add('form-check');
@@ -200,6 +202,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         divValoracion.appendChild(clon1);
                         divDerivacion.appendChild(clon2);
                     });
+                    
                     const valoracion = voluntario.valoracion.split(',');
                     const derivacion = voluntario.derivacion.split(',');
                     datosActuales.valoracion = voluntario.valoracion;
@@ -293,6 +296,7 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 function modificarDatosVoluntario() {
+    console.log(datosActuales);
     const nombres = get('nombres').value.trim();
     const apPat = get('apPat').value.trim();
     const apMat = get('apMat').value.trim();
@@ -353,10 +357,13 @@ function modificarDatosVoluntario() {
     if(sede !== datosActuales.sede) idsModificados.push('sede');
     if(personaContacto !== datosActuales.personaContacto) idsModificados.push('personaContacto');
     if(internoAsignado !== datosActuales.voluntarioAsignado) idsModificados.push('internoAsignado');
-    if(!(interesesActuales.length === 0 && datosActuales.intereses === null)) {
-        if(!(interesesActuales == datosActuales.intereses) && !(arreglosIguales(interesesActuales, datosActuales.intereses.split(',')))) {
+    console.log(interesesActuales);
+    if(datosActuales.intereses !== null) {
+        if(!(arreglosIguales(interesesActuales, datosActuales.intereses.split(',')))) {
             idsModificados.push('listaIntereses');
         }
+    } else if(interesesActuales.length > 0) {
+        idsModificados.push('listaIntereses');
     }
     if(!(valoracionActual == datosActuales.valoracion)) idsModificados.push('valoracion');
     if(!(primerosContactosActuales == datosActuales.primerosContactos)) idsModificados.push('primerosContactos');

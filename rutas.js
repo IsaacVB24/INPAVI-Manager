@@ -798,24 +798,6 @@ router.get('/obtenerOcupaciones', verificarSesionYStatus, (req, res) => {
   });
 });
 
-router.get('/obtenerIntereses', verificarSesionYStatus, (req, res) => {
-  db.all('SELECT * FROM intereses ORDER BY interes', (err, rows) => {
-    if(err) {
-      res.status(500).json({ mensaje: 'Error al consultar los intereses de los voluntarios en la base de datos' });
-    } else {
-      if(rows) {
-        const intereses = [];
-        rows.forEach(interes => {
-          intereses.push(interes);
-        });
-        res.status(200).json(intereses);
-      } else {
-        res.status(404).json({ mensaje: 'No existen intereses de voluntarios actualmente' });
-      }
-    }
-  });
-});
-
 router.post('/obtenerNombreVoluntarios', (req, res) => {
   if (req.session && req.session.usuario) {
     const id_sede = req.body.id_sede || req.session.usuario.id_sede;
@@ -849,13 +831,12 @@ router.get('/obtenerVoluntariosEquipoDirecto', (req, res) => {
       v.informe_valoracion,
       v.estado,
       V.ocupacion,
-      i.interes,
+      iv.interes,
       p.programa AS derivacion,
       pc.contacto AS primeros_contactos,
       s.sede AS sede
         FROM voluntarios v
         LEFT JOIN interesesVoluntario iv ON v.id_voluntario = iv.id_voluntario
-        LEFT JOIN intereses i ON iv.id_interes = i.id_interes
         LEFT JOIN derivacionVoluntario dv ON v.id_voluntario = dv.id_voluntario
         LEFT JOIN programas p ON dv.id_derivacion = p.id_programa
         LEFT JOIN primerosContactosVoluntario pcv ON v.id_voluntario = pcv.id_voluntario
@@ -1010,28 +991,9 @@ router.post('/voluntarioNuevo', (req, res) => {
 
             if (intereses.length > 0) {
               intereses.forEach(interes => {
-                db.get('SELECT id_interes FROM intereses WHERE interes = ?', [interes], (err, row) => {
-                  if (err) {
-                    return hacerRollback(500, `Error al consultar si el interés ya existe`, res, err);
-                  } else if (row) {
-                    db.run('INSERT INTO interesesVoluntario(id_voluntario, id_interes) VALUES (?,?)', [id_voluntario, row.id_interes], (err) => {
-                      if (err) {
-                        return hacerRollback(500, `Error al asociar el interés con ID ${row.id_interes} con el voluntario "${nombre}"`, res, err);
-                      }
-                    });
-                  } else {
-                    db.run('INSERT INTO intereses(interes) VALUES(?)', [interes], function (err) {
-                      if (err) {
-                        return hacerRollback(500, `Error al insertar el nuevo interés "${interes}"`, res, err);
-                      } else {
-                        const id_interes = this.lastID;
-                        db.run('INSERT INTO interesesVoluntario(id_voluntario, id_interes) VALUES (?,?)', [id_voluntario, id_interes], (err) => {
-                          if (err) {
-                            return hacerRollback(500, `Error al asociar el nuevo interés "${interes}" con el voluntario "${nombre}"`, res, err);
-                          }
-                        });
-                      }
-                    });
+                db.run('INSERT INTO interesesVoluntario(id_voluntario, interes) VALUES (?, ?)', [id_voluntario, interes], (err) => {
+                  if(err) {
+                    return hacerRollback(500, `Error al relacionar el interés "${interes}" con el voluntario "${nombre}"`, res, err);
                   }
                 });
               });
@@ -1109,7 +1071,7 @@ router.post('/infoVoluntario', verificarSesionYStatus, (req, res) => {
       s.sede,
       v.personaContacto,
       v.ocupacion,
-      GROUP_CONCAT(DISTINCT i.interes) AS intereses,
+      GROUP_CONCAT(DISTINCT iv.interes) AS intereses,
       GROUP_CONCAT(DISTINCT d.programa) AS derivacion,
       GROUP_CONCAT(DISTINCT p.programa) AS valoracion,
       GROUP_CONCAT(DISTINCT pc.contacto) AS primerosContactos,
@@ -1123,8 +1085,6 @@ router.post('/infoVoluntario', verificarSesionYStatus, (req, res) => {
       voluntarios va ON v.id_voluntarioAsignado = va.id_voluntarioAsignado
     LEFT JOIN 
       interesesVoluntario iv ON v.id_voluntario = iv.id_voluntario
-    LEFT JOIN 
-      intereses i ON iv.id_interes = i.id_interes
     LEFT JOIN 
       derivacionVoluntario dv ON v.id_voluntario = dv.id_voluntario
     LEFT JOIN 
@@ -1249,31 +1209,9 @@ router.post('/modificarDatosVoluntario', verificarSesionYStatus, (req, res) => {
             }
             
             intereses.forEach((interes) => {
-              db.get('SELECT id_interes FROM intereses WHERE interes = ?', [interes], (err, row) => {
+              db.run('INSERT INTO interesesVoluntario (id_voluntario, interes) VALUES (?, ?)', [id_voluntario, interes], (err) => {
                 if (err) {
-                  return hacerRollback(500, `Error al verificar si el interés "${interes}" existe en la base de datos`, res, err);
-                }
-
-                if (!row) {
-                  db.run('INSERT INTO intereses (interes) VALUES (?)', [interes], function(err) {
-                    if (err) {
-                      return hacerRollback(500, `Error al insertar el interés "${interes}"`, res, err);
-                    }
-
-                    const id_interes = this.lastID;
-                    db.run('INSERT INTO interesesVoluntario (id_voluntario, id_interes) VALUES (?, ?)', [id_voluntario, id_interes], (err) => {
-                      if (err) {
-                        return hacerRollback(500, `Error al asociar el interés "${interes}" con el voluntario "${nombreVoluntario}"`, res, err);
-                      }
-                    });
-                  });
-                } else {
-                  const id_interes = row.id_interes;
-                  db.run('INSERT INTO interesesVoluntario (id_voluntario, id_interes) VALUES (?, ?)', [id_voluntario, id_interes], (err) => {
-                    if (err) {
-                      return hacerRollback(500, `Error al asociar el interés "${interes}" con el voluntario "${nombreVoluntario}"`, res, err);
-                    }
-                  });
+                  return hacerRollback(500, `Error al relacionar el interés "${interes}" con el voluntario "${nombres}`, res, err);
                 }
               });
             });
