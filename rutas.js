@@ -820,7 +820,7 @@ router.post('/obtenerNombreVoluntarios', (req, res) => {
   if (req.session && req.session.usuario) {
     const id_sede = req.body.id_sede || req.session.usuario.id_sede;
     const voluntarios = [];
-    db.all('SELECT id_voluntario, nombreCompleto FROM conjuntoVoluntarios WHERE id_sede=?', [id_sede], (err, rows) => {
+    db.all('SELECT id_voluntario, nombreCompleto FROM conjuntoVoluntarios WHERE id_sede=? ORDER BY nombreCompleto', [id_sede], (err, rows) => {
       if(err) {
         return res.status(500).json({ mensaje: 'Error al consultar la tabla de voluntarios del sistema ' + err });
       } else {
@@ -848,13 +848,12 @@ router.get('/obtenerVoluntariosEquipoDirecto', (req, res) => {
       v.apellido_paterno_v,
       v.informe_valoracion,
       v.estado,
-      o.ocupacion,
+      V.ocupacion,
       i.interes,
       p.programa AS derivacion,
       pc.contacto AS primeros_contactos,
       s.sede AS sede
         FROM voluntarios v
-        LEFT JOIN ocupaciones o ON v.id_ocupacion = o.id_ocupacion
         LEFT JOIN interesesVoluntario iv ON v.id_voluntario = iv.id_voluntario
         LEFT JOIN intereses i ON iv.id_interes = i.id_interes
         LEFT JOIN derivacionVoluntario dv ON v.id_voluntario = dv.id_voluntario
@@ -988,108 +987,92 @@ router.post('/voluntarioNuevo', (req, res) => {
       } else {
         db.serialize(() => {
           db.run('BEGIN TRANSACTION');
-
-          db.get('SELECT id_ocupacion FROM ocupaciones WHERE ocupacion = ?', [ocupacion], (err, row) => {
+          
+          db.run('INSERT INTO voluntarios(id_voluntarioAsignado, estado, fecha_captacion, fecha_alta, nombre_v, apellido_paterno_v, apellido_materno_v, identificacion, fecha_nacimiento, telefono_v, correo_v, ocupacion, informe_valoracion, observaciones, id_sede, personaContacto, id_usuarioQueDaDeAlta) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)', [voluntarioIntAsignado, estado, fechaFormateada, fechaAlta, nombre, apellidoP, apellidoM, identificacion, fechaNacimiento, telefono, correo, ocupacion, informeValoracion, observaciones, id_sede, personaContacto, id_usuario], function(err) {
             if(err) {
-              return hacerRollback(500, `Error al consular si la ocupación existe actualmente`, res, err);
+              if(err.code === 'SQLITE_CONSTRAINT') {
+                return hacerRollback(409, `El voluntario con esta identificación ya existe.`, res, err);
+              } else {
+                return hacerRollback(500, `Error al insertar los datos del voluntario`, res, err);
+              }
             }
-            let id_ocupacion;
-            if(!row) {
-              db.run('INSERT INTO ocupaciones(ocupacion) VALUES (?)', [ocupacion], function(err) {
-                if(err) {
-                  return hacerRollback(500, `Error al insertar la nueva ocupación "${ocupacion}"`, res, err);
-                }
-                id_ocupacion = this.lastID;
-              });
-            } else {
-              id_ocupacion = row.id_ocupacion;
-            }
-            db.run('INSERT INTO voluntarios(id_voluntarioAsignado, estado, fecha_captacion, fecha_alta, nombre_v, apellido_paterno_v, apellido_materno_v, identificacion, fecha_nacimiento, telefono_v, correo_v, id_ocupacion, informe_valoracion, observaciones, id_sede, personaContacto, id_usuarioQueDaDeAlta) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)', [voluntarioIntAsignado, estado, fechaFormateada, fechaAlta, nombre, apellidoP, apellidoM, identificacion, fechaNacimiento, telefono, correo, id_ocupacion, informeValoracion, observaciones, id_sede, personaContacto, id_usuario], function(err) {
-              if(err) {
-                if(err.code === 'SQLITE_CONSTRAINT') {
-                  return hacerRollback(409, `El voluntario con esta identificación ya existe.`, res, err);
-                } else {
-                  return hacerRollback(500, `Error al insertar los datos del voluntario`, res, err);
-                }
-              }
-              const id_voluntario = this.lastID;
+            const id_voluntario = this.lastID;
 
-              if (valoracion.length > 0) {
-                valoracion.forEach(id_programa => {
-                  db.run('INSERT INTO valoracionVoluntario(id_voluntario, id_valoracion) VALUES (?,?)', [id_voluntario, id_programa], (err) => {
-                    if (err) {
-                      return hacerRollback(500, `Error al asociar el programa de valoración con id ${id_programa} con el voluntario "${nombre}"`, res, err);
-                    }
-                  });
-                });
-              }
-
-              if (intereses.length > 0) {
-                intereses.forEach(interes => {
-                  db.get('SELECT id_interes FROM intereses WHERE interes = ?', [interes], (err, row) => {
-                    if (err) {
-                      return hacerRollback(500, `Error al consultar si el interés ya existe`, res, err);
-                    } else if (row) {
-                      db.run('INSERT INTO interesesVoluntario(id_voluntario, id_interes) VALUES (?,?)', [id_voluntario, row.id_interes], (err) => {
-                        if (err) {
-                          return hacerRollback(500, `Error al asociar el interés con ID ${row.id_interes} con el voluntario "${nombre}"`, res, err);
-                        }
-                      });
-                    } else {
-                      db.run('INSERT INTO intereses(interes) VALUES(?)', [interes], function (err) {
-                        if (err) {
-                          return hacerRollback(500, `Error al insertar el nuevo interés "${interes}"`, res, err);
-                        } else {
-                          const id_interes = this.lastID;
-                          db.run('INSERT INTO interesesVoluntario(id_voluntario, id_interes) VALUES (?,?)', [id_voluntario, id_interes], (err) => {
-                            if (err) {
-                              return hacerRollback(500, `Error al asociar el nuevo interés "${interes}" con el voluntario "${nombre}"`, res, err);
-                            }
-                          });
-                        }
-                      });
-                    }
-                  });
-                });
-              }
-
-              if (primerosContactos.length > 0) {
-                primerosContactos.forEach(id_contacto => {
-                  db.run('INSERT INTO primerosContactosVoluntario(id_voluntario, id_contacto) VALUES (?,?)', [id_voluntario, id_contacto], (err) => {
-                    if (err) {
-                      return hacerRollback(500, `Error al asociar el primer contacto con ID ${id_contacto} con el voluntario "${nombre}"`, res, err);
-                    }
-                  });
-                });
-              }
-  
-              if (derivacion.length > 0) {
-                derivacion.forEach(programa => {
-                  db.run('INSERT INTO derivacionVoluntario(id_voluntario, id_derivacion) VALUES (?,?)', [id_voluntario, programa[0]], (err) => {
-                    if (err) {
-                      return hacerRollback(500, `Error al asociar el programa de derivación "${programa[1]}" con el voluntario "${nombre}"`, res, err);
-                    } else {
-                      db.run('UPDATE programasSede SET cantidadInvolucrados = cantidadInvolucrados + 1 WHERE id_programa = ? AND id_sede = ?', [programa[0], id_sede], (err) => {
-                        if (err) {
-                          return hacerRollback(500, `Error al actualizar la cantidad de voluntarios para el programa "${programa[1]}"`, res, err);
-                        }
-                      });
-                    }
-                  });
-                });
-              }
-
-              if(estado === 1) {
-                const nombreCompleto = `${nombre} ${apellidoP} ${apellidoM}`;
-                db.run('INSERT INTO conjuntoVoluntarios (nombreCompleto, id_sede, tipoPersona, id_filaVoluntarios) VALUES (?, ?, ?, ?)', [nombreCompleto, id_sede, 1, id_voluntario], (err) => {
-                  if(err) {
-                    return hacerRollback(500, 'Error al insertar el voluntario en la tabla general de voluntarios', res, err);
+            if (valoracion.length > 0) {
+              valoracion.forEach(id_programa => {
+                db.run('INSERT INTO valoracionVoluntario(id_voluntario, id_valoracion) VALUES (?,?)', [id_voluntario, id_programa], (err) => {
+                  if (err) {
+                    return hacerRollback(500, `Error al asociar el programa de valoración con id ${id_programa} con el voluntario "${nombre}"`, res, err);
                   }
                 });
-              }
+              });
+            }
 
-              return realizarCommit(res, 201, `Voluntario registrado correctamente`);
-            });
+            if (intereses.length > 0) {
+              intereses.forEach(interes => {
+                db.get('SELECT id_interes FROM intereses WHERE interes = ?', [interes], (err, row) => {
+                  if (err) {
+                    return hacerRollback(500, `Error al consultar si el interés ya existe`, res, err);
+                  } else if (row) {
+                    db.run('INSERT INTO interesesVoluntario(id_voluntario, id_interes) VALUES (?,?)', [id_voluntario, row.id_interes], (err) => {
+                      if (err) {
+                        return hacerRollback(500, `Error al asociar el interés con ID ${row.id_interes} con el voluntario "${nombre}"`, res, err);
+                      }
+                    });
+                  } else {
+                    db.run('INSERT INTO intereses(interes) VALUES(?)', [interes], function (err) {
+                      if (err) {
+                        return hacerRollback(500, `Error al insertar el nuevo interés "${interes}"`, res, err);
+                      } else {
+                        const id_interes = this.lastID;
+                        db.run('INSERT INTO interesesVoluntario(id_voluntario, id_interes) VALUES (?,?)', [id_voluntario, id_interes], (err) => {
+                          if (err) {
+                            return hacerRollback(500, `Error al asociar el nuevo interés "${interes}" con el voluntario "${nombre}"`, res, err);
+                          }
+                        });
+                      }
+                    });
+                  }
+                });
+              });
+            }
+
+            if (primerosContactos.length > 0) {
+              primerosContactos.forEach(id_contacto => {
+                db.run('INSERT INTO primerosContactosVoluntario(id_voluntario, id_contacto) VALUES (?,?)', [id_voluntario, id_contacto], (err) => {
+                  if (err) {
+                    return hacerRollback(500, `Error al asociar el primer contacto con ID ${id_contacto} con el voluntario "${nombre}"`, res, err);
+                  }
+                });
+              });
+            }
+
+            if (derivacion.length > 0) {
+              derivacion.forEach(programa => {
+                db.run('INSERT INTO derivacionVoluntario(id_voluntario, id_derivacion) VALUES (?,?)', [id_voluntario, programa[0]], (err) => {
+                  if (err) {
+                    return hacerRollback(500, `Error al asociar el programa de derivación "${programa[1]}" con el voluntario "${nombre}"`, res, err);
+                  } else {
+                    db.run('UPDATE programasSede SET cantidadInvolucrados = cantidadInvolucrados + 1 WHERE id_programa = ? AND id_sede = ?', [programa[0], id_sede], (err) => {
+                      if (err) {
+                        return hacerRollback(500, `Error al actualizar la cantidad de voluntarios para el programa "${programa[1]}"`, res, err);
+                      }
+                    });
+                  }
+                });
+              });
+            }
+
+            if(estado === 1) {
+              const nombreCompleto = `${nombre} ${apellidoP} ${apellidoM}`;
+              db.run('INSERT INTO conjuntoVoluntarios (nombreCompleto, id_sede, tipoPersona, id_filaVoluntarios) VALUES (?, ?, ?, ?)', [nombreCompleto, id_sede, 1, id_voluntario], (err) => {
+                if(err) {
+                  return hacerRollback(500, 'Error al insertar el voluntario en la tabla general de voluntarios', res, err);
+                }
+              });
+            }
+
+            return realizarCommit(res, 201, `Voluntario registrado correctamente`);
           });
         });
       }
@@ -1125,8 +1108,7 @@ router.post('/infoVoluntario', verificarSesionYStatus, (req, res) => {
       v.id_sede, 
       s.sede,
       v.personaContacto,
-      o.id_ocupacion,
-      o.ocupacion,
+      v.ocupacion,
       GROUP_CONCAT(DISTINCT i.interes) AS intereses,
       GROUP_CONCAT(DISTINCT d.programa) AS derivacion,
       GROUP_CONCAT(DISTINCT p.programa) AS valoracion,
@@ -1139,8 +1121,6 @@ router.post('/infoVoluntario', verificarSesionYStatus, (req, res) => {
       voluntarios v
     LEFT JOIN 
       voluntarios va ON v.id_voluntarioAsignado = va.id_voluntarioAsignado
-    LEFT JOIN 
-      ocupaciones o ON v.id_ocupacion = o.id_ocupacion
     LEFT JOIN 
       interesesVoluntario iv ON v.id_voluntario = iv.id_voluntario
     LEFT JOIN 
@@ -1234,6 +1214,10 @@ router.post('/modificarDatosVoluntario', verificarSesionYStatus, (req, res) => {
   if (personaContacto !== null) {
     sets.push('personaContacto = ?');
     parametros.push(personaContacto);
+  }
+  if (ocupacion !== null) {
+    sets.push('ocupacion = ?');
+    parametros.push(ocupacion);
   }
 
   //console.log('Datos recibidos en el body: ', req.body);
@@ -1384,71 +1368,19 @@ router.post('/modificarDatosVoluntario', verificarSesionYStatus, (req, res) => {
         }
       }
 
-      if (ocupacion) {
-        //console.log('Sí hay ocupación por procesar, y es: ' + ocupacion);
-        db.get('SELECT id_ocupacion FROM ocupaciones WHERE ocupacion = ?', [ocupacion], (err, row) => {
+      if (sets.length > 0) {
+        const conjuntoSet = sets.join(', ');
+        parametros.push(id_voluntario);
+        //console.log(`3. La instrucción sería: UPDATE voluntarios SET ${conjuntoSet} WHERE id_voluntario = ${id_voluntario}`);
+        //console.log(`Los parámetros son: ${parametros}`);
+        db.run(`UPDATE voluntarios SET ${conjuntoSet} WHERE id_voluntario = ?`, parametros, (err) => {
           if (err) {
-            return hacerRollback(500, 'No fue posible saber si la ocupación seleccionada ya existe', res, err);
-          }
-
-          let id_ocupacion = row ? row.id_ocupacion : null;
-          if (!id_ocupacion) {
-            db.run('INSERT INTO ocupaciones (ocupacion) VALUES (?)', [ocupacion], function(err) {
-              if (err) {
-                return hacerRollback(500, `Error al insertar la nueva ocupación "${ocupacion}"`, res, err);
-              }
-
-              id_ocupacion = this.lastID;
-              sets.push('id_ocupacion = ?');
-              parametros.push(id_ocupacion);
-
-              const conjuntoSet = sets.join(', ');
-              parametros.push(id_voluntario);
-              //console.log(`1. La instrucción sería: UPDATE voluntarios SET ${conjuntoSet} WHERE id_voluntario = ${id_voluntario}`);
-              //console.log(`Los parámetros son: ${parametros}`);
-
-              db.run(`UPDATE voluntarios SET ${conjuntoSet} WHERE id_voluntario = ?`, parametros, (err) => {
-                if (err) {
-                  return hacerRollback(500, 'Error al actualizar los datos del voluntario', res, err);
-                }
-
-                //console.log(`1. Los parámetros son: ${parametros}`);
-                realizarCommit(res, 200, `Los datos del voluntario "${nombreVoluntario}" fueron modificados correctamente.`);
-              });
-            });
-          } else {
-            sets.push('id_ocupacion = ?');
-            parametros.push(id_ocupacion);
-
-            const conjuntoSet = sets.join(', ');
-            parametros.push(id_voluntario);
-            //console.log(`2. La instrucción sería: UPDATE voluntarios SET ${conjuntoSet} WHERE id_voluntario = ${id_voluntario}`);
-            //console.log(`Los parámetros son: ${parametros}`);
-            db.run(`UPDATE voluntarios SET ${conjuntoSet} WHERE id_voluntario = ?`, parametros, (err) => {
-              if (err) {
-                return hacerRollback(500, 'Error al actualizar los datos del voluntario', res, err);
-              }
-
-              //console.log(`2. Los parámetros son: ${parametros}`);
-              realizarCommit(res, 200, `Los datos del voluntario "${nombreVoluntario}" fueron modificados correctamente.`);
-            });
+            return hacerRollback(500, 'Error al actualizar los datos del voluntario', res, err);
           }
         });
-      } else {
-        if (sets.length > 0) {
-          const conjuntoSet = sets.join(', ');
-          parametros.push(id_voluntario);
-          //console.log(`3. La instrucción sería: UPDATE voluntarios SET ${conjuntoSet} WHERE id_voluntario = ${id_voluntario}`);
-          //console.log(`Los parámetros son: ${parametros}`);
-          db.run(`UPDATE voluntarios SET ${conjuntoSet} WHERE id_voluntario = ?`, parametros, (err) => {
-            if (err) {
-              return hacerRollback(500, 'Error al actualizar los datos del voluntario', res, err);
-            }
-          });
-        }
-        //console.log(`3. Los parámetros son: ${parametros}`);
-        realizarCommit(res, 200, `Los datos del voluntario "${nombreVoluntario}" fueron modificados correctamente.`);
       }
+      //console.log(`3. Los parámetros son: ${parametros}`);
+      realizarCommit(res, 200, `Los datos del voluntario "${nombreVoluntario}" fueron modificados correctamente.`);
     });
   });
 });

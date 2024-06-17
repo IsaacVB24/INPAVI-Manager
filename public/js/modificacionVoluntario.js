@@ -1,5 +1,4 @@
 let datosActuales = {};
-let ocupacionGlobal = '';
 let modal;
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -27,7 +26,6 @@ document.addEventListener('DOMContentLoaded', () => {
             if(data.row.nombre_v) {
                 // URL de las solicitudes
                 const urls = [
-                    '/obtenerOcupaciones',
                     '/obtenerIntereses',
                     '/obtenerProgramas',
                     '/obtenerPrimerosContactos',
@@ -41,8 +39,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                     throw new Error(`Error al obtener datos desde ${url}`);
                 })))
-                .then(([ocupaciones, intereses, programas, primerosContactos, sedes]) => {
+                .then(([intereses, programas, primerosContactos, sedes]) => {
                     const voluntario = data.row;
+                    get('ocupacion').value = voluntario.ocupacion;
                     const nombres = get('nombres');
                     const apPat = get('apPat');
                     const apMat = get('apMat');
@@ -51,7 +50,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     const correo = get('correo');
                     const telefono = get('telefono');
                     const identificacion = get('identificacion');
-                    const selectOcupacion = get('ocupacionV');
                     const fechaCaptacion = get('fechaCaptacion');
                     const selectSede = get('sede');
                     const personaContacto = get('personaContacto');
@@ -84,25 +82,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     datosActuales.telefono = voluntario.telefono_v;
                     identificacion.value = voluntario.identificacion;
                     datosActuales.identificacion = voluntario.identificacion;
-                    ocupaciones.forEach(ocupacion => {
-                        const option = crear('option');
-                        option.value = ocupacion.id_ocupacion;
-                        option.innerHTML = ocupacion.ocupacion;
-                        option.id = 'ocupacion_' + ocupacion.id_ocupacion;
-                        selectOcupacion.appendChild(option);
-                    });
-                    if(voluntario.id_ocupacion) {
-                        const idOcupacion = voluntario.id_ocupacion;
-
-                        for (let i = 0; i < selectOcupacion.options.length; i++) {
-                            if (selectOcupacion.options[i].value == idOcupacion) {
-                                selectOcupacion.selectedIndex = i;
-                                break;
-                            }
-                        }
-                    }
-                    datosActuales.id_ocupacion = voluntario.id_ocupacion;
-                    datosActuales.ocupacion = selectOcupacion.options[selectOcupacion.selectedIndex].text;
+                    datosActuales.ocupacion = voluntario.ocupacion;
                     const captacion = new Date(voluntario.fecha_captacion);
                     fechaCaptacion.value = captacion.toISOString().slice(0, 10);
                     datosActuales.captacion = fechaCaptacion.value;
@@ -145,46 +125,6 @@ document.addEventListener('DOMContentLoaded', () => {
                             console.error('Error al realizar la solicitud: ' + error);
                         });
                     })
-                    const btnAgregarOcupacion = get('agregarOcupacion');
-                    btnAgregarOcupacion.addEventListener('click', () => {
-                        idInnerHTML(idHModal, 'Añadir ocupación');
-                        idInnerHTML(idBModal, '<input type="text" class="shadow form-control" id="ocupacionNva" placeholder="Ingrese la nueva ocupación" name="ocupacionNva" required autocomplete="off" maxlength="100">');
-                        idInnerHTML(idBotonModal, 'Añadir');
-                        const btnAgregar = get(idBotonModal);
-                        bloquearCaracteresEspeciales(get('ocupacionNva'));
-                        btnAgregar.classList.remove('btn-danger');
-                        btnAgregar.classList.add('btn-warning');
-                        enterEnInput(get('ocupacionNva'), idBotonModal);
-                        const ocupaciones = [];
-                        get('ocupacionV').querySelectorAll('option').forEach(opcion => {
-                            ocupaciones.push(opcion.text.toLowerCase());
-                        });
-                        const divOcupacion = get('divOcupacion');
-                        const actualesOcupaciones = divOcupacion.innerHTML;
-                        const divEnlacesOcupacion = get('divEnlacesOcupacion');
-                        const actualesEnlaces = divEnlacesOcupacion.innerHTML;
-                        btnAgregar.addEventListener('click', () => {
-                            const ocupacionNueva = get('ocupacionNva').value.trim().toLowerCase();
-                            if (ocupacionNueva !== '') {
-                                if (ocupaciones.includes(ocupacionNueva)) {
-                                    alert('Esa ocupación ya existe');
-                                } else {
-                                    ocupacionGlobal = ocupacionNueva;
-                                    divOcupacion.innerHTML = `
-                                        <span class="input-group-text">Ocupación:</span>
-                                        <input type="text" class="form-control" id="ocupacionAgregada" placeholder="Ocupación nueva" readonly style='user-select: no; cursor: default;'>
-                                    `;
-                                    get('ocupacionAgregada').setAttribute('value', get('ocupacionNva').value.trim());
-                                    divEnlacesOcupacion.innerHTML = `<a href="#" data-bs-toggle="modal" data-bs-target="#myModal" id="agregarOcupacion" style='color: #df950d;'>Modificar ocupación</a><a class='text-danger' id="eliminarOcupacion" style='float: right;'>Eliminar ocupación</a>`;
-                                    get('eliminarOcupacion').addEventListener('click', () => {
-                                        divOcupacion.innerHTML = actualesOcupaciones;
-                                        divEnlacesOcupacion.innerHTML = actualesEnlaces;
-                                        get('ocupacionNva').value = '';
-                                    });
-                                }
-                            }
-                        });
-                    });
                     selectSede.selectedIndex = voluntario.id_sede - 1;
                     datosActuales.id_sede = voluntario.id_sede;
                     datosActuales.sede = selectSede.options[selectSede.selectedIndex].text;
@@ -363,7 +303,7 @@ function modificarDatosVoluntario() {
     const correoValido = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/.test(correo);
     const telefono = get('telefono').value.trim();
     const identificacion = get('identificacion').value.trim();
-    const ocupacion = (get('ocupacionAgregada') ? ocupacionGlobal : get('ocupacionV').options[get('ocupacionV').selectedIndex].text);
+    const ocupacion = valorDe('ocupacion').trim();
     const fechaCaptacion = get('fechaCaptacion').value;
     const sede = get('sede').options[get('sede').selectedIndex].text;
     const id_sede = get('sede').options[get('sede').selectedIndex].value;

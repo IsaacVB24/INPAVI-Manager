@@ -3,7 +3,6 @@ const colorFondoBotonSeleccionado = 'rgb(123, 168, 133)';
 document.addEventListener('DOMContentLoaded', () => {
     if(!get('alta')) return;
     get('alertas').insertAdjacentHTML('beforeend', ventanaModal);
-    const selectOcupaciones = get('ocupacionV');
     const ulIntereses = get('listaIntereses');
     const selectVoluntarios = get('voluntarioAsignado');
     const divValoracion = get('valoracion');
@@ -16,7 +15,6 @@ document.addEventListener('DOMContentLoaded', () => {
         permitirSoloNombres(campo);
     });
     get('alta').addEventListener('click', altaHoy);
-    get('agregarOcupacion').addEventListener('click', agregarOcupacion);
     get('registroVoluntario').addEventListener('click', altaVoluntario);
     get('listaIntereses').addEventListener('click', function(event) {event.stopPropagation();});
 
@@ -29,7 +27,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // URL de las solicitudes
     const urls = [
-        '/obtenerOcupaciones',
         '/obtenerIntereses',
         '/obtenerProgramas',
         '/obtenerPrimerosContactos'
@@ -42,19 +39,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         throw new Error(`Error al obtener datos desde ${url}`);
       })))
-      .then(([ocupaciones, intereses, programas, primerosContactos]) => {
-        // Procesar ocupaciones
-        ocupaciones.forEach((ocupacion, indice) => {
-          const nuevaOpcion = crear('option');
-          nuevaOpcion.id = 'ocupacion_' + (indice + 1);
-          nuevaOpcion.value = indice + 1;
-          nuevaOpcion.textContent = ocupacion.ocupacion;
-          selectOcupaciones.appendChild(nuevaOpcion);
-          selectOcupaciones.addEventListener('change', () => {
-            const opcionSeleccionada = selectOcupaciones.options[selectOcupaciones.selectedIndex].text;
-            asignarOupacion(opcionSeleccionada);
-          });
-        });
+      .then(([intereses, programas, primerosContactos]) => {
 
         // Procesar intereses
         intereses.forEach((elemento, indice) => {
@@ -175,48 +160,6 @@ document.addEventListener('DOMContentLoaded', () => {
       });
 });
 
-let ocupacion = '';
-
-function agregarOcupacion() {
-    idInnerHTML(idHModal, 'Añadir ocupación');
-    idInnerHTML(idBModal, '<input type="text" class="shadow form-control" id="ocupacionNva" placeholder="Ingrese la nueva ocupación" name="ocupacionNva" required autocomplete="off" maxlength="100">');
-    idInnerHTML(idBotonModal, 'Agregar');
-    const btnModal = get('btnModal');
-    btnModal.classList.remove(...btnModal.classList);
-    btnModal.classList.add('btn');
-    btnModal.classList.add('btn-warning');
-    const divOcupacion = get('divOcupacion');
-    const contOcupaciones= divOcupacion.innerHTML;
-    const selectOcupaciones = get('ocupacionV');
-    const opciones = selectOcupaciones.querySelectorAll('option:not([disabled])');
-    const ocupacionesActuales = [];
-    opciones.forEach(opcion => {ocupacionesActuales.push(opcion.textContent.trim().toLowerCase());});
-    get(idBotonModal).addEventListener('click', () => {
-        if(elementoExiste(ocupacionesActuales, valorDe('ocupacionNva'))) {
-            alert('Esa ocupación ya existe');
-            divOcupacion.innerHTML = contOcupaciones;
-            get('ocupacionNva').value = '';
-        };
-    });
-    const inputOcupacionNva = get('ocupacionNva');
-    permitirSoloLetras(inputOcupacionNva);
-    inputOcupacionNva.focus();
-    enterEnInput(inputOcupacionNva, idBotonModal);
-
-    // Agregar evento hide.bs.modal al modal para evitar su cierre si el input está vacío
-    btnModal.addEventListener('click', function() {
-        // Obtener el valor del input
-        const ocupacionNva = inputOcupacionNva.value;
-
-        // Verificar si el input está vacío
-        if (ocupacionNva.trim() !== '') {
-            divOcupacion.innerHTML = '<input type="text" class="shadow form-control" id="ocupacionV" placeholder="Ocupación añadida" name="ocupacionV" required autocomplete="off" maxlength="70" readonly style="user-select:no; cursor:default;"><label for="ocupacionV" class="ms-2">Ocupación:</label><div class="mt-1"><a href="" data-bs-toggle="modal" data-bs-target="#myModal" style="color:#df950d;" id="modificarOcupacion">Modificar ocupación</a><a href="" style="color:red; float:right;">Eliminar ocupación</a></div>';
-            get('ocupacionV').setAttribute('value', ocupacionNva);
-            ocupacion = get('ocupacionV').value;
-        }
-    });
-}
-
 function agregarInteres(){
     idInnerHTML(idHModal, 'Añadir interés de voluntario');
     idInnerHTML(idBModal, '<input type="text" class="shadow form-control" id="interesNvo" placeholder="Ingrese el nuevo interés" name="interesNvo" required autocomplete="off" maxlength="40">');
@@ -292,7 +235,7 @@ function altaVoluntario(){
     const identificacion = valorDe('identificacion').trim();
     const telefono = valorDe('telefonoV');
     const correo = valorDe('correoV').trim();
-    const ocupacionV = ocupacion.trim();
+    const ocupacionV = valorDe('ocupacionV').trim();
     const personaContacto = valorDe('personaContactoV');
     const correoValido = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/.test(correo);
     const selectVoluntarioAsignado = get('voluntarioAsignado');
@@ -471,8 +414,4 @@ function botonDeseleccionado(boton) {
 
 function altaHoy() {
     get('derivacion').style.display = (get('alta').checked ? 'block' : 'none');
-}
-
-function asignarOupacion(nombreOcupacion) {
-    ocupacion = nombreOcupacion;
 }

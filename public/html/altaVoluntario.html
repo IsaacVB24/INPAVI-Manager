@@ -51,17 +51,12 @@
                     <label for="telefonoV" class="ms-2">Teléfono a 10 dígitos: <span>*</span></label>
                 </div>
                 <div class="form-floating mt-1">
-                    <input type="email" class="shadow form-control" id="correoV" placeholder="Ingrese su apellido materno" name="correoV" required autocomplete="off" maxlength="50">
+                    <input type="email" class="shadow form-control" id="correoV" placeholder="Ingrese su apellido materno" name="correoV" required autocomplete="off" maxlength="60">
                     <label for="correoV" class="ms-2">Correo electrónico: <span>*</span></label>
                 </div>
                 <div class="form-floating mt-3" id="divOcupacion">
-                    <select class="form-select shadow" id="ocupacionV" name="ocupacion" required style="cursor: pointer;">
-                        <option value="" disabled selected>Selecciona una ocupación</option>
-                    </select>
+                    <input type="text" class="shadow form-control" name="ocupacionV" id="ocupacionV" placeholder="Ingrese su ocupación" required autocomplete="off" maxlength="70">
                     <label for="ocupacionV" class="ms-2">Ocupación: <span>*</span></label>
-                    <div class="mt-1">
-                        <a href="" data-bs-toggle="modal" data-bs-target="#myModal" id="agregarOcupacion">Añadir nueva ocupación</a>
-                    </div>
                 </div>
                 <div class="form-floating mt-1">
                     <input type="text" class="shadow form-control" id="personaContactoV" placeholder="Ingrese su apellido materno" name="personaContactoV" required autocomplete="off" maxlength="70">
