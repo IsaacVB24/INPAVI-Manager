@@ -1079,6 +1079,15 @@ router.post('/voluntarioNuevo', (req, res) => {
                 });
               }
 
+              if(estado === 1) {
+                const nombreCompleto = `${nombre} ${apellidoP} ${apellidoM}`;
+                db.run('INSERT INTO conjuntoVoluntarios (nombreCompleto, id_sede, tipoPersona, id_filaVoluntarios) VALUES (?, ?, ?, ?)', [nombreCompleto, id_sede, 1, id_voluntario], (err) => {
+                  if(err) {
+                    return hacerRollback(500, 'Error al insertar el voluntario en la tabla general de voluntarios', res, err);
+                  }
+                });
+              }
+
               return realizarCommit(res, 201, `Voluntario registrado correctamente`);
             });
           });
