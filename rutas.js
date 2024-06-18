@@ -819,10 +819,12 @@ router.post('/obtenerNombreVoluntarios', (req, res) => {
   }
 });
 
-router.get('/obtenerVoluntariosEquipoDirecto', (req, res) => {
+router.post('/obtenerVoluntariosEquipoDirecto', (req, res) => {
   // Verifica si hay un usuario en la sesión
   if (req.session && req.session.usuario) {
     const { id_sede, id_rol } = req.session.usuario;
+    const { busqueda } = req.body;
+
     let consulta = 
     `SELECT
       v.id_voluntario,
@@ -830,7 +832,7 @@ router.get('/obtenerVoluntariosEquipoDirecto', (req, res) => {
       v.apellido_paterno_v,
       v.informe_valoracion,
       v.estado,
-      V.ocupacion,
+      v.ocupacion,
       iv.interes,
       p.programa AS derivacion,
       pc.contacto AS primeros_contactos,
@@ -845,10 +847,28 @@ router.get('/obtenerVoluntariosEquipoDirecto', (req, res) => {
         `;
     let parametros = [];
     if(id_rol === 2 && id_sede === 1) {
-      consulta += ' WHERE v.estado=1 AND v.id_sede IN (1,2,3,4)';
+      consulta += ' WHERE v.estado=1 AND v.id_sede IN (1,2,3,4) ';
     } else if(!(id_rol === 2 && id_sede === 1) && id_rol !== 1) {
-      consulta += ' WHERE v.estado=1 AND v.id_sede=?';
+      consulta += ' WHERE v.estado=1 AND v.id_sede=? ';
       parametros.push(id_sede);
+    }
+    if (busqueda) {
+      const criterio = busqueda[0];
+      const separadas = criterio.split(' ');
+      consulta += id_rol === 1 ? 'WHERE ' : 'AND ';
+      consulta += `(v.nombre_v LIKE ? OR v.apellido_paterno_v LIKE ? OR v.ocupacion LIKE ? OR p.programa LIKE ? OR iv.interes LIKE ? OR pc.contacto LIKE ? OR s.sede LIKE ?) `;
+      parametros.push(`%${criterio}%`);
+      parametros.push(`%${criterio}%`);
+      parametros.push(`%${criterio}%`);
+      parametros.push(`%${criterio}%`);
+      parametros.push(`%${criterio}%`);
+      parametros.push(`%${criterio}%`);
+      parametros.push(`%${criterio}%`);
+      if(separadas.length === 2) {
+        consulta += `OR (v.nombre_v LIKE ? AND v.apellido_paterno_v LIKE ?)`;
+        parametros.push(`%${separadas[0]}%`);
+        parametros.push(`%${separadas[1]}%`);
+      }
     }
     
     db.all(consulta, parametros, (err, rows) => {

@@ -18,6 +18,10 @@ document.addEventListener('DOMContentLoaded', () => {
             if ([1, 2, 3, 5].includes(rol)) {
                 const divElementosExtra = get('elementosExtra');
                 divElementosExtra.innerHTML = `
+                    <div class="input-group mb-3">
+                        <input type="text" class="form-control" placeholder="Ingresa una palabra relacionada a algún voluntario para buscarlo" id='criterio'>
+                        <button class="btn btn-success" type="submit" id='btn-buscar'>Buscar</button>
+                    </div>
                     <div class="table-responsive" id="tablaVoluntarios">      
                         <table class="table" style="text-align: center;">
                             <thead>
@@ -35,7 +39,11 @@ document.addEventListener('DOMContentLoaded', () => {
                             </tbody>
                         </table>
                     </div>`;
-                
+                const btnBusqueda = get('btn-buscar');
+                btnBusqueda.addEventListener('click', () => {consultarYProcesarVoluntarios(get('criterio').value, flagRespuesta, rol)});
+                get('criterio').addEventListener('keydown', (event) => {
+                    if(event.key === 'Enter') consultarYProcesarVoluntarios(get('criterio').value, flagRespuesta, rol);
+                });
                 if (rol === 1 || (rol === 2 && respuesta.id_sede === 1)) {
                     const encabezadoSede = crear('th');
                     encabezadoSede.innerHTML = 'Sede';
@@ -49,159 +57,19 @@ document.addEventListener('DOMContentLoaded', () => {
                     get('encabezados').appendChild(encabezadoEstado);
                 }
     
-                fetch('/obtenerVoluntariosEquipoDirecto', {
-                    method: 'GET',
-                    headers: {
-                        'Content-Type': 'application/json'
+                consultarYProcesarVoluntarios('', flagRespuesta, rol);
+                flagRespuesta.botones.forEach(boton => {
+                    if (boton.tipo === 'button') {
+                        const nvoA = crear('a');
+                        nvoA.href = boton.ruta;
+                        nvoA.classList.add('btn');
+                        nvoA.classList.add('btn-primary');
+                        if (boton.inactivo) nvoA.classList.add('disabled');
+                        nvoA.classList.add('ml-1');
+                        nvoA.classList.add('mr-1');
+                        nvoA.innerHTML = boton.nombre;
+                        divBotones.appendChild(nvoA);
                     }
-                })
-                .then(response => response.json())
-                .then(respuesta => {
-                    const tabla = get('contenidoTabla');
-                    if (respuesta.length === 0) {
-                        tabla.innerHTML = `
-                            <tr>
-                                <td colspan="${get('encabezados').querySelectorAll('th').length}" id="noVoluntarios">No hay voluntarios registrados aún, da clic en el botón para registrar a un voluntario.</td>
-                            </tr>`;
-                    }
-                    
-                    // Variable para manejar si se ha agregado el encabezado de "Acciones"
-                    let accionesAgregadas = false;
-                    
-                    respuesta.forEach(informacion => {
-                        let derivacion = '';
-                        let intereses = '';
-                        let primerosContactos = '';
-    
-                        informacion.derivacion.forEach(programa => {
-                            derivacion += (programa + '<br>');
-                        });
-                        if (informacion.intereses.length === 0) {
-                            intereses += 'Sin intereses registrados<br>';
-                        } else {
-                            informacion.intereses.forEach(interes => {
-                                intereses += (interes + '<br>');
-                            });
-                        }
-                        informacion.primeros_contactos.forEach(contacto => {
-                            primerosContactos += (contacto + '<br>');
-                        });
-                        
-                        const fila = crear('tr');
-                        fila.id = informacion.id_voluntario;
-                        
-                        fila.innerHTML = `
-                            <td class='align-middle'>${informacion.nombre}</td>
-                            <td class='align-middle'>${informacion.apellido_paterno}</td>
-                            <td class='align-middle'>${informacion.ocupacion}</td>
-                            <td class='align-middle'>${derivacion || 'Sin datos'}</td>
-                            <td class='align-middle'>${intereses}</td>
-                            <td class='align-middle'>${primerosContactos || 'Sin información'}</td>
-                            <td class='align-middle'>${informacion.informe_valoracion}</td>
-                        `;
-                        if (rol === 1 || (rol === 2 && flagRespuesta.id_sede === 1)) {
-                            fila.innerHTML += `<td class='align-middle'>${informacion.sede}</td>`;
-                        }
-                        const estado = (informacion.estado === 0 ? 'Dado de baja' : (informacion.estado === 1 ? 'Alta' : 'Registrado'));
-                        if (rol === 1) {
-                            fila.innerHTML += `<td class='align-middle'>${estado}</td>`;
-                        }
-                        tabla.appendChild(fila);
-                        
-                        // Verificar si se necesita agregar el encabezado "Acciones"
-                        if ([1, 2, 3, 5].includes(rol)) {
-                            if (!accionesAgregadas) {
-                                const headerRow = get('encabezados');
-                                const headerActions = crear('th');
-                                headerActions.colSpan = 2;
-                                headerActions.textContent = 'Acciones';
-                                headerActions.classList.add('align-middle');
-                                headerRow.appendChild(headerActions);
-                                accionesAgregadas = true;
-                            }
-                            const nvoTd = crear('td');
-                            nvoTd.style.height = '30px';
-                            nvoTd.classList.add('align-middle');
-                            nvoTd.style.border = 'none';
-                            nvoTd.style.padding = '5px';
-                            const nvoIcono = crear('img');
-                            nvoIcono.src = '../img/vista.png';
-                            nvoIcono.alt = 'Ícono ojo de Smashicons en flaticon.es';
-                            nvoIcono.style.height = '30px';
-                            nvoIcono.id = `ver_${informacion.id_voluntario}`;
-                            const nvoDiv = crear('div');
-                            nvoDiv.style.width = '100%';
-                            nvoDiv.style.padding = '5px';
-                            nvoDiv.style.border = '0px solid black';
-                            nvoDiv.style.borderRadius = '5px';
-                            nvoDiv.style.backgroundColor = 'white';
-                            nvoDiv.appendChild(nvoIcono);
-                            nvoTd.appendChild(nvoDiv);
-                            fila.appendChild(nvoTd);
-                            get(`ver_${informacion.id_voluntario}`).addEventListener('click', () => {
-                                let ruta = '';
-                                localStorage.setItem('id', informacion.id_voluntario);
-                                flagRespuesta.botones.forEach(boton => {
-                                    if (boton.nombre === 'Ver la información de un voluntario') ruta = boton.ruta;
-                                });
-                                window.location = ruta;
-                            });
-                        }
-                        if ([2, 3].includes(rol)) {
-                            if (!accionesAgregadas) {
-                                const headerRow = get('encabezados');
-                                const headerActions = crear('th');
-                                headerActions.colSpan = 2; // Asume que tendrás dos columnas de acciones
-                                headerActions.textContent = 'Acciones';
-                                headerRow.appendChild(headerActions);
-                                accionesAgregadas = true;
-                            }
-                            const nvoTd = crear('td');
-                            nvoTd.style.height = '30px';
-                            nvoTd.classList.add('align-middle');
-                            nvoTd.style.border = 'none';
-                            nvoTd.style.padding = '3px';
-                            const nvoIcono = crear('img');
-                            nvoIcono.src = '../img/editar.png';
-                            nvoIcono.alt = 'Ícono editar de Kiranshastry en flaticon.es';
-                            nvoIcono.style.height = '30px';
-                            nvoIcono.id = `modificar_${informacion.id_voluntario}`;
-                            const nvoDiv = crear('div');
-                            nvoDiv.style.width = '100%';
-                            nvoDiv.style.padding = '5px';
-                            nvoDiv.style.border = '0px solid black';
-                            nvoDiv.style.borderRadius = '5px';
-                            nvoDiv.style.backgroundColor = 'white';
-                            nvoDiv.appendChild(nvoIcono);
-                            nvoTd.appendChild(nvoDiv);
-                            fila.appendChild(nvoTd);
-                            get(`modificar_${informacion.id_voluntario}`).addEventListener('click', () => {
-                                let ruta = '';
-                                localStorage.setItem('id', informacion.id_voluntario);
-                                flagRespuesta.botones.forEach(boton => {
-                                    if (boton.nombre === 'Modificar información de un voluntario') ruta = boton.ruta;
-                                });
-                                window.location = ruta;
-                            });
-                        }
-                    });
-                    
-                    flagRespuesta.botones.forEach(boton => {
-                        if (boton.tipo === 'button') {
-                            const nvoA = crear('a');
-                            nvoA.href = boton.ruta;
-                            nvoA.classList.add('btn');
-                            nvoA.classList.add('btn-primary');
-                            if (boton.inactivo) nvoA.classList.add('disabled');
-                            nvoA.classList.add('ml-1');
-                            nvoA.classList.add('mr-1');
-                            nvoA.innerHTML = boton.nombre;
-                            divBotones.appendChild(nvoA);
-                        }
-                    });
-                })
-                .catch(error => {
-                    console.error('Error al obtener los voluntarios activos:', error);
                 });
             }
         } else {
@@ -238,4 +106,151 @@ function seleccionVoluntario(idFila) {
             boton.classList.remove('disabled');
         });
     }
+}
+
+function consultarYProcesarVoluntarios (busqueda, flagRespuesta, rol){
+    const criterio = [busqueda.trim()];
+    fetch('/obtenerVoluntariosEquipoDirecto', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ busqueda: criterio })
+    })
+    .then(response => response.json())
+    .then(respuesta => {
+        const tabla = get('contenidoTabla');
+        tabla.innerHTML = '';
+        if (respuesta.length === 0) {
+            tabla.innerHTML = `
+                <tr>
+                    <td colspan="${get('encabezados').querySelectorAll('th').length}" id="noVoluntarios">No hay voluntarios registrados aún o no se han encontrado resultados de la búsqueda, da clic en el botón para registrar a un voluntario.</td>
+                </tr>`;
+        }
+        
+        // Variable para manejar si se ha agregado el encabezado de "Acciones"
+        let accionesAgregadas = false;
+        
+        respuesta.forEach(informacion => {
+            let derivacion = '';
+            let intereses = '';
+            let primerosContactos = '';
+
+            informacion.derivacion.forEach(programa => {
+                derivacion += (programa + '<br>');
+            });
+            if (informacion.intereses.length === 0) {
+                intereses += 'Sin intereses registrados<br>';
+            } else {
+                informacion.intereses.forEach(interes => {
+                    intereses += (interes + '<br>');
+                });
+            }
+            informacion.primeros_contactos.forEach(contacto => {
+                primerosContactos += (contacto + '<br>');
+            });
+            
+            const fila = crear('tr');
+            fila.id = informacion.id_voluntario;
+            
+            fila.innerHTML = `
+                <td class='align-middle'>${informacion.nombre}</td>
+                <td class='align-middle'>${informacion.apellido_paterno}</td>
+                <td class='align-middle'>${informacion.ocupacion}</td>
+                <td class='align-middle'>${derivacion || 'Sin datos'}</td>
+                <td class='align-middle'>${intereses}</td>
+                <td class='align-middle'>${primerosContactos || 'Sin información'}</td>
+                <td class='align-middle'>${informacion.informe_valoracion}</td>
+            `;
+            if (rol === 1 || (rol === 2 && flagRespuesta.id_sede === 1)) {
+                fila.innerHTML += `<td class='align-middle'>${informacion.sede}</td>`;
+            }
+            const estado = (informacion.estado === 0 ? 'Dado de baja' : (informacion.estado === 1 ? 'Alta' : 'Registrado'));
+            if (rol === 1) {
+                fila.innerHTML += `<td class='align-middle'>${estado}</td>`;
+            }
+            tabla.appendChild(fila);
+            
+            // Verificar si se necesita agregar el encabezado "Acciones"
+            if ([1, 2, 3, 5].includes(rol)) {
+                if (!accionesAgregadas) {
+                    const headerRow = get('encabezados');
+                    const headerActions = crear('th');
+                    headerActions.colSpan = 2;
+                    headerActions.textContent = 'Acciones';
+                    headerActions.id = 'acciones';
+                    headerActions.classList.add('align-middle');
+                    if(!get('acciones')) headerRow.appendChild(headerActions);
+                    accionesAgregadas = true;
+                }
+                const nvoTd = crear('td');
+                nvoTd.style.height = '30px';
+                nvoTd.classList.add('align-middle');
+                nvoTd.style.border = 'none';
+                nvoTd.style.padding = '5px';
+                const nvoIcono = crear('img');
+                nvoIcono.src = '../img/vista.png';
+                nvoIcono.alt = 'Ícono ojo de Smashicons en flaticon.es';
+                nvoIcono.style.height = '30px';
+                nvoIcono.id = `ver_${informacion.id_voluntario}`;
+                const nvoDiv = crear('div');
+                nvoDiv.style.width = '100%';
+                nvoDiv.style.padding = '5px';
+                nvoDiv.style.border = '0px solid black';
+                nvoDiv.style.borderRadius = '5px';
+                nvoDiv.style.backgroundColor = 'white';
+                nvoDiv.appendChild(nvoIcono);
+                nvoTd.appendChild(nvoDiv);
+                fila.appendChild(nvoTd);
+                get(`ver_${informacion.id_voluntario}`).addEventListener('click', () => {
+                    let ruta = '';
+                    localStorage.setItem('id', informacion.id_voluntario);
+                    flagRespuesta.botones.forEach(boton => {
+                        if (boton.nombre === 'Ver la información de un voluntario') ruta = boton.ruta;
+                    });
+                    window.location = ruta;
+                });
+            }
+            if ([2, 3].includes(rol)) {
+                if (!accionesAgregadas) {
+                    const headerRow = get('encabezados');
+                    const headerActions = crear('th');
+                    headerActions.colSpan = 2; // Asume que tendrás dos columnas de acciones
+                    headerActions.textContent = 'Acciones';
+                    headerRow.appendChild(headerActions);
+                    accionesAgregadas = true;
+                }
+                const nvoTd = crear('td');
+                nvoTd.style.height = '30px';
+                nvoTd.classList.add('align-middle');
+                nvoTd.style.border = 'none';
+                nvoTd.style.padding = '3px';
+                const nvoIcono = crear('img');
+                nvoIcono.src = '../img/editar.png';
+                nvoIcono.alt = 'Ícono editar de Kiranshastry en flaticon.es';
+                nvoIcono.style.height = '30px';
+                nvoIcono.id = `modificar_${informacion.id_voluntario}`;
+                const nvoDiv = crear('div');
+                nvoDiv.style.width = '100%';
+                nvoDiv.style.padding = '5px';
+                nvoDiv.style.border = '0px solid black';
+                nvoDiv.style.borderRadius = '5px';
+                nvoDiv.style.backgroundColor = 'white';
+                nvoDiv.appendChild(nvoIcono);
+                nvoTd.appendChild(nvoDiv);
+                fila.appendChild(nvoTd);
+                get(`modificar_${informacion.id_voluntario}`).addEventListener('click', () => {
+                    let ruta = '';
+                    localStorage.setItem('id', informacion.id_voluntario);
+                    flagRespuesta.botones.forEach(boton => {
+                        if (boton.nombre === 'Modificar información de un voluntario') ruta = boton.ruta;
+                    });
+                    window.location = ruta;
+                });
+            }
+        });
+    })
+    .catch(error => {
+        console.error('Error al obtener los voluntarios activos:', error);
+    });
 }
