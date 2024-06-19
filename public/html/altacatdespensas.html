@@ -93,5 +93,81 @@
 <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
 <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+<script>
+    // JavaScript para agregar campos adicionales dinámicamente
+    var contador = 1; // Inicializamos el contador
+    
+    document.getElementById("toggleCampos").addEventListener("click", function() {
+      var camposExtras = document.getElementById("camposExtras");
+    
+      // Verificar si el contador ha alcanzado el límite de 10
+      if (contador >= 10) {
+        alert("El número máximo de categorías a registrar es 10");
+        return; // Salir de la función si se alcanza el límite
+      }
+    
+      // Incrementar el contador
+      contador++;
+    
+      // Crear un conjunto nuevo de campos adicionales con identificadores únicos
+      var div = document.createElement("div");
+      div.className = "form-row";
+      div.innerHTML = `
+        <div class="form-group col-md-4">
+          <label for="nombre_categoria_${contador}">Nombre de la categoria</label>
+          <input type="text" class="form-control" id="nombre_categoria_${contador}" name="nombre_categoria_${contador}" placeholder="Nombre Categoria" required>
+        </div>
+        <div class="form-group col-md-4">
+          <label for="descripcion_despensa_${contador}">Descripción de la despensa</label>
+          <textarea class="form-control" id="descripcion_despensa_${contador}" name="descripcion_despensa_${contador}" placeholder="Descripción de la despensa"></textarea>
+        </div>
+        <div class="form-group col-md-4">
+          <label for="cantidad_prod_despensa_${contador}">Cantidad de productos de las despensa</label>
+          <input type="text" class="form-control" id="cantidad_prod_despensa_${contador}" name="cantidad_prod_despensa_${contador}" placeholder="Cantidad de productos de las despensa" required>
+        </div>
+      `;
+    
+      // Agregar el conjunto de campos adicionales al contenedor
+      camposExtras.appendChild(div);
+    
+      // Mostrar los campos extras si están ocultos
+      camposExtras.style.display = "block";
+    });
+    </script>
+<script>
+    document.getElementById("registro_cat_despensas").addEventListener("submit", function(event) {
+  event.preventDefault(); // Evitar que se envíe el formulario de forma tradicional
+  console.log("Formulario enviado");
+  const formData = new FormData(this); // Obtener los datos del formulario
+
+  // Convertir los datos del formulario a una cadena de consulta URL-encoded
+  const urlEncodedFormData = new URLSearchParams(formData);
+
+  fetch("/altacatdespensas", {
+    method: "POST",
+    headers: {
+      'Content-Type': 'application/x-www-form-urlencoded' // Configurar el tipo de contenido
+    },
+    body: urlEncodedFormData // Enviar los datos del formulario en formato URL-encoded
+  })
+  .then(response => response.json()) // Convertir la respuesta a JSON
+  .then(data => {
+    // Mostrar el mensaje al usuario
+    alert(data.mensaje);
+    // Si la categoría se registró correctamente, limpiar el formulario
+    if (data.mensaje.includes("correct")) {
+      // Limpiar el formulario completo
+      document.getElementById("registro_cat_despensas").reset();
+      // Redirigir a la página de entrada_inicio
+      window.location.href = "/entrada_inicio";
+    }
+  })
+  .catch(error => console.error("Error:", error));
+});
+
+</script>
+      
+
 </body>
 </html>
+

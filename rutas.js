@@ -155,6 +155,73 @@ router.get('/programas', verificarSesionYStatus, (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'html', 'programasSociales.html'));
 });
 
+router.get('/principal', verificarSesionYStatus, (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'html', 'principal.html'));
+});
+
+router.get('/entrada_inicio', verificarSesionYStatus, (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'html', 'entrada_inicio.html'));
+});
+
+router.get('/altadespensas', verificarSesionYStatus, (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'html', 'altadespensas.html'));
+});
+router.get('/altacatdespensas', verificarSesionYStatus, (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'html', 'altacatdespensas.html'));
+});
+
+router.get('/index_entrada', verificarSesionYStatus, (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'html', 'entrada_inicio.html'));
+});
+
+router.get('/eliminardespensas', verificarSesionYStatus, (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'html', 'eliminardespensas.html'));
+});
+
+router.get('/modificarcatdespensas', verificarSesionYStatus, (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'html', 'modificarcatdespensas.html'));
+});
+
+router.get('/altacatproductos', verificarSesionYStatus, (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'html', 'altacatproductos.html'));
+});
+
+router.get('/visualizarcatdesp', verificarSesionYStatus, (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'html', 'Visualizar_cat_desp.html'));
+});
+
+router.get('/eliminarcatdepe', verificarSesionYStatus, (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'html', 'eliminarcatdepe.html'));
+});
+
+router.get('/eliminardepe', verificarSesionYStatus, (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'html', 'eliminardepe.html'));
+});
+
+router.get('/Visualizar_desp', verificarSesionYStatus, (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'html', 'Visualizar_desp.html'));
+});
+
+router.get('/altacatproductos', verificarSesionYStatus, (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'html', 'altacatproductos.html'));
+});
+
+router.get('/visualizarproductos', verificarSesionYStatus, (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'html', 'visualizarproductos.html'));
+});
+
+router.get('/eliminarproductos', verificarSesionYStatus, (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'html', 'eliminarproductos.html'));
+});
+
+router.get('/altafechaentrega', verificarSesionYStatus, (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'html', 'altafechaentrega.html'));
+});
+
+router.get('/modificarcdespensas', verificarSesionYStatus, (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'html', 'modificarcdespensas.html'));
+});
+
 // Ruta para el inicio de sesión
 router.post('/login', async (req, res) => {
   const { correo, contraseña } = req.body;
@@ -726,6 +793,8 @@ router.get('/obtenerBotones', (req, res) => {
   // Verifica si hay un usuario en la sesión
   if (req.session && req.session.usuario) {
     const { nombre, id_rol, id_sede } = req.session.usuario;
+
+    if(id_rol === 4) return res.redirect('/index_entrada');
 
     db.get('SELECT rol FROM roles WHERE id_rol=?', [id_rol], (err, row) => {
       if(err) res.status(500).json({ mensaje: 'Error al consultar el rol del usuario' });
@@ -1491,6 +1560,459 @@ router.post('/consultaProgramas', verificarSesionYStatus, (req, res) => {
       return res.status(404).json({ mensaje: 'No se encontraron programas sociales para esta sede' });
     }
     res.status(200).json(rows);
+  });
+});
+
+router.post('/altacatdespensas', (req, res) => {
+  const categorias = [];
+
+  // Obtener los datos del cuerpo de la solicitud
+  for (let i = 1; i <= 11; i++) { // Iterar hasta 10, ajustar según tu límite máximo
+    if (req.body[`nombre_categoria_${i}`]) {
+      categorias.push({
+        nombre_categoria: req.body[`nombre_categoria_${i}`],
+        descripcion_despensa: req.body[`descripcion_despensa_${i}`],
+        cantidad_prod_despensa: req.body[`cantidad_prod_despensa_${i}`]
+      });
+    }
+  }
+  
+  // Verificar si se recibieron datos de categorías
+  if (categorias.length === 0) {
+    return res.status(400).json({ mensaje: 'No se recibieron categorías' });
+  }
+
+  // Iniciar una transacción
+  db.serialize(() => {
+    db.run('BEGIN TRANSACTION');
+
+    // Iterar sobre las categorías recibidas
+    categorias.forEach((categoria, index) => {
+      const { nombre_categoria, descripcion_despensa, cantidad_prod_despensa } = categoria;
+
+      // Validar campos necesarios
+      if (!nombre_categoria || !cantidad_prod_despensa) {
+        return res.status(400).json({ mensaje: `Faltan campos obligatorios para la categoría ${index + 1}` });
+      }
+
+      // Verificar si la categoría ya existe
+      db.get('SELECT nombre_categoria FROM CategoriaDespensa WHERE nombre_categoria = ?', [nombre_categoria], (err, row) => {
+        if (err) {
+          console.error('Error al verificar si la categoría existe:', err);
+          db.run('ROLLBACK'); // Deshacer la transacción en caso de error
+          return res.status(500).json({ mensaje: 'Error interno del servidor' });
+        }
+
+        if (row) {
+          // La categoría ya existe
+          return res.status(409).json({ mensaje: `La categoría ${nombre_categoria} ya existe en la base de datos` });
+        } else {
+          // Insertar la categoría si no existe
+          db.run('INSERT INTO CategoriaDespensa (nombre_categoria, descripcion_despensa, cantidad_prod_despensa) VALUES (?, ?, ?)',
+            [nombre_categoria, descripcion_despensa, cantidad_prod_despensa], function(err) {
+              if (err) {
+                console.error(`Error al insertar categoría ${nombre_categoria}:`, err.message);
+                db.run('ROLLBACK'); // Deshacer la transacción en caso de error
+                return res.status(500).json({ mensaje: `Error al insertar la categoría ${nombre_categoria} en la base de datos` });
+              }
+              console.log(`Categoría ${nombre_categoria} insertada correctamente. ID de la fila:`, this.lastID);
+
+              // Si es la última categoría, hacer COMMIT de la transacción
+              if (index === categorias.length - 1) {
+                db.run('COMMIT', (err) => {
+                  if (err) {
+                    console.error('Error al hacer COMMIT:', err);
+                    return res.status(500).json({ mensaje: 'Error interno del servidor' });
+                  }
+                  res.status(201).json({ mensaje: '¡Categorías registradas correctamente!' });
+                });
+              }
+            });
+        }
+      });
+    });
+  });
+});
+
+//obtener categorias despensas
+router.get('/obtenerCategoriasDespensas', (req, res) => {
+  db.all('SELECT id, nombre_categoria FROM CategoriaDespensa;', (err, rows) => {
+    if(err) {
+      res.status(500).json({ mensaje: 'No se pudieron consultar las categorias' });
+    } else {
+      const categoriasDespensas = [];
+      rows.forEach(row => {
+        categoriasDespensas.push(row.nombre_categoria);
+      });
+      res.status(200).json(categoriasDespensas);
+    }
+  });
+});
+
+router.post('/registrar_despensa', (req, res) => {
+  const { nombre_categoria, cantidad_despensas } = req.body;
+
+  // Validar que cantidad_despensas sea un número positivo
+  const cantidad = parseInt(cantidad_despensas);
+  if (isNaN(cantidad) || cantidad <= 0) {
+      return res.status(400).json({ mensaje: 'La cantidad de despensas debe ser un número positivo.' });
+  }
+
+  // Verificar si ya existe un registro de despensa para la categoría seleccionada
+  db.get('SELECT id FROM CategoriaDespensa WHERE nombre_categoria = ?', [nombre_categoria], (err, row) => {
+      if (err) {
+          console.error('Error al verificar si existe la categoría:', err);
+          return res.status(500).json({ mensaje: 'Error interno del servidor' });
+      }
+
+      if (!row) {
+          // Si la categoría no existe, retornar un error
+          return res.status(404).json({ mensaje: 'La categoría no existe en la base de datos' });
+      }
+
+      const categoria_despensa_id = row.id;
+
+      // Verificar si ya existe un registro de despensa para la categoría seleccionada
+      db.get('SELECT * FROM Despensas WHERE categoria_despensa_id = ?', [categoria_despensa_id], (err, row) => {
+          if (err) {
+              console.error('Error al verificar si ya existe un registro de despensa:', err);
+              return res.status(500).json({ mensaje: 'Error interno del servidor' });
+          }
+
+          if (row) {
+              // Si ya existe un registro, actualizar la cantidad de despensas
+              const cantidadExistente = parseInt(row.cantidad_despensas); // Convertir a número
+              const nuevaCantidad = cantidadExistente + cantidad; // Sumar correctamente
+
+              db.run('UPDATE Despensas SET cantidad_despensas = ? WHERE categoria_despensa_id = ?', [nuevaCantidad, categoria_despensa_id], function(err) {
+                  if (err) {
+                      console.error('Error al actualizar la cantidad de despensas:', err.message);
+                      return res.status(500).json({ mensaje: 'Error al actualizar la cantidad de despensas en la base de datos' });
+                  }
+                  console.log('Cantidad de despensas actualizada correctamente.');
+                  res.status(200).json({ mensaje: '¡Cantidad de despensas actualizada correctamente!' });
+              });
+          } else {
+              // Si no existe un registro, realizar la inserción
+              db.run('INSERT INTO Despensas (categoria_despensa_id, cantidad_despensas) VALUES (?, ?)', [categoria_despensa_id, cantidad], function(err) {
+                  if (err) {
+                      console.error('Error al insertar el registro de despensa:', err.message);
+                      return res.status(500).json({ mensaje: 'Error al insertar el registro de despensa en la base de datos' });
+                  }
+                  console.log('Registro de despensa insertado correctamente.');
+                  res.status(201).json({ mensaje: '¡Registro de despensa insertado correctamente!' });
+              });
+          }
+      });
+  });
+});
+
+router.post('/eliminardespensas', (req, res) => {
+  const { nombre_categoria, cantidad_eliminar } = req.body;
+
+  console.log('Categoría a eliminar despensas:', nombre_categoria);
+  console.log('Cantidad a eliminar:', cantidad_eliminar);
+
+  // Obtener el ID de la categoría de despensa
+  db.get('SELECT id, cantidad_despensas FROM Despensas WHERE categoria_despensa_id = (SELECT id FROM CategoriaDespensa WHERE nombre_categoria = ?)', [nombre_categoria], (err, row) => {
+    if (err) {
+      console.error('Error al verificar si existe la categoría:', err);
+      return res.status(500).json({ mensaje: 'Error interno del servidor' });
+    }
+    console.log('Resultado del primer SELECT:', row);
+    if (!row) {
+      console.log('La categoría no existe en la base de datos de despensas');
+      return res.status(404).json({ mensaje: 'La categoría no existe en la base de datos de despensas' });
+    }
+
+    const { id, cantidad_despensas } = row;
+    console.log('ID de la categoría de despensa:', id);
+    console.log('Cantidad actual de despensas:', cantidad_despensas);
+
+    // Verificar si hay suficientes despensas para eliminar
+    if (cantidad_eliminar > cantidad_despensas) {
+      console.log('No se pueden eliminar más despensas de las que existen');
+      return res.status(400).json({ mensaje: 'No se pueden eliminar más despensas de las que existen' });
+    }
+
+    // Calcular la nueva cantidad de despensas después de la eliminación
+    const nuevaCantidad = cantidad_despensas - cantidad_eliminar;
+    console.log('Nueva cantidad de despensas después de eliminar:', nuevaCantidad);
+
+    // Actualizar la cantidad de despensas en la base de datos
+    db.run('UPDATE Despensas SET cantidad_despensas = ? WHERE id = ?', [nuevaCantidad, id], function(err) {
+      if (err) {
+        console.error('Error al actualizar la cantidad de despensas:', err.message);
+        return res.status(500).json({ mensaje: 'Error al actualizar la cantidad de despensas en la base de datos' });
+      }
+      console.log('Cantidad de despensas actualizada correctamente.');
+      res.status(200).json({ mensaje: '¡Cantidad de despensas actualizada correctamente!' });
+    });
+  });
+});
+
+router.post('/modificar_despensa', (req, res) => {
+  const { nombre_categoria, descripcion_despensa, cantidad_prod_despensa, campo_modificar } = req.body;
+
+  // Consultar los datos actuales de la categoría
+  db.get('SELECT * FROM CategoriaDespensa WHERE nombre_categoria = ?', [nombre_categoria], (err, row) => {
+    if (err) {
+      return res.json({ mensaje: 'Error al consultar la categoría' });
+    }
+
+    if (!row) {
+      return res.json({ mensaje: 'Categoría no encontrada' });
+    }
+
+    let updates = [];
+    let params = [];
+
+    // Verificar si los datos nuevos son diferentes a los actuales
+    if (campo_modificar.includes('descripcion') && descripcion_despensa !== row.descripcion_despensa) {
+      updates.push('descripcion_despensa = ?');
+      params.push(descripcion_despensa);
+    }
+
+    if (campo_modificar.includes('cantidad') && cantidad_prod_despensa !== row.cantidad_prod_despensa) {
+      updates.push('cantidad_prod_despensa = ?');
+      params.push(cantidad_prod_despensa);
+    }
+
+    if (updates.length === 0) {
+      return res.json({ mensaje: 'No hay cambios en los datos' });
+    }
+
+    params.push(nombre_categoria);
+
+    // Construir la consulta SQL dinámica
+    const sql = `UPDATE CategoriaDespensa SET ${updates.join(', ')} WHERE nombre_categoria = ?`;
+
+    // Ejecutar la consulta SQL
+    db.run(sql, params, function(err) {
+      if (err) {
+        return res.json({ mensaje: 'Error al actualizar la categoría' });
+      }
+      res.json({ mensaje: 'Categoría actualizada correctamente' });
+    });
+  });
+});
+
+router.get('/obtener_datos_despensas', (req, res) => {
+  db.all('SELECT * FROM CategoriaDespensa', (err, rows) => {
+      if (err) {
+          console.error(err.message);
+          res.status(500).json({ error: 'Error al obtener datos de la base de datos' });
+      } else {
+          console.log(rows); // Verifica los datos obtenidos
+          res.json(rows); // Enviar los datos como JSON al cliente
+      }
+  });
+});
+
+router.post('/eliminar_categoria_despe', (req, res) => {
+  const { nombre_categoria } = req.body;
+
+  db.get(`SELECT cantidad_prod_despensa FROM CategoriaDespensa WHERE nombre_categoria = ?`, [nombre_categoria], (err, row) => {
+    if (err) {
+      console.error(err.message);
+      res.status(500).json({ mensaje: "Error al verificar la categoría" });
+    } else if (row && row.cantidad_prod_despensa > 0) {
+      res.json({ mensaje: "No se puede eliminar la categoría porque tiene despensas asociadas" });
+    } else {
+      db.run(`DELETE FROM CategoriaDespensa WHERE nombre_categoria = ?`, [nombre_categoria], function(err) {
+        if (err) {
+          console.error(err.message);
+          res.status(500).json({ mensaje: "Error al eliminar la categoría" });
+        } else {
+          res.json({ mensaje: "Categoría eliminada correctamente" });
+        }
+      });
+    }
+  });
+});
+
+router.get('/cantidad_despensas', (req, res) => {
+  const categoriaId = req.query.categoriaId;
+  console.log(`Categoria ID recibida: ${categoriaId}`);
+  db.get('SELECT cantidad_despensas FROM Despensas WHERE categoria_despensa_id = ?', [categoriaId], (err, row) => {
+    if (err) {
+      console.error(err.message);
+      res.status(500).json({ error: 'Error al obtener la cantidad de despensas' });
+    } else {
+      const cantidad = row ? row.cantidad_despensas : 0;
+      console.log(`Resultado de la consulta: ${cantidad}`);
+      res.json({ cantidad_despensas: cantidad });
+    }
+  });
+});
+
+router.get('/obtener_despensas', (req, res) => {
+  db.all('SELECT * FROM Despensas', (err, rows) => {
+      if (err) {
+          console.error(err.message);
+          res.status(500).json({ error: 'Error al obtener datos de la base de datos' });
+      } else {
+          console.log(rows); // Verifica los datos obtenidos
+          res.json(rows); // Enviar los datos como JSON al cliente
+      }
+  });
+});
+
+// Ruta para obtener el nombre de una categoría específica por su id
+router.get('/obtenerNombreCategoria/:id', (req, res) => {
+  const categoriaId = req.params.id;
+  db.get('SELECT nombre_categoria FROM CategoriaDespensa WHERE id = ?', [categoriaId], (err, row) => {
+      if (err) {
+          console.error("Error al obtener nombre de categoría:", err);
+          res.status(500).json({ error: 'Error al obtener nombre de categoría' });
+      } else {
+          res.json({ nombre_categoria: row.nombre_categoria });
+      }
+  });
+});
+
+// Ruta para obtener la cantidad de despensas asociadas a una categoría
+router.get('/obtener_cantidad_despensas/:categoriaId', (req, res) => {
+  const { categoriaId } = req.params;
+  console.log(req.params);
+
+  db.get('SELECT SUM(cantidad_despensas) AS cantidadDespensas FROM Despensas WHERE categoria_despensa_id = ?', [categoriaId], (err, row) => {
+      if (err) {
+          console.error(err.message);
+          res.status(500).json({ error: 'Error al obtener la cantidad de despensas' });
+      } else {
+          const cantidadDespensas = row ? row.cantidadDespensas : 0;
+          console.log(`categoriaId: ${categoriaId}, cantidadDespensas: ${cantidadDespensas}`);
+          res.json({ cantidadDespensas });
+      }
+  });
+});
+
+router.post('/altacatprod', (req, res) => {
+  const categorias = []; // Arreglo para almacenar las categorías recibidas
+
+  // Obtener las categorías del cuerpo del formulario
+  for (let i = 1; i <= 10; i++) { // Iteramos hasta 10, ya que es el límite máximo definido
+    const nombre_categoria = req.body[`nombre_categoria_${i}`]; // Obtener el nombre de la categoría del campo correspondiente
+
+    if (nombre_categoria) {
+      categorias.push(nombre_categoria); // Agregar el nombre de la categoría al arreglo
+    }
+  }
+
+  // Iniciar una transacción
+  db.serialize(() => {
+    db.run('BEGIN TRANSACTION');
+
+    // Insertar las categorías en la base de datos con verificación de existencia
+    const stmt = db.prepare('INSERT INTO categoria_productos (nombre_categor_prod) SELECT ? WHERE NOT EXISTS (SELECT 1 FROM categoria_productos WHERE nombre_categor_prod = ?)');
+    categorias.forEach((nombre_categoria) => {
+      stmt.run(nombre_categoria, nombre_categoria);
+    });
+    stmt.finalize();
+
+    // Confirmar la transacción
+    db.run('COMMIT', (err) => {
+      if (err) {
+        console.error('Error al confirmar la transacción:', err.message);
+        res.status(500).json({ mensaje: 'Error al registrar categorías' });
+      } else {
+        console.log('Categorías registradas correctamente');
+        res.json({ mensaje: 'Categorías registradas correctamente' });
+      }
+    });
+  });
+});
+
+router.get('/visualizarproductosstock', (req, res) => {
+  db.all('SELECT * FROM categoria_productos', (err, rows) => {
+    if (err) {
+      console.error('Error al obtener categorías de productos:', err.message);
+      res.status(500).json({ mensaje: 'Error al obtener categorías de productos' });
+    } else {
+      console.log(rows); // Verifica los datos obtenidos
+      res.json(rows); // Enviar los datos como JSON al cliente
+  }
+  });
+});
+
+router.get('/productos', (req, res) => {
+  db.all('SELECT id_categ_prod, nombre_categor_prod FROM categoria_productos', (err, rows) => {
+    if (err) {
+      res.status(500).json({ error: err.message });
+      return;
+    }
+    res.json({
+      productos: rows
+    });
+  });
+});
+
+router.delete('/eliminarproductos/:id', (req, res) => {
+  const id = req.params.id;
+  db.run('DELETE FROM categoria_productos WHERE id_categ_prod = ?', [id], function(err) {
+    if (err) {
+      res.status(500).json({ error: err.message });
+      return;
+    }
+    res.json({ success: true, mensaje: 'Producto eliminado correctamente.' });
+  });
+});
+
+router.post('/altafechaentrega', async (req, res) => {
+  const { fechas } = req.body;
+console.log(req.body);
+  // Verificar si se recibieron fechas
+  if (!fechas || fechas.length === 0) {
+      return res.status(400).json({ mensaje: 'Fecha insertada correctamente' });
+  }
+
+  // Iniciar una transacción
+  db.beginTransaction(function(err) {
+      if (err) {
+          console.error('Error al iniciar la transacción:', err.message);
+          return res.status(500).json({ mensaje: 'Error interno del servidor' });
+      }
+
+      // Iterar sobre cada fecha para realizar la inserción
+      fechas.forEach(({ fecha_entrega, descripcion_entrega }, index) => {
+          // Verificar si la fecha ya existe en la base de datos
+          db.get('SELECT id_fecha_entrega FROM entregas WHERE fecha_entrega = ?', [fecha_entrega], (err, row) => {
+              if (err) {
+                  db.rollback(function() {
+                      console.error('Error en consulta SELECT:', err.message);
+                      res.status(500).json({ mensaje: 'Error interno del servidor' });
+                  });
+              }
+
+              if (row) {
+                  // Si la fecha ya existe, omitir la inserción
+                  console.log(`La fecha ${fecha_entrega} ya está registrada en la base de datos. Se omite la inserción.`);
+              } else {
+                  // Insertar la nueva fecha de entrega
+                  db.run('INSERT INTO entregas (fecha_entrega, descripcion_entrega) VALUES (?, ?)', [fecha_entrega, descripcion_entrega], function(err) {
+                      if (err) {
+                          db.rollback(function() {
+                              console.error('Error en consulta INSERT:', err.message);
+                              res.status(500).json({ mensaje: 'Error interno del servidor' });
+                          });
+                      }
+
+                      // Si es la última inserción exitosa, hacer commit de la transacción
+                      if (index === fechas.length - 1) {
+                          db.commit(function(err) {
+                              if (err) {
+                                  console.error('Error al hacer commit:', err.message);
+                                  res.status(500).json({ mensaje: 'Error interno del servidor' });
+                              } else {
+                                  res.status(200).json({ mensaje: 'Todas las fechas de entrega fueron registradas correctamente' });
+                              }
+                          });
+                      }
+                  });
+              }
+          });
+      });
   });
 });
 
