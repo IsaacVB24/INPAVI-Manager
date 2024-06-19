@@ -47,7 +47,7 @@ document.addEventListener('DOMContentLoaded', () => {
             get('fechaCaptacion').value = tratarFecha(voluntario.fecha_captacion);
             get('personaDeAlta').value = `${voluntario.sede_usuarioAlta} - ${voluntario.nombre_usuarioAlta} ${voluntario.apPat_usuarioAlta} ${voluntario.apMat_usuarioAlta}`;
             console.log(voluntario);
-            get('internoAsignado').value = voluntario.id_voluntarioAsignado === 0 ? 'Sin asignación' : `${voluntario.nombre_voluntarioAsignado} ${voluntario.apPat_voluntarioAsignado} ${voluntario.apMat_voluntarioAsignado}`;
+            get('internoAsignado').value = voluntario.id_voluntarioAsignado === 0 ? 'Sin asignación' : `${voluntario.nombre_voluntarioAsignado}`;
             if(!voluntario.intereses) {
                 get('intereses').rows = 1;
                 get('intereses').innerHTML = 'Sin intereses registrados';

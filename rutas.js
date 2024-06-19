@@ -833,6 +833,7 @@ router.post('/obtenerVoluntariosEquipoDirecto', (req, res) => {
       v.informe_valoracion,
       v.estado,
       v.ocupacion,
+      v.observaciones,
       iv.interes,
       p.programa AS derivacion,
       pc.contacto AS primeros_contactos,
@@ -856,7 +857,8 @@ router.post('/obtenerVoluntariosEquipoDirecto', (req, res) => {
       const criterio = busqueda[0];
       const separadas = criterio.split(' ');
       consulta += id_rol === 1 ? 'WHERE ' : 'AND ';
-      consulta += `(v.nombre_v LIKE ? OR v.apellido_paterno_v LIKE ? OR v.ocupacion LIKE ? OR p.programa LIKE ? OR iv.interes LIKE ? OR pc.contacto LIKE ? OR s.sede LIKE ?) `;
+      consulta += `(v.nombre_v LIKE ? OR v.apellido_paterno_v LIKE ? OR v.ocupacion LIKE ? OR p.programa LIKE ? OR iv.interes LIKE ? OR pc.contacto LIKE ? OR s.sede LIKE ? OR v.observaciones LIKE ?) `;
+      parametros.push(`%${criterio}%`);
       parametros.push(`%${criterio}%`);
       parametros.push(`%${criterio}%`);
       parametros.push(`%${criterio}%`);
@@ -1071,9 +1073,7 @@ router.post('/infoVoluntario', verificarSesionYStatus, (req, res) => {
     SELECT 
       v.id_voluntario, 
       v.id_voluntarioAsignado, 
-      va.nombre_v AS nombre_voluntarioAsignado, 
-      va.apellido_paterno_v AS apPat_voluntarioAsignado, 
-      va.apellido_materno_v AS apMat_voluntarioAsignado, 
+      cv.nombreCompleto AS nombre_voluntarioAsignado,
       v.fecha_captacion, 
       v.fecha_alta, 
       v.nombre_v, 
@@ -1102,7 +1102,7 @@ router.post('/infoVoluntario', verificarSesionYStatus, (req, res) => {
     FROM 
       voluntarios v
     LEFT JOIN 
-      voluntarios va ON v.id_voluntarioAsignado = va.id_voluntarioAsignado
+      conjuntoVoluntarios cv ON v.id_voluntarioAsignado = cv.id_voluntario
     LEFT JOIN 
       interesesVoluntario iv ON v.id_voluntario = iv.id_voluntario
     LEFT JOIN 
@@ -1202,7 +1202,7 @@ router.post('/modificarDatosVoluntario', verificarSesionYStatus, (req, res) => {
 
   //console.log('Datos recibidos en el body: ', req.body);
 
-  db.get('SELECT nombre_v FROM voluntarios WHERE id_voluntario = ?', [id_voluntario], (err, row) => {
+  db.get('SELECT nombre_v, apellido_paterno_v, apellido_materno_v, id_sede FROM voluntarios WHERE id_voluntario = ?', [id_voluntario], (err, row) => {
     if (err) {
       return res.status(500).json({ mensaje: 'Error al buscar el voluntario en la base de datos' });
     }
@@ -1210,10 +1210,61 @@ router.post('/modificarDatosVoluntario', verificarSesionYStatus, (req, res) => {
       return res.status(404).json({ mensaje: 'El voluntario no fue encontrado' });
     }
 
+    let programasViejos;
+    db.all('SELECT id_derivacion FROM derivacionVoluntario WHERE id_voluntario = ?', [id_voluntario], (err, rows) => {
+      if (err) {
+        return hacerRollback(500, `Error al obtener los programas de derivación actuales del voluntario`, res, err);
+      }
+      programasViejos = rows;
+    });
+
     const nombreVoluntario = row.nombre_v;
+    const id_sedeActual = row.id_sede;
+    const apPatActual = row.apellido_paterno_v;
+    const apMatActual = row.apellido_materno_v;
 
     db.serialize(() => {
       db.run('BEGIN TRANSACTION');
+
+      if(id_sede !== null) {
+        if(id_sede !== id_sedeActual) {
+          db.run('UPDATE conjuntoVoluntarios SET id_sede = ? WHERE id_filaVoluntarios = ?', [id_sede, id_voluntario], (err) => {
+            if(err) {
+              return hacerRollback(500, `Error al actualizar la sede del voluntario en la tabla general de voluntarios`, res, err);
+            }
+
+            if(derivacion === null) {
+              programasViejos.forEach(id_programaViejo => {
+                db.run('UPDATE programasSede SET cantidadInvolucrados = cantidadInvolucrados - 1 WHERE id_sede = ? AND id_programa = ?', [id_sedeActual, id_programaViejo.id_derivacion], (err) => {
+                  if(err) {
+                    return hacerRollback(500, `Error al descontar un voluntario del programa con ID ${id_programaViejo.id_derivacion} en la transferencia de sede`, res, err);
+                  }
+
+                  db.run('UPDATE programasSede SET cantidadInvolucrados = cantidadInvolucrados + 1 WHERE id_sede = ? AND id_programa = ?', [id_sede, id_programaViejo.id_derivacion], (err) => {
+                    if(err) {
+                      return hacerRollback(500, `Error al aumentar un voluntario del programa con ID ${id_programaViejo.id_derivacion} en la transferencia de sede`, res, err);
+                    }
+                  });
+                });
+              });
+            }
+          });
+        }
+      }
+
+      if(nombreVoluntario !== nombres || apPatActual !== apPat || apMatActual !== apMat && (nombres !== null || apPat !== null || apMat !== null)) {
+        let nombrePorModificar = nombreVoluntario;
+        let apPatPorModificar = apPatActual;
+        let apMatPorModificar = apMatActual;
+        if(nombres !== null) nombrePorModificar = nombres;
+        if(apPat !== null) apPatPorModificar = apPat;
+        if(apMat !== null) apMatPorModificar = apMat;
+        db.run('UPDATE conjuntoVoluntarios SET nombreCompleto = ? WHERE id_filaVoluntarios = ?', [`${nombrePorModificar} ${apPatPorModificar} ${apMatPorModificar}`, id_voluntario], (err) => {
+          if(err) {
+            return hacerRollback(500, `Error al actualizar el nombre del voluntario`, res, err);
+          }
+        });
+      }
 
       if (intereses !== null) {
         if (intereses.length === 0) {
@@ -1295,34 +1346,36 @@ router.post('/modificarDatosVoluntario', verificarSesionYStatus, (req, res) => {
         if (derivacion.length === 0) {
           return hacerRollback(400, `Se debe seleccionar al menos un programa de derivación para el voluntario`, res, 'Derivación incompleta');
         } else {
-          db.run('DELETE FROM derivacionVoluntario WHERE id_voluntario = ?', [id_voluntario], (err) => {
-            if (err) {
-              return hacerRollback(500, `Error al eliminar los programas de derivación anteriores del voluntario`, res, err);
-            }
 
-            if (proyectoNuevo) {
-              db.run('INSERT INTO programas (programa) VALUES (?)', [proyectoNuevo], function(err) {
-                if (err) {
-                  return hacerRollback(500, `Error al insertar el programa "${proyectoNuevo}" a la tabla de programas`, res, err);
-                }
+            db.run('DELETE FROM derivacionVoluntario WHERE id_voluntario = ?', [id_voluntario], (err) => {
+              if (err) {
+                return hacerRollback(500, `Error al eliminar los programas de derivación anteriores del voluntario`, res, err);
+              }
 
-                const id_programaNuevo = this.lastID;
-                db.run('INSERT INTO derivacionVoluntario (id_voluntario, id_derivacion) VALUES (?, ?)', [id_voluntario, id_programaNuevo], (err) => {
+              programasViejos.forEach(idViejo => {
+                db.run('UPDATE programasSede SET cantidadInvolucrados = cantidadInvolucrados - 1 WHERE id_programa = ? AND id_sede = ?', [idViejo.id_derivacion, id_sedeActual], (err) => {
                   if (err) {
-                    return hacerRollback(500, `Error al relacionar el nuevo programa "${proyectoNuevo}", de ID ${id_programaNuevo} con el voluntario "${nombreVoluntario}"`, res, err);
+                    return hacerRollback(500, `Error al descontar un voluntario para el programa con ID "${idViejo.id_derivacion}" de la sede con ID "${id_sedeActual}"`, res, err);
                   }
+
+                  
                 });
               });
-            }
-
-            derivacion.forEach((id_programa) => {
-              db.run('INSERT INTO derivacionVoluntario (id_voluntario, id_derivacion) VALUES (?, ?)', [id_voluntario, id_programa], (err) => {
-                if (err) {
-                  return hacerRollback(500, `Error al asociar el programa con ID "${id_programa}" con el voluntario "${nombreVoluntario}"`, res, err);
-                }
+              
+              derivacion.forEach((id_programa) => {
+                db.run('INSERT INTO derivacionVoluntario (id_voluntario, id_derivacion) VALUES (?, ?)', [id_voluntario, id_programa], (err) => {
+                  if (err) {
+                    return hacerRollback(500, `Error al asociar el programa con ID "${id_programa}" con el voluntario "${nombreVoluntario}"`, res, err);
+                  }
+                  
+                  db.run('UPDATE programasSede SET cantidadInvolucrados = cantidadInvolucrados + 1 WHERE id_programa = ? AND id_sede = ?', [id_programa, id_sede || id_sedeActual], (err) => {
+                    if (err) {
+                      return hacerRollback(500, `Error al aumentar un voluntario para el programa con ID "${id_programa}" de la sede con ID "${id_sede}"`, res, err);
+                    }
+                  });
+                });
               });
             });
-          });
         }
       }
 
