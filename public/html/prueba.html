@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Registro Categorias despensas</title>
+  <link href="https://fonts.googleapis.com/css?family=Karla:400,700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.materialdesignicons.com/4.8.95/css/materialdesignicons.min.css">
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css"> <!-- Bootstrap Icons -->
+  <link rel="stylesheet" href="../css/style2.css">
+  <script src="../bootstrap-5.3.3-dist/js/bootstrap.bundle.min.js"></script>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark main-navbar">
+        <a class="navbar-brand" href="#">
+            <img src="../img/inpavi_logo.png" alt="Logo" class="logo">
+        </a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav"
+            aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ml-auto">
+                <li class="nav-item">
+                    <a class="nav-link" href="#">Inicio</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#">Acerca de</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#">Servicios</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#">Contacto</a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
+  <div class="row main-content">
+    <div class="container mt-5">
+      <div class="form-border">
+        <form id="registro_cat_despensas" action="/altacatdespensas" method="post">
+        <h2 class="mb-4">Registro de categoría para las despensas</h2>
+        
+        
+        <!-- Div para mostrar el mensaje -->
+        <div id="mensajePopup" class="alert alert-success alert-dismissible fade show" role="alert" style="display: none;">
+          <!-- Aquí se mostrará el mensaje -->
+        </div>
+        
+          <div class="form-row">
+            <div class="form-group col-md-4">
+              <label for="nombre_categoria">Nombre de la categoria</label>
+              <input type="text" class="form-control" id="nombre_categoria:1" name="nombre_categoria_1" placeholder="Nombre Categoria" required>
+            </div>
+            <div class="form-group col-md-4">
+              <label for="descripcion_despensa">Descripción de la despensa</label>
+              <textarea class="form-control" id="descripcion_despensa_1" name="descripcion_despensa_1" placeholder="Descripción de la despensa"></textarea>
+            </div>
+            <div class="form-group col-md-4">
+              <label for="cantidad_prod_despensa">Cantidad de productos de las despensa</label>
+              <input type="text" class="form-control" id="cantidad_prod_despensa_1" name="cantidad_prod_despensa_1" placeholder="Cantidad de productos de las despensa" required>
+            </div>
+          </div>
+
+          <!-- Botón para agregar más detalles -->
+
+          <!-- Contenedor para los campos adicionales -->
+          <div id="camposExtras" style="display: none;">
+            <!-- Aquí se replicarán los campos adicionales -->
+          </div>
+          <!-- Fin del contenedor para los campos adicionales -->
+      
+          <button type="button" class="btn btn-link btn-toggle" id="toggleCampos">
+            <label for="toggleCampos">Agregar más categorias</label>
+            <i class="bi bi-plus"></i> <!-- Icono de más -->
+          </button>
+<br><br>
+          <!-- Botón de registro -->
+         
+        <button class="button-return" onclick="history.back()">
+            <i class="bi bi-arrow-left">  Regresar</i> 
+        </button>
+        <button type="submit" id="botonRegistrar" class="btn-primary">
+            <i class="bi bi-emoji-smile-fill">  Registrar</i></button>
+        </form>
+      </div>
+      </div>
+    </div>
+  </div>     
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html>

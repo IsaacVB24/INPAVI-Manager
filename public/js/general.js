@@ -4,28 +4,31 @@ const idHModal = 'hModal';
 const idBModal = 'bModal';
 const idBotonModal = 'btnModal';
 const idSeccionBotonesModal = 'botonesModal';
-const barraNav = `<nav class="navbar navbar-expand-lg">
-<a class="navbar-brand" ${ruta !== '/tablero' ? `href='/tablero'` : ''}>Integración Para La Vida</a>
-<button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-  <span class="navbar-toggler-icon"></span>
-</button>
-<div class="collapse navbar-collapse" id="navbarNav">
-  <ul class="navbar-nav ml-auto">
-    <li class="nav-item">
-      <a class="nav-link" href="#">Inicio</a>
-    </li>
-    <li class="nav-item">
-      <a class="nav-link" href="#">Acerca de</a>
-    </li>
-    <li class="nav-item">
-      <a class="nav-link" href="#">Servicios</a>
-    </li>
-    <li class="nav-item">
-      <a class="nav-link" href="#">Contacto</a>
-    </li>
-  </ul>
-</div>
-</nav>`;
+const barraNav = `
+  <nav class="navbar navbar-expand-lg navbar-dark main-navbar">
+        <img src="../img/inpavi_logo.png" alt="Logo" class="logo" id='logoBarra'>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav"
+            aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav" style='padding-left: 5px;'>
+            <ul class="navbar-nav ml-auto">
+                <li class="nav-item">
+                    <a class="nav-link" href="#">Inicio</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#">Acerca de</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#">Servicios</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#">Contacto</a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+`;
 
 function idInnerHTML(id, contenido){
   get(id).innerHTML = contenido;
@@ -189,4 +192,25 @@ function permitirSoloNumeros(input) {
 document.addEventListener('DOMContentLoaded', () => {
   get('barraNav').innerHTML = barraNav;
   //if(get('alertas')) {get('alertas').innerHTML = `<div class="alert alert-warning alert-dismissible"><button type="button" class="btn-close" data-bs-dismiss="alert"></button><strong>¡Guarda tus cambios!</strong> El servidor se reiniciará pronto.</div>`;}
+});
+
+// Función para agregar un script al head
+function addScript(src) {
+  var script = document.createElement('script');
+  script.src = src;
+  script.async = true; // Opcional, si quieres cargar los scripts de forma asíncrona
+  var head = document.head || document.getElementsByTagName('head')[0];
+  head.appendChild(script);
+}
+
+// URLs de los scripts que deseas agregar
+var scripts = [
+  'https://code.jquery.com/jquery-3.5.1.slim.min.js',
+  'https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js',
+  'https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js'
+];
+
+// Agregar cada script al head
+scripts.forEach(function(src) {
+  addScript(src);
 });

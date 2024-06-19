@@ -1,0 +1,199 @@
+:root {
+  --azul-medianoche: #162e54;
+  --azul-medianoche2  : #0a3e92;
+  --blanco: #ffffff;
+  --gris-claro: #ecf0f1;
+  --gris-oscuro: #29333e;
+}
+
+body {
+  background-color: var(--gris-claro);
+  color: var(--gris-oscuro);
+  /*font-family: 'Karla';*/
+  margin: 0;
+  padding: 0;
+  overflow: auto;
+}
+
+.navbar {
+  background-color: var(--azul-medianoche);
+  border-bottom: none;
+}
+
+.navbar-brand, .nav-link {
+  color: var(--blanco) !important;
+}
+
+.navbar-toggler-icon {
+  background-color: var(--azul-medianoche);
+}
+
+.main-content {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  text-align: center;
+  background-image: url('../img/inpavi_logo.png');
+  background-size: cover;
+  background-position: center center;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+  color: var(--azul-medianoche2);
+  position: relative;
+  overflow: auto; /* Barra de desplazamiento solo cuando sea necesario */
+}
+
+.main-content h1 {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+  text-transform: uppercase;
+  font-weight: 300;
+}
+
+.main-content p {
+  font-size: 1.25rem;
+  margin-bottom: 2rem;
+  font-weight: 300;
+}
+
+.btn-primary {
+  background-color: var(--azul-medianoche);
+  border: none;
+  padding: 8px 12px; /* Espaciado interno */
+  border-radius: 18px; /* Esquinas redondeadas */
+  font-size: 1rem;
+  transition: background-color 0.3s;
+}
+
+.btn-primary:hover {
+  background-color: #0c0c93; /* Color de fondo al pasar el mouse */
+  color: #efbb1e; /* Color del texto al pasar el mouse */
+}
+
+.container::before {
+  content: "";
+  display: block;
+  position: fixed;
+  z-index: -1;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+}
+
+.form-inline .btn-outline-light {
+  border-radius: 25px;
+}
+.search-bar {
+  width: 80%;
+  max-width: 600px; 
+  border-radius: 25px;
+}
+.section {
+  flex: 1;
+  padding: 20px;
+  border-radius: 20px;
+}
+.left-section {
+  background-color: rgba(39, 39, 39, 0.7);
+  color: white;
+}
+.right-section {
+  background-color: rgba(39, 39, 39, 0.7);
+  color: white;
+}
+@media screen and (max-width: 768px) {
+  .container {
+    flex-direction: column;
+  }
+  .section {
+    flex-basis: auto;
+    height: 50vh;
+  }
+}
+
+    /* Botones redondeados y azul medianoche */
+    .btn-customdespensa {
+        border-radius: 20px; /* Ajusta el radio de los bordes para hacerlos redondeados */
+        background-color: #0f1e36; /* Color azul medianoche */
+        border-color: #191970; /* Color del borde */
+        color: #ffffff; /* Color del texto por defecto */
+    }
+
+    /* Cambiar color al pasar el mouse */
+    .btn-customdespensa:hover {
+        background-color: #00008B; /* Color azul más oscuro al pasar el mouse */
+        border-color: #00008B; /* Color del borde al pasar el mouse */
+        color: #ffd500; /* Color amarillo del texto al pasar el mouse */
+    }
+    .logo {
+      height: 50px; /* Ajusta el tamaño según tus necesidades */
+      width: auto; /* Mantiene la proporción del logo */
+      padding: 5px;
+    }
+    .logo-opacity {
+      opacity: .5;
+    }
+    .custom-dropdown .btn {
+      font-size: 1.25rem; /* Increase font size */
+      padding: 1rem 2rem; /* Increase padding */
+      border-radius: 50px; /* Make the buttons round */
+      min-width: 350px; /* Set a minimum width for the buttons */
+      max-width: 100%; /* Ensure buttons are responsive */
+      background-color: var(--azul-medianoche); /* Midnight Blue color */
+      color: white; /* White text color */
+      border: none; /* Remove border */
+    }
+    .custom-dropdown .dropdown-menu {
+      font-size: 1.25rem; /* Increase font size for dropdown items */
+    }
+    .btn-container {
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap; /* Allow buttons to wrap if needed */
+    }
+    .btn-container .custom-dropdown {
+      margin: 10px; /* Add margin between buttons */
+    }
+    .dropdown-item:hover {
+      background-color: rgb(255, 221, 0) !important;
+  }
+  .form-border {
+    border: 4px solid var(--azul-medianoche); /* Borde grueso de 5px y color azul medianoche */
+    border-radius: 15px; /* Esquinas redondeadas con radio de 15px */
+    padding: 30px; /* Espaciado interno para separar el contenido del borde */
+    background-color:#ecf0f1d3; /* Fondo blanco para el formulario */
+  }
+  
+.form-border label,
+.form-border input,
+.form-border textarea {
+  font-weight: bold; /* Aplica negrita a las etiquetas y los campos de entrada */
+}
+
+.button-return {
+  position: relative; /* Mantenemos el posicionamiento relativo */
+  color: rgb(132, 125, 125); /* Color del texto */
+  border: none; /* Sin borde */
+  padding: 8px 12px; /* Espaciado interno */
+  border-radius: 18px; /* Esquinas redondeadas */
+  transition: background-color 0.3s; /* Transición suave para el cambio de color */
+  background-color: #aaaaae90;
+}
+
+/* Media query para hacer el botón responsivo */
+@media (max-width: 768px) {
+  .button-return {
+      top: auto; /* Eliminamos la posición desde la parte superior */
+      left: auto; /* Eliminamos la posición desde la izquierda */
+  }
+}
+
+.button-return:hover {
+  background-color: #5f5f61; /* Color de fondo al pasar el mouse */
+  color: #fdfcf9; /* Color del texto al pasar el mouse */
+}
+#camposExtras {
+  margin-bottom: 20px; /* Ajusta el margen inferior para separar los campos adicionales del botón de registro */
+}
