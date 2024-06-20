@@ -24,6 +24,15 @@ const transporter = nodemailer.createTransport({
   }
 });
 
+const permisosPorRol = {
+  1: ['/tablero', '/datosVoluntario', '/programas', '/entrada_inicio'],  // Rutas exclusivas del supervisor
+  2: ['/tablero', '/modificarVoluntario', '/altaVoluntario', '/datosVoluntario', '/programas', '/entrada_inicio'],  // Rutas exlusivas del delegado
+  3: ['/tablero', '/modificarVoluntario', '/altaVoluntario', '/datosVoluntario'],  // Rutas exclusivas del coordinador DAS
+  4: [],  // Rutas exclusivas del coordinador Entrada
+  5: ['/tablero', '/altaVoluntario', '/datosVoluntario'],  // Rutas exclusivas del equipo directo DAS
+  6: []   // Rutas exclusivas del equipo directo Entrada
+};
+
 // Middleware para verificar si el usuario ha iniciado sesión y redirigir según el estado
 const verificarSesionYStatus = (req, res, next) => {
   const usuario = req.session.usuario;
@@ -42,6 +51,7 @@ const verificarSesionYStatus = (req, res, next) => {
 
   // Obtener el estado y ruta a acceder del usuario
   const status = usuario.status;
+  const rol = usuario.id_rol;
   const ruta = req.path;
 
   /*
@@ -61,9 +71,7 @@ const verificarSesionYStatus = (req, res, next) => {
       });
       break;
     case 1:
-      // Estado 1: Usuario dado de alta
-      // Redirigir siempre al dashboard y bloquear acceso a otras rutas
-      next();
+      // Usuario dado de alta
       break;
     case 2:
       // Estado 2: En espera de que el usuario escriba el token
@@ -85,6 +93,11 @@ const verificarSesionYStatus = (req, res, next) => {
       // Cualquier otro estado desconocido
       res.redirect('/');
   }
+
+  if(!permisosPorRol[rol] || !permisosPorRol[rol].includes(ruta)) {
+    return res.status(403).json({ mensaje: 'Tu rol no está permitido a acceder a esta ruta' });
+  }
+  next();
 };
 
 /*
@@ -816,7 +829,8 @@ router.get('/obtenerBotones', (req, res) => {
       switch (id_rol) {
         case 1: // Supervisor
           botones = [
-            { nombre: 'Ver la información de un voluntario', ruta: '/datosVoluntario', inactivo: true, tipo: 'icon' }
+            { nombre: 'Ver la información de un voluntario', ruta: '/datosVoluntario', inactivo: true, tipo: 'icon' },
+            { nombre: 'Explorar programas', ruta: '/programas', inactivo: false, tipo: 'button' }
           ];
           break;
         case 2: // Delegado
@@ -860,22 +874,26 @@ router.get('/obtenerBotones', (req, res) => {
   }
 });
 
-router.get('/obtenerOcupaciones', verificarSesionYStatus, (req, res) => {
-  db.all('SELECT * FROM ocupaciones ORDER BY ocupacion', (err, rows) => {
-    if(err) {
-      res.status(500).json({ mensaje: 'Error al consultar las ocupaciones en la base de datos' });
-    } else {
-      if(rows) {
-        const ocupaciones = [];
-        rows.forEach(ocupacion => {
-          ocupaciones.push(ocupacion);
-        });
-        res.status(200).json(ocupaciones);
+router.get('/obtenerOcupaciones', (req, res) => {
+  if (req.session && req.session.usuario) {
+    db.all('SELECT * FROM ocupaciones ORDER BY ocupacion', (err, rows) => {
+      if(err) {
+        res.status(500).json({ mensaje: 'Error al consultar las ocupaciones en la base de datos' });
       } else {
-        res.status(404).json({ mensaje: 'No existen ocupaciones actualmente' });
+        if(rows) {
+          const ocupaciones = [];
+          rows.forEach(ocupacion => {
+            ocupaciones.push(ocupacion);
+          });
+          res.status(200).json(ocupaciones);
+        } else {
+          res.status(404).json({ mensaje: 'No existen ocupaciones actualmente' });
+        }
       }
-    }
-  });
+    });
+  } else {
+    res.redirect('/');
+  }
 });
 
 router.post('/obtenerNombreVoluntarios', (req, res) => {
@@ -1009,41 +1027,49 @@ router.post('/obtenerVoluntariosEquipoDirecto', (req, res) => {
   }
 });
 
-router.get('/obtenerProgramas', verificarSesionYStatus, (req, res) => {
-  db.all('SELECT * FROM programas', (err, rows) => {
-    if(err) {
-      res.status(500).json({ mensaje: 'Error al consultar los programas sociales en la base de datos' });
-    }
-    if(rows) {
-      // Crear un arreglo de objetos con el id y nombre del programa
-      const programas = rows.map(row => ({
-        id: row.id_programa,
-        nombre: row.programa
-      }));
+router.get('/obtenerProgramas', (req, res) => {
+  if (req.session && req.session.usuario) {
+    db.all('SELECT * FROM programas', (err, rows) => {
+      if(err) {
+        res.status(500).json({ mensaje: 'Error al consultar los programas sociales en la base de datos' });
+      }
+      if(rows) {
+        // Crear un arreglo de objetos con el id y nombre del programa
+        const programas = rows.map(row => ({
+          id: row.id_programa,
+          nombre: row.programa
+        }));
 
-      // Enviar la respuesta en formato JSON
-      res.status(200).json(programas);
-    } else {
-      res.status(404).json({ mensaje: 'No se encontró ningún programa social' });
-    }
-  });
+        // Enviar la respuesta en formato JSON
+        res.status(200).json(programas);
+      } else {
+        res.status(404).json({ mensaje: 'No se encontró ningún programa social' });
+      }
+    });
+  } else {
+    res.redirect('/');
+  }
 });
 
-router.get('/obtenerPrimerosContactos', verificarSesionYStatus, (req,res) => {
-  db.all('SELECT * FROM primerosContactos', (err, rows) => {
-    if(err) {
-      res.status(500).json({ mensaje: 'Error al consultar los datos de primeros contactos' });
-    }
-    if(rows) {
-      const primerosContactos = rows.map(contacto => ({
-        id: contacto.id_contacto,
-        nombre: contacto.contacto
-      }));
-      res.status(200).json(primerosContactos);
-    } else {
-      res.status(404).json({ mensaje: 'No se encontraron datos de primeros contactos' });
-    }
-  });
+router.get('/obtenerPrimerosContactos', (req,res) => {
+  if (req.session && req.session.usuario) {
+    db.all('SELECT * FROM primerosContactos', (err, rows) => {
+      if(err) {
+        res.status(500).json({ mensaje: 'Error al consultar los datos de primeros contactos' });
+      }
+      if(rows) {
+        const primerosContactos = rows.map(contacto => ({
+          id: contacto.id_contacto,
+          nombre: contacto.contacto
+        }));
+        res.status(200).json(primerosContactos);
+      } else {
+        res.status(404).json({ mensaje: 'No se encontraron datos de primeros contactos' });
+      }
+    });
+  } else {
+    res.redirect('/');
+  }
 });
 
 router.post('/voluntarioNuevo', (req, res) => {
@@ -1146,377 +1172,389 @@ router.post('/voluntarioNuevo', (req, res) => {
   }
 });
 
-router.post('/infoVoluntario', verificarSesionYStatus, (req, res) => {
-  const { id_voluntario } = req.body;
+router.post('/infoVoluntario', (req, res) => {
+  if (req.session && req.session.usuario) {
+      const { id_voluntario } = req.body;
 
-  db.get(`
-    SELECT 
-      v.id_voluntario, 
-      v.id_voluntarioAsignado, 
-      cv.nombreCompleto AS nombre_voluntarioAsignado,
-      v.fecha_captacion, 
-      v.fecha_alta, 
-      v.nombre_v, 
-      v.apellido_paterno_v, 
-      v.apellido_materno_v, 
-      v.identificacion, 
-      v.fecha_nacimiento, 
-      v.telefono_v, 
-      v.correo_v, 
-      v.informe_valoracion, 
-      v.fecha_baja, 
-      v.estado, 
-      v.observaciones, 
-      v.id_sede, 
-      s.sede,
-      v.personaContacto,
-      v.ocupacion,
-      GROUP_CONCAT(DISTINCT iv.interes) AS intereses,
-      GROUP_CONCAT(DISTINCT d.programa) AS derivacion,
-      GROUP_CONCAT(DISTINCT p.programa) AS valoracion,
-      GROUP_CONCAT(DISTINCT pc.contacto) AS primerosContactos,
-      u.nombre_usuario AS nombre_usuarioAlta,
-      u.apellido_paterno AS apPat_usuarioAlta,
-      u.apellido_materno AS apMat_usuarioAlta,
-      su.sede AS sede_usuarioAlta
-    FROM 
-      voluntarios v
-    LEFT JOIN 
-      conjuntoVoluntarios cv ON v.id_voluntarioAsignado = cv.id_voluntario
-    LEFT JOIN 
-      interesesVoluntario iv ON v.id_voluntario = iv.id_voluntario
-    LEFT JOIN 
-      derivacionVoluntario dv ON v.id_voluntario = dv.id_voluntario
-    LEFT JOIN 
-      programas d ON dv.id_derivacion = d.id_programa
-    LEFT JOIN 
-      valoracionVoluntario vv ON v.id_voluntario = vv.id_voluntario
-    LEFT JOIN 
-      programas p ON vv.id_valoracion = p.id_programa
-    LEFT JOIN 
-      primerosContactosVoluntario pcv ON v.id_voluntario = pcv.id_voluntario
-    LEFT JOIN 
-      primerosContactos pc ON pcv.id_contacto = pc.id_contacto
-    LEFT JOIN 
-      sedes s ON v.id_sede = s.id_sede
-    LEFT JOIN 
-      usuarios u ON v.id_usuarioQueDaDeAlta = u.id_usuario
-    LEFT JOIN
-      sedes su ON u.id_sede = su.id_sede
-    WHERE v.id_voluntario = ?`, [id_voluntario], (err, row) => {
-      if(err) {
-        console.error(err);
-        return res.status(500).json({ mensaje: 'Error al consultar datos del voluntario en la base de datos' });
+    db.get(`
+      SELECT 
+        v.id_voluntario, 
+        v.id_voluntarioAsignado, 
+        cv.nombreCompleto AS nombre_voluntarioAsignado,
+        v.fecha_captacion, 
+        v.fecha_alta, 
+        v.nombre_v, 
+        v.apellido_paterno_v, 
+        v.apellido_materno_v, 
+        v.identificacion, 
+        v.fecha_nacimiento, 
+        v.telefono_v, 
+        v.correo_v, 
+        v.informe_valoracion, 
+        v.fecha_baja, 
+        v.estado, 
+        v.observaciones, 
+        v.id_sede, 
+        s.sede,
+        v.personaContacto,
+        v.ocupacion,
+        GROUP_CONCAT(DISTINCT iv.interes) AS intereses,
+        GROUP_CONCAT(DISTINCT d.programa) AS derivacion,
+        GROUP_CONCAT(DISTINCT p.programa) AS valoracion,
+        GROUP_CONCAT(DISTINCT pc.contacto) AS primerosContactos,
+        u.nombre_usuario AS nombre_usuarioAlta,
+        u.apellido_paterno AS apPat_usuarioAlta,
+        u.apellido_materno AS apMat_usuarioAlta,
+        su.sede AS sede_usuarioAlta
+      FROM 
+        voluntarios v
+      LEFT JOIN 
+        conjuntoVoluntarios cv ON v.id_voluntarioAsignado = cv.id_voluntario
+      LEFT JOIN 
+        interesesVoluntario iv ON v.id_voluntario = iv.id_voluntario
+      LEFT JOIN 
+        derivacionVoluntario dv ON v.id_voluntario = dv.id_voluntario
+      LEFT JOIN 
+        programas d ON dv.id_derivacion = d.id_programa
+      LEFT JOIN 
+        valoracionVoluntario vv ON v.id_voluntario = vv.id_voluntario
+      LEFT JOIN 
+        programas p ON vv.id_valoracion = p.id_programa
+      LEFT JOIN 
+        primerosContactosVoluntario pcv ON v.id_voluntario = pcv.id_voluntario
+      LEFT JOIN 
+        primerosContactos pc ON pcv.id_contacto = pc.id_contacto
+      LEFT JOIN 
+        sedes s ON v.id_sede = s.id_sede
+      LEFT JOIN 
+        usuarios u ON v.id_usuarioQueDaDeAlta = u.id_usuario
+      LEFT JOIN
+        sedes su ON u.id_sede = su.id_sede
+      WHERE v.id_voluntario = ?`, [id_voluntario], (err, row) => {
+        if(err) {
+          console.error(err);
+          return res.status(500).json({ mensaje: 'Error al consultar datos del voluntario en la base de datos' });
+        }
+        if(row) {
+          //console.log(row);
+          return res.status(200).json({ row });
+        } else {
+          return res.status(404).json({ mensaje: 'No se encontró el voluntario buscado' });
+        }
       }
-      if(row) {
-        //console.log(row);
-        return res.status(200).json({ row });
-      } else {
-        return res.status(404).json({ mensaje: 'No se encontró el voluntario buscado' });
-      }
-    }
-  );
+    );
+  } else {
+    res.redirect('/');
+  }
 });
 
-router.post('/modificarDatosVoluntario', verificarSesionYStatus, (req, res) => {
-  const { id_voluntario, id_internoAsignado, fechaCaptacion, nombres, apPat, apMat, identificacion, fechaNacimiento, telefono, correo, ocupacion, tipoVoluntario, observaciones, id_sede, personaContacto, intereses, valoracion, primerosContactos, derivacion } = req.body;
-  let sets = [];
-  let parametros = [];
+router.post('/modificarDatosVoluntario', (req, res) => {
+  if (req.session && req.session.usuario) {
+      const { id_voluntario, id_internoAsignado, fechaCaptacion, nombres, apPat, apMat, identificacion, fechaNacimiento, telefono, correo, ocupacion, tipoVoluntario, observaciones, id_sede, personaContacto, intereses, valoracion, primerosContactos, derivacion } = req.body;
+    let sets = [];
+    let parametros = [];
 
-  if (id_internoAsignado !== null) {
-    sets.push('id_voluntarioAsignado = ?');
-    parametros.push(id_internoAsignado);
-  }
-  if (fechaCaptacion !== null) {
-    sets.push('fecha_captacion = ?');
-    parametros.push(fechaCaptacion);
-  }
-  if (nombres !== null) {
-    sets.push('nombre_v = ?');
-    parametros.push(nombres);
-  }
-  if (apPat !== null) {
-    sets.push('apellido_paterno_v = ?');
-    parametros.push(apPat);
-  }
-  if (apMat !== null) {
-    sets.push('apellido_materno_v = ?');
-    parametros.push(apMat);
-  }
-  if (identificacion !== null) {
-    sets.push('identificacion = ?');
-    parametros.push(identificacion);
-  }
-  if (fechaNacimiento !== null) {
-    sets.push('fecha_nacimiento = ?');
-    parametros.push(fechaNacimiento);
-  }
-  if (telefono !== null) {
-    sets.push('telefono_v = ?');
-    parametros.push(telefono);
-  }
-  if (correo !== null) {
-    sets.push('correo_v = ?');
-    parametros.push(correo);
-  }
-  if (tipoVoluntario !== null) {
-    sets.push('informe_valoracion = ?');
-    parametros.push(tipoVoluntario);
-  }
-  if (observaciones !== null) {
-    sets.push('observaciones = ?');
-    parametros.push(observaciones);
-  }
-  if (id_sede !== null) {
-    sets.push('id_sede = ?');
-    parametros.push(id_sede);
-  }
-  if (personaContacto !== null) {
-    sets.push('personaContacto = ?');
-    parametros.push(personaContacto);
-  }
-  if (ocupacion !== null) {
-    sets.push('ocupacion = ?');
-    parametros.push(ocupacion);
-  }
-
-  //console.log('Datos recibidos en el body: ', req.body);
-
-  db.get('SELECT nombre_v, apellido_paterno_v, apellido_materno_v, id_sede FROM voluntarios WHERE id_voluntario = ?', [id_voluntario], (err, row) => {
-    if (err) {
-      return res.status(500).json({ mensaje: 'Error al buscar el voluntario en la base de datos' });
+    if (id_internoAsignado !== null) {
+      sets.push('id_voluntarioAsignado = ?');
+      parametros.push(id_internoAsignado);
     }
-    if (!row) {
-      return res.status(404).json({ mensaje: 'El voluntario no fue encontrado' });
+    if (fechaCaptacion !== null) {
+      sets.push('fecha_captacion = ?');
+      parametros.push(fechaCaptacion);
+    }
+    if (nombres !== null) {
+      sets.push('nombre_v = ?');
+      parametros.push(nombres);
+    }
+    if (apPat !== null) {
+      sets.push('apellido_paterno_v = ?');
+      parametros.push(apPat);
+    }
+    if (apMat !== null) {
+      sets.push('apellido_materno_v = ?');
+      parametros.push(apMat);
+    }
+    if (identificacion !== null) {
+      sets.push('identificacion = ?');
+      parametros.push(identificacion);
+    }
+    if (fechaNacimiento !== null) {
+      sets.push('fecha_nacimiento = ?');
+      parametros.push(fechaNacimiento);
+    }
+    if (telefono !== null) {
+      sets.push('telefono_v = ?');
+      parametros.push(telefono);
+    }
+    if (correo !== null) {
+      sets.push('correo_v = ?');
+      parametros.push(correo);
+    }
+    if (tipoVoluntario !== null) {
+      sets.push('informe_valoracion = ?');
+      parametros.push(tipoVoluntario);
+    }
+    if (observaciones !== null) {
+      sets.push('observaciones = ?');
+      parametros.push(observaciones);
+    }
+    if (id_sede !== null) {
+      sets.push('id_sede = ?');
+      parametros.push(id_sede);
+    }
+    if (personaContacto !== null) {
+      sets.push('personaContacto = ?');
+      parametros.push(personaContacto);
+    }
+    if (ocupacion !== null) {
+      sets.push('ocupacion = ?');
+      parametros.push(ocupacion);
     }
 
-    let programasViejos;
-    db.all('SELECT id_derivacion FROM derivacionVoluntario WHERE id_voluntario = ?', [id_voluntario], (err, rows) => {
+    //console.log('Datos recibidos en el body: ', req.body);
+
+    db.get('SELECT nombre_v, apellido_paterno_v, apellido_materno_v, id_sede FROM voluntarios WHERE id_voluntario = ?', [id_voluntario], (err, row) => {
       if (err) {
-        return hacerRollback(500, `Error al obtener los programas de derivación actuales del voluntario`, res, err);
+        return res.status(500).json({ mensaje: 'Error al buscar el voluntario en la base de datos' });
       }
-      programasViejos = rows;
-    });
+      if (!row) {
+        return res.status(404).json({ mensaje: 'El voluntario no fue encontrado' });
+      }
 
-    const nombreVoluntario = row.nombre_v;
-    const id_sedeActual = row.id_sede;
-    const apPatActual = row.apellido_paterno_v;
-    const apMatActual = row.apellido_materno_v;
+      let programasViejos;
+      db.all('SELECT id_derivacion FROM derivacionVoluntario WHERE id_voluntario = ?', [id_voluntario], (err, rows) => {
+        if (err) {
+          return hacerRollback(500, `Error al obtener los programas de derivación actuales del voluntario`, res, err);
+        }
+        programasViejos = rows;
+      });
 
-    db.serialize(() => {
-      db.run('BEGIN TRANSACTION');
+      const nombreVoluntario = row.nombre_v;
+      const id_sedeActual = row.id_sede;
+      const apPatActual = row.apellido_paterno_v;
+      const apMatActual = row.apellido_materno_v;
 
-      if(id_sede !== null) {
-        if(id_sede !== id_sedeActual) {
-          db.run('UPDATE conjuntoVoluntarios SET id_sede = ? WHERE id_filaVoluntarios = ?', [id_sede, id_voluntario], (err) => {
-            if(err) {
-              return hacerRollback(500, `Error al actualizar la sede del voluntario en la tabla general de voluntarios`, res, err);
-            }
+      db.serialize(() => {
+        db.run('BEGIN TRANSACTION');
 
-            if(derivacion === null) {
-              programasViejos.forEach(id_programaViejo => {
-                db.run('UPDATE programasSede SET cantidadInvolucrados = cantidadInvolucrados - 1 WHERE id_sede = ? AND id_programa = ?', [id_sedeActual, id_programaViejo.id_derivacion], (err) => {
-                  if(err) {
-                    return hacerRollback(500, `Error al descontar un voluntario del programa con ID ${id_programaViejo.id_derivacion} en la transferencia de sede`, res, err);
-                  }
+        if(id_sede !== null) {
+          if(id_sede !== id_sedeActual) {
+            db.run('UPDATE conjuntoVoluntarios SET id_sede = ? WHERE id_filaVoluntarios = ?', [id_sede, id_voluntario], (err) => {
+              if(err) {
+                return hacerRollback(500, `Error al actualizar la sede del voluntario en la tabla general de voluntarios`, res, err);
+              }
 
-                  db.run('UPDATE programasSede SET cantidadInvolucrados = cantidadInvolucrados + 1 WHERE id_sede = ? AND id_programa = ?', [id_sede, id_programaViejo.id_derivacion], (err) => {
+              if(derivacion === null) {
+                programasViejos.forEach(id_programaViejo => {
+                  db.run('UPDATE programasSede SET cantidadInvolucrados = cantidadInvolucrados - 1 WHERE id_sede = ? AND id_programa = ?', [id_sedeActual, id_programaViejo.id_derivacion], (err) => {
                     if(err) {
-                      return hacerRollback(500, `Error al aumentar un voluntario del programa con ID ${id_programaViejo.id_derivacion} en la transferencia de sede`, res, err);
+                      return hacerRollback(500, `Error al descontar un voluntario del programa con ID ${id_programaViejo.id_derivacion} en la transferencia de sede`, res, err);
                     }
+
+                    db.run('UPDATE programasSede SET cantidadInvolucrados = cantidadInvolucrados + 1 WHERE id_sede = ? AND id_programa = ?', [id_sede, id_programaViejo.id_derivacion], (err) => {
+                      if(err) {
+                        return hacerRollback(500, `Error al aumentar un voluntario del programa con ID ${id_programaViejo.id_derivacion} en la transferencia de sede`, res, err);
+                      }
+                    });
                   });
                 });
-              });
-            }
-          });
-        }
-      }
-
-      if(nombreVoluntario !== nombres || apPatActual !== apPat || apMatActual !== apMat && (nombres !== null || apPat !== null || apMat !== null)) {
-        let nombrePorModificar = nombreVoluntario;
-        let apPatPorModificar = apPatActual;
-        let apMatPorModificar = apMatActual;
-        if(nombres !== null) nombrePorModificar = nombres;
-        if(apPat !== null) apPatPorModificar = apPat;
-        if(apMat !== null) apMatPorModificar = apMat;
-        db.run('UPDATE conjuntoVoluntarios SET nombreCompleto = ? WHERE id_filaVoluntarios = ?', [`${nombrePorModificar} ${apPatPorModificar} ${apMatPorModificar}`, id_voluntario], (err) => {
-          if(err) {
-            return hacerRollback(500, `Error al actualizar el nombre del voluntario`, res, err);
+              }
+            });
           }
-        });
-      }
+        }
 
-      if (intereses !== null) {
-        if (intereses.length === 0) {
-          db.run('DELETE FROM interesesVoluntario WHERE id_voluntario = ?', [id_voluntario], (err) => {
-            if (err) {
-              return hacerRollback(500, 'Error al eliminar los intereses anteriores del voluntario.', res, err);
+        if(nombreVoluntario !== nombres || apPatActual !== apPat || apMatActual !== apMat && (nombres !== null || apPat !== null || apMat !== null)) {
+          let nombrePorModificar = nombreVoluntario;
+          let apPatPorModificar = apPatActual;
+          let apMatPorModificar = apMatActual;
+          if(nombres !== null) nombrePorModificar = nombres;
+          if(apPat !== null) apPatPorModificar = apPat;
+          if(apMat !== null) apMatPorModificar = apMat;
+          db.run('UPDATE conjuntoVoluntarios SET nombreCompleto = ? WHERE id_filaVoluntarios = ?', [`${nombrePorModificar} ${apPatPorModificar} ${apMatPorModificar}`, id_voluntario], (err) => {
+            if(err) {
+              return hacerRollback(500, `Error al actualizar el nombre del voluntario`, res, err);
             }
-          });
-        } else {
-          db.run('DELETE FROM interesesVoluntario WHERE id_voluntario = ?', [id_voluntario], (err) => {
-            if (err) {
-              return hacerRollback(500, 'Error al eliminar los intereses anteriores del voluntario.', res, err);
-            }
-            
-            intereses.forEach((interes) => {
-              db.run('INSERT INTO interesesVoluntario (id_voluntario, interes) VALUES (?, ?)', [id_voluntario, interes], (err) => {
-                if (err) {
-                  return hacerRollback(500, `Error al relacionar el interés "${interes}" con el voluntario "${nombres}`, res, err);
-                }
-              });
-            });
           });
         }
-      }
 
-      if (valoracion !== null) {
-        if (valoracion.length === 0) {
-          return hacerRollback(400, `Se debe seleccionar al menos un programa de valoración para el voluntario "${nombreVoluntario}".`, res, 'Arreglo de valoración nulo');
-        } else {
-          db.run('DELETE FROM valoracionVoluntario WHERE id_voluntario = ?', [id_voluntario], (err) => {
-            if (err) {
-              return hacerRollback(500, 'Error al eliminar los programas de valoración anteriores del voluntario', res, err);
-            }
-
-            const stmt = db.prepare('INSERT INTO valoracionVoluntario (id_voluntario, id_valoracion) VALUES (?, ?)');
-            valoracion.forEach((id_programa) => {
-              stmt.run([id_voluntario, id_programa], (err) => {
-                if (err) {
-                  return hacerRollback(500, `Error al relacionar el programa con id ${id_programa} con el voluntario "${nombreVoluntario}"`, res, err);
-                }
-              });
-            });
-            stmt.finalize((err) => {
+        if (intereses !== null) {
+          if (intereses.length === 0) {
+            db.run('DELETE FROM interesesVoluntario WHERE id_voluntario = ?', [id_voluntario], (err) => {
               if (err) {
-                return hacerRollback(500, `Error al completar la relación de los programas de valoración con el voluntario "${nombreVoluntario}"`, res, err);
+                return hacerRollback(500, 'Error al eliminar los intereses anteriores del voluntario.', res, err);
               }
             });
-          });
-        }
-      }
-      
-      if (primerosContactos !== null) {
-        if (primerosContactos.length === 0) {
-          return hacerRollback(400, `Se debe seleccionar al menos un contacto para el voluntario`, res, 'Primeros contactos vacíos');
-        } else {
-          db.run('DELETE FROM primerosContactosVoluntario WHERE id_voluntario = ?', [id_voluntario], (err) => {
-            if (err) {
-              return hacerRollback(500, `Error al eliminar los primeros contactos antiguos del voluntario "${nombreVoluntario}"`, res, err);
-            }
-
-            const stmt = db.prepare('INSERT INTO primerosContactosVoluntario (id_voluntario, id_contacto) VALUES (?, ?)');
-            primerosContactos.forEach((id_contacto) => {
-              stmt.run([id_voluntario, id_contacto], (err) => {
-                if (err) {
-                  return hacerRollback(500, `Error al relacionar el contacto con ID "${id_contacto}" con el voluntario "${nombreVoluntario}"`, res, err);
-                }
-              });
-            });
-            stmt.finalize((err) => {
+          } else {
+            db.run('DELETE FROM interesesVoluntario WHERE id_voluntario = ?', [id_voluntario], (err) => {
               if (err) {
-                return hacerRollback(500, `Error al completar la relación de contactos con el voluntario "${nombreVoluntario}"`, res, err);
+                return hacerRollback(500, 'Error al eliminar los intereses anteriores del voluntario.', res, err);
               }
-            });
-          });
-        }
-      }
-
-      if (derivacion !== null) {
-        if (derivacion.length === 0) {
-          return hacerRollback(400, `Se debe seleccionar al menos un programa de derivación para el voluntario`, res, 'Derivación incompleta');
-        } else {
-
-            db.run('DELETE FROM derivacionVoluntario WHERE id_voluntario = ?', [id_voluntario], (err) => {
-              if (err) {
-                return hacerRollback(500, `Error al eliminar los programas de derivación anteriores del voluntario`, res, err);
-              }
-
-              programasViejos.forEach(idViejo => {
-                db.run('UPDATE programasSede SET cantidadInvolucrados = cantidadInvolucrados - 1 WHERE id_programa = ? AND id_sede = ?', [idViejo.id_derivacion, id_sedeActual], (err) => {
-                  if (err) {
-                    return hacerRollback(500, `Error al descontar un voluntario para el programa con ID "${idViejo.id_derivacion}" de la sede con ID "${id_sedeActual}"`, res, err);
-                  }
-
-                  
-                });
-              });
               
-              derivacion.forEach((id_programa) => {
-                db.run('INSERT INTO derivacionVoluntario (id_voluntario, id_derivacion) VALUES (?, ?)', [id_voluntario, id_programa], (err) => {
+              intereses.forEach((interes) => {
+                db.run('INSERT INTO interesesVoluntario (id_voluntario, interes) VALUES (?, ?)', [id_voluntario, interes], (err) => {
                   if (err) {
-                    return hacerRollback(500, `Error al asociar el programa con ID "${id_programa}" con el voluntario "${nombreVoluntario}"`, res, err);
+                    return hacerRollback(500, `Error al relacionar el interés "${interes}" con el voluntario "${nombres}`, res, err);
                   }
-                  
-                  db.run('UPDATE programasSede SET cantidadInvolucrados = cantidadInvolucrados + 1 WHERE id_programa = ? AND id_sede = ?', [id_programa, id_sede || id_sedeActual], (err) => {
-                    if (err) {
-                      return hacerRollback(500, `Error al aumentar un voluntario para el programa con ID "${id_programa}" de la sede con ID "${id_sede}"`, res, err);
-                    }
-                  });
                 });
               });
             });
-        }
-      }
-
-      if (sets.length > 0) {
-        const conjuntoSet = sets.join(', ');
-        parametros.push(id_voluntario);
-        //console.log(`3. La instrucción sería: UPDATE voluntarios SET ${conjuntoSet} WHERE id_voluntario = ${id_voluntario}`);
-        //console.log(`Los parámetros son: ${parametros}`);
-        db.run(`UPDATE voluntarios SET ${conjuntoSet} WHERE id_voluntario = ?`, parametros, (err) => {
-          if (err) {
-            return hacerRollback(500, 'Error al actualizar los datos del voluntario', res, err);
           }
-        });
-      }
-      //console.log(`3. Los parámetros son: ${parametros}`);
-      realizarCommit(res, 200, `Los datos del voluntario "${nombreVoluntario}" fueron modificados correctamente.`);
+        }
+
+        if (valoracion !== null) {
+          if (valoracion.length === 0) {
+            return hacerRollback(400, `Se debe seleccionar al menos un programa de valoración para el voluntario "${nombreVoluntario}".`, res, 'Arreglo de valoración nulo');
+          } else {
+            db.run('DELETE FROM valoracionVoluntario WHERE id_voluntario = ?', [id_voluntario], (err) => {
+              if (err) {
+                return hacerRollback(500, 'Error al eliminar los programas de valoración anteriores del voluntario', res, err);
+              }
+
+              const stmt = db.prepare('INSERT INTO valoracionVoluntario (id_voluntario, id_valoracion) VALUES (?, ?)');
+              valoracion.forEach((id_programa) => {
+                stmt.run([id_voluntario, id_programa], (err) => {
+                  if (err) {
+                    return hacerRollback(500, `Error al relacionar el programa con id ${id_programa} con el voluntario "${nombreVoluntario}"`, res, err);
+                  }
+                });
+              });
+              stmt.finalize((err) => {
+                if (err) {
+                  return hacerRollback(500, `Error al completar la relación de los programas de valoración con el voluntario "${nombreVoluntario}"`, res, err);
+                }
+              });
+            });
+          }
+        }
+        
+        if (primerosContactos !== null) {
+          if (primerosContactos.length === 0) {
+            return hacerRollback(400, `Se debe seleccionar al menos un contacto para el voluntario`, res, 'Primeros contactos vacíos');
+          } else {
+            db.run('DELETE FROM primerosContactosVoluntario WHERE id_voluntario = ?', [id_voluntario], (err) => {
+              if (err) {
+                return hacerRollback(500, `Error al eliminar los primeros contactos antiguos del voluntario "${nombreVoluntario}"`, res, err);
+              }
+
+              const stmt = db.prepare('INSERT INTO primerosContactosVoluntario (id_voluntario, id_contacto) VALUES (?, ?)');
+              primerosContactos.forEach((id_contacto) => {
+                stmt.run([id_voluntario, id_contacto], (err) => {
+                  if (err) {
+                    return hacerRollback(500, `Error al relacionar el contacto con ID "${id_contacto}" con el voluntario "${nombreVoluntario}"`, res, err);
+                  }
+                });
+              });
+              stmt.finalize((err) => {
+                if (err) {
+                  return hacerRollback(500, `Error al completar la relación de contactos con el voluntario "${nombreVoluntario}"`, res, err);
+                }
+              });
+            });
+          }
+        }
+
+        if (derivacion !== null) {
+          if (derivacion.length === 0) {
+            return hacerRollback(400, `Se debe seleccionar al menos un programa de derivación para el voluntario`, res, 'Derivación incompleta');
+          } else {
+
+              db.run('DELETE FROM derivacionVoluntario WHERE id_voluntario = ?', [id_voluntario], (err) => {
+                if (err) {
+                  return hacerRollback(500, `Error al eliminar los programas de derivación anteriores del voluntario`, res, err);
+                }
+
+                programasViejos.forEach(idViejo => {
+                  db.run('UPDATE programasSede SET cantidadInvolucrados = cantidadInvolucrados - 1 WHERE id_programa = ? AND id_sede = ?', [idViejo.id_derivacion, id_sedeActual], (err) => {
+                    if (err) {
+                      return hacerRollback(500, `Error al descontar un voluntario para el programa con ID "${idViejo.id_derivacion}" de la sede con ID "${id_sedeActual}"`, res, err);
+                    }
+
+                    
+                  });
+                });
+                
+                derivacion.forEach((id_programa) => {
+                  db.run('INSERT INTO derivacionVoluntario (id_voluntario, id_derivacion) VALUES (?, ?)', [id_voluntario, id_programa], (err) => {
+                    if (err) {
+                      return hacerRollback(500, `Error al asociar el programa con ID "${id_programa}" con el voluntario "${nombreVoluntario}"`, res, err);
+                    }
+                    
+                    db.run('UPDATE programasSede SET cantidadInvolucrados = cantidadInvolucrados + 1 WHERE id_programa = ? AND id_sede = ?', [id_programa, id_sede || id_sedeActual], (err) => {
+                      if (err) {
+                        return hacerRollback(500, `Error al aumentar un voluntario para el programa con ID "${id_programa}" de la sede con ID "${id_sede}"`, res, err);
+                      }
+                    });
+                  });
+                });
+              });
+          }
+        }
+
+        if (sets.length > 0) {
+          const conjuntoSet = sets.join(', ');
+          parametros.push(id_voluntario);
+          //console.log(`3. La instrucción sería: UPDATE voluntarios SET ${conjuntoSet} WHERE id_voluntario = ${id_voluntario}`);
+          //console.log(`Los parámetros son: ${parametros}`);
+          db.run(`UPDATE voluntarios SET ${conjuntoSet} WHERE id_voluntario = ?`, parametros, (err) => {
+            if (err) {
+              return hacerRollback(500, 'Error al actualizar los datos del voluntario', res, err);
+            }
+          });
+        }
+        //console.log(`3. Los parámetros son: ${parametros}`);
+        realizarCommit(res, 200, `Los datos del voluntario "${nombreVoluntario}" fueron modificados correctamente.`);
+      });
     });
-  });
+  } else {
+    res.redirect('/');
+  }
 });
 
 // Ruta para dar de baja a un voluntario
-router.post('/bajaVoluntario', verificarSesionYStatus, (req, res) => {
-  const { idVoluntario, clave } = req.body;
-  const { id_usuario } = req.session.usuario;
-  console.log(req.body);
+router.post('/bajaVoluntario', (req, res) => {
+  if (req.session && req.session.usuario) {
+      const { idVoluntario, clave } = req.body;
+    const { id_usuario } = req.session.usuario;
+    console.log(req.body);
 
-  db.get('SELECT contraseña FROM usuarios WHERE id_usuario = ?', [id_usuario], async (err, row) => {
-    if(err) {
-      console.error(`Error al buscar al usuario que da de baja: ${err}`);
-      return res.status(500).json({ mensaje: 'Error al localizar al usuario que da de baja' });
-    }
+    db.get('SELECT contraseña FROM usuarios WHERE id_usuario = ?', [id_usuario], async (err, row) => {
+      if(err) {
+        console.error(`Error al buscar al usuario que da de baja: ${err}`);
+        return res.status(500).json({ mensaje: 'Error al localizar al usuario que da de baja' });
+      }
 
-    if(!row) {
-      return res.status(404).json({ mensaje: 'No se localizó al usuario que da de baja' });
-    } else {
-      console.log('Se encontró la contraseña');
-      const match = await bcrypt.compare(clave, row.contraseña);
-      console.log(match);
-      if(match) {
-        db.serialize(() => {
-          db.run('BEGIN TRANSACTION');
+      if(!row) {
+        return res.status(404).json({ mensaje: 'No se localizó al usuario que da de baja' });
+      } else {
+        console.log('Se encontró la contraseña');
+        const match = await bcrypt.compare(clave, row.contraseña);
+        console.log(match);
+        if(match) {
+          db.serialize(() => {
+            db.run('BEGIN TRANSACTION');
 
-          db.run('UPDATE voluntarios SET estado = ? WHERE id_voluntario = ?', [2, idVoluntario], (err) => {
-            if (err) {
-              return hacerRollback(500, `Error al actualizar el estado del voluntario`, res, err);
-            }
-
-            db.run('DELETE FROM conjuntoVoluntarios WHERE id_filaVoluntarios = ?', [idVoluntario], (err) => {
-              if(err) {
-                return hacerRollback(500, `Error al eliminar al voluntario de la tabla general`, res, err);
+            db.run('UPDATE voluntarios SET estado = ? WHERE id_voluntario = ?', [2, idVoluntario], (err) => {
+              if (err) {
+                return hacerRollback(500, `Error al actualizar el estado del voluntario`, res, err);
               }
 
-              realizarCommit(res, 200, `Se dio de baja correctamente al voluntario.`);
+              db.run('DELETE FROM conjuntoVoluntarios WHERE id_filaVoluntarios = ?', [idVoluntario], (err) => {
+                if(err) {
+                  return hacerRollback(500, `Error al eliminar al voluntario de la tabla general`, res, err);
+                }
+
+                realizarCommit(res, 200, `Se dio de baja correctamente al voluntario.`);
+              });
             });
           });
-        });
-      } else {
-        return res.status(401).json({ status: 401, mensaje: 'Contraseña incorrecta.' });
+        } else {
+          return res.status(401).json({ status: 401, mensaje: 'Contraseña incorrecta.' });
+        }
       }
-    }
-  });
+    });
+  } else {
+    res.redirect('/');
+  }
 });
 
 router.post('/consultaPrograma', verificarSesionYStatus, (req, res) => {
@@ -1543,35 +1581,41 @@ router.post('/consultaPrograma', verificarSesionYStatus, (req, res) => {
   });
 });
 
-router.post('/consultaProgramas', verificarSesionYStatus, (req, res) => {
-  const id_sede = req.body.id_sede || req.session.usuario.id_sede;
-  
-  let instruccion = `
-    SELECT *
-      FROM programas p
-        INNER JOIN programasSede ps
-          ON ps.id_programa = p.id_programa
-        LEFT JOIN sedes s
-          ON ps.id_sede = s.id_sede
-  `;
-  const params = [];
-  if(id_sede === 1) {
-    instruccion += "WHERE ps.id_sede IN (1, 2, 3, 4) ORDER BY sede";
-  } else {
-    instruccion += "WHERE ps.id_sede = ?";
-    params.push(id_sede);
-  }
+router.post('/consultaProgramas', (req, res) => {
+  if (req.session && req.session.usuario) {
+    const id_sede = req.body.id_sede || req.session.usuario.id_sede;
+    
+    let instruccion = `
+      SELECT *
+        FROM programas p
+          INNER JOIN programasSede ps
+            ON ps.id_programa = p.id_programa
+          LEFT JOIN sedes s
+            ON ps.id_sede = s.id_sede
+    `;
+    const params = [];
+    if(req.session.usuario.id_rol === 1) {
+      instruccion += "ORDER BY sede";
+    } else if(id_sede === 1) {
+      instruccion += "WHERE ps.id_sede IN (1, 2, 3, 4) ORDER BY sede";
+    } else {
+      instruccion += "WHERE ps.id_sede = ?";
+      params.push(id_sede);
+    }
 
-  db.all(instruccion, params, (err, rows) => {
-    if(err) {
-      console.error(`Error al consultar los datos de todos los programas sociales para esta sede`);
-      return res.status(500).json({ mensaje: 'Error al consultar todos los programas de esta sede' });
-    }
-    if(!rows) {
-      return res.status(404).json({ mensaje: 'No se encontraron programas sociales para esta sede' });
-    }
-    res.status(200).json(rows);
-  });
+    db.all(instruccion, params, (err, rows) => {
+      if(err) {
+        console.error(`Error al consultar los datos de todos los programas sociales para esta sede`);
+        return res.status(500).json({ mensaje: 'Error al consultar todos los programas de esta sede' });
+      }
+      if(!rows) {
+        return res.status(404).json({ mensaje: 'No se encontraron programas sociales para esta sede' });
+      }
+      res.status(200).json(rows);
+    });
+  } else {
+    res.redirect('/');
+  }
 });
 
 router.post('/altacatdespensas', (req, res) => {
