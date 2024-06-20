@@ -10,7 +10,6 @@ document.addEventListener('DOMContentLoaded', () => {
     })
     .then(response => {return response.json()})
     .then(programas => {
-        console.log(programas);
         datosProgramas.innerHTML = '';
         if(programas.length > 4) encabezados.innerHTML += '<th>Sede</th>';
         programas.forEach((programa) => {
@@ -18,19 +17,23 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const nombre = crear('td');
             nombre.innerHTML = programa.programa;
+            nombre.classList.add('align-middle');
             fila.appendChild(nombre);
 
             const involucrados = crear('td');
             involucrados.innerHTML = programa.cantidadInvolucrados;
+            involucrados.classList.add('align-middle');
             fila.appendChild(involucrados);
 
             const fechaFin = crear('td');
             fechaFin.innerHTML = programa.fechaFin || 'Sin expiración';
+            fechaFin.classList.add('align-middle');
             fila.appendChild(fechaFin);
 
             if(programas.length > 4) {
                 const sede = crear('td');
                 sede.innerHTML = programa.sede;
+                sede.classList.add('align-middle');
                 fila.appendChild(sede);
             }
 

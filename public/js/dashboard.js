@@ -62,7 +62,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     if (boton.tipo === 'button') {
                         const nvoA = crear('a');
                         nvoA.href = boton.ruta;
-                        nvoA.classList.add('btn');
+                        nvoA.classList.add('btn', 'mt-2');
                         nvoA.classList.add('btn-primary');
                         if (boton.inactivo) nvoA.classList.add('disabled');
                         nvoA.classList.add('ml-1');

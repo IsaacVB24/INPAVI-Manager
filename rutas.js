@@ -87,6 +87,12 @@ const verificarSesionYStatus = (req, res, next) => {
   }
 };
 
+/*
+router.use((req, res) => {
+  res.status(404).sendFile(path.join(__dirname, 'public', 'html', 'sitioEnConstruccion.html'));
+});
+*/
+
 // Ruta inicial, muestra login.html
 router.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'html', 'login.html'));
@@ -155,6 +161,10 @@ router.get('/programas', verificarSesionYStatus, (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'html', 'programasSociales.html'));
 });
 
+router.get('/enConstruccion', verificarSesionYStatus, (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'html', 'sitioEnConstruccion.html'));
+});
+
 router.get('/principal', verificarSesionYStatus, (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'html', 'principal.html'));
 });
@@ -166,6 +176,7 @@ router.get('/entrada_inicio', verificarSesionYStatus, (req, res) => {
 router.get('/altadespensas', verificarSesionYStatus, (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'html', 'altadespensas.html'));
 });
+
 router.get('/altacatdespensas', verificarSesionYStatus, (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'html', 'altacatdespensas.html'));
 });

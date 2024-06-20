@@ -190,7 +190,7 @@ function permitirSoloNumeros(input) {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-  get('barraNav').innerHTML = barraNav;
+  if(get('barraNav')) get('barraNav').innerHTML = barraNav;
   //if(get('alertas')) {get('alertas').innerHTML = `<div class="alert alert-warning alert-dismissible"><button type="button" class="btn-close" data-bs-dismiss="alert"></button><strong>¡Guarda tus cambios!</strong> El servidor se reiniciará pronto.</div>`;}
 });
 
