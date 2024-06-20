@@ -7,6 +7,11 @@ document.addEventListener('DOMContentLoaded', () => {
     get('alertas').innerHTML = ventanaModal;
     const elementoModal = get('myModal');
     modal = new bootstrap.Modal(elementoModal);
+    document.querySelectorAll('span').forEach(span => {span.style.backgroundColor = '#d6d9d9'; span.style.border = '1px solid black'; span.style.fontWeight = 'bold';});
+    document.querySelectorAll('textarea').forEach(textarea => {textarea.style.border = '1px solid black';});
+    document.querySelectorAll('input').forEach(input => {input.style.border = '1px solid black';});
+    document.querySelectorAll('select').forEach(select => {select.style.border = '1px solid black';});
+    document.querySelectorAll('li').forEach(li => {li.style.border = '1px solid black';});
     //localStorage.clear();
     //return;
     fetch('/infoVoluntario', {
@@ -25,12 +30,10 @@ document.addEventListener('DOMContentLoaded', () => {
         .then(data => {
             if(data.row.nombre_v) {
                 const ulIntereses = get('listaIntereses');
-                console.log(data);
                 let interesesVoluntario;
                 datosActuales.intereses = data.row.intereses;
                 if(data.row.intereses) {
                     interesesVoluntario = data.row.intereses.split(',');
-                    console.log(interesesVoluntario);
                     interesesVoluntario.forEach((elemento, indice) => {
                         const interes = elemento;
                         
@@ -192,6 +195,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         nuevoDiv.classList.add('form-check');
                         nuevoDiv.classList.add('mt-2');
                         const btnPrograma = crear('button');
+                        btnPrograma.style.border = '1px solid black';
                         btnPrograma.id = programa.id;
                         btnPrograma.type = 'button';
                         btnPrograma.classList.add('w-50');
@@ -223,6 +227,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         nuevoDiv.classList.add('form-check');
                         nuevoDiv.classList.add('mt-2');
                         const btnContacto = crear('button');
+                        btnContacto.style.border = '1px solid black';
                         btnContacto.classList.add('w-75');
                         btnContacto.type ='button';
                         btnContacto.id = contacto.id;

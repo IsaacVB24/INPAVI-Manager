@@ -19,10 +19,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 const divElementosExtra = get('elementosExtra');
                 divElementosExtra.innerHTML = `
                     <div class="input-group mb-3">
-                        <input type="text" class="form-control" placeholder="Ingresa una palabra relacionada a algún voluntario para buscarlo" id='criterio'>
-                        <button class="btn btn-success" type="submit" id='btn-buscar'>Buscar</button>
+                        <input type="text" class="form-control" placeholder="Ingresa una palabra relacionada a algún voluntario para buscarlo" id='criterio' autocomplete='off' style='border: 1px solid black;'>
+                        <button class="btn btn-success" type="submit" id='btn-buscar' style='border: 1px solid black'>Buscar</button>
                     </div>
-                    <div class="table-responsive" id="tablaVoluntarios">      
+                    <div class="table-responsive" id="tablaVoluntarios" style="border: 1px solid black">      
                         <table class="table" style="text-align: center;">
                             <thead>
                                 <tr id="encabezados">

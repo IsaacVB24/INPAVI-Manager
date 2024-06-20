@@ -5,6 +5,10 @@
   --gris-claro: #ecf0f1;
   --gris-oscuro: #29333e;
 }
+.pruebas {
+  color: #d6d9d9;
+  font-weight: bold;
+}
 
 body {
   background-color: var(--gris-claro);
@@ -165,12 +169,12 @@ body {
     padding: 30px; /* Espaciado interno para separar el contenido del borde */
     background-color:#ecf0f1d3; /* Fondo blanco para el formulario */
   }
-  
+  /*
 .form-border label,
 .form-border input,
 .form-border textarea {
-  font-weight: bold; /* Aplica negrita a las etiquetas y los campos de entrada */
-}
+  font-weight: bold; /* Aplica negrita a las etiquetas y los campos de entrada 
+}*/
 
 .button-return {
   position: relative; /* Mantenemos el posicionamiento relativo */

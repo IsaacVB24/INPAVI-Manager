@@ -17,6 +17,7 @@ document.addEventListener('DOMContentLoaded', () => {
     get('alta').addEventListener('click', altaHoy);
     get('registroVoluntario').addEventListener('click', altaVoluntario);
     get('listaIntereses').addEventListener('click', function(event) {event.stopPropagation();});
+    document.querySelectorAll('textarea').forEach(textarea => {textarea.style.border = '1px solid black';});
 
     const inputTelefono = get('telefonoV');
     permitirSoloNumeros(inputTelefono);
@@ -70,6 +71,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const btnPrograma = crear('button');
             btnPrograma.id = programa.id;
             btnPrograma.type = 'button';
+            btnPrograma.style.border = '1px solid black';
             btnPrograma.classList.add('w-50');
             btnPrograma.innerHTML = programa.nombre;
             nuevoDiv.appendChild(btnPrograma);
@@ -93,6 +95,7 @@ document.addEventListener('DOMContentLoaded', () => {
             nuevoDiv.classList.add('form-check');
             nuevoDiv.classList.add('mt-2');
             const btnContacto = crear('button');
+            btnContacto.style.border = '1px solid black';
             btnContacto.classList.add('w-75');
             btnContacto.type ='button';
             btnContacto.id = contacto.id;
