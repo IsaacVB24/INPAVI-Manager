@@ -265,12 +265,20 @@ router.post('/login', async (req, res) => {
           // Verificar si la contraseña proporcionada coincide con la contraseña almacenada
           const match = await bcrypt.compare(contraseña, row.contraseña);
           if (match) {
+            let sedeEnvio;
+            if(row.id_rol === 2 && row.id_sede === 1) {
+              sedeEnvio = 'Ajusco, Atlacomulco, Tultitlán, Xola';
+            } else if(row.id_rol === 1) {
+              sedeEnvio = 'INPAVI México';
+            } else {
+              sedeEnvio = row.sede;
+            }
             // Establecer la sesión del usuario
             req.session.usuario = { correo, status: row.status, id_rol: row.id_rol, nombre: row.nombre_usuario, id_sede: row.id_sede, id_usuario: row.id_usuario, sede: row.sede };
             if(row.status === 0) res.status(404).json({ mensaje: 'Correo no encontrado' });
-            if(row.status === 1) res.status(200).json({ mensaje: 'Inicio de sesión correcto', ruta: '/tablero' });
-            if(row.status === 2) res.status(200).json({ mensaje: 'Inicio de sesión correcto', ruta: '/ingresarToken', tipoUsuario: row.status });
-            if(row.status === 3) res.status(200).json({ mensaje: 'Inicio de sesión correcto', ruta: '/verificacion' });
+            if(row.status === 1) res.status(200).json({ mensaje: 'Inicio de sesión correcto', ruta: '/tablero', sede: sedeEnvio });
+            if(row.status === 2) res.status(200).json({ mensaje: 'En espera de que el usuario ingrese token de verificación de correo', ruta: '/ingresarToken', tipoUsuario: row.status });
+            if(row.status === 3) res.status(200).json({ mensaje: 'En espera de que un delegado apruebe la solicitud', ruta: '/verificacion' });
           } else {
             res.status(401).json({ mensaje: 'Contraseña incorrecta' });
           }
@@ -1617,22 +1625,6 @@ router.post('/consultaProgramas', (req, res) => {
       }
       res.status(200).json(rows);
     });
-  } else {
-    res.redirect('/');
-  }
-});
-
-router.get('/sedeSesion', (req, res) => {
-  if (req.session && req.session.usuario) {
-    let sedeEnvio;
-    if(req.session.usuario.id_rol === 2 && req.session.usuario.id_sede === 1) {
-      sedeEnvio = 'Ajusco, Atlacomulco, Tultitlán, Xola';
-    } else if(req.session.usuario.id_rol === 1) {
-      sedeEnvio = 'INPAVI México';
-    } else {
-      sedeEnvio = req.session.usuario.sede;
-    }
-    res.status(200).json({ sede: sedeEnvio });
   } else {
     res.redirect('/');
   }
