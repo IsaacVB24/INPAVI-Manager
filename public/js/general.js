@@ -6,7 +6,12 @@ const idBotonModal = 'btnModal';
 const idSeccionBotonesModal = 'botonesModal';
 const barraNav = `
   <nav class="navbar navbar-expand-lg navbar-dark main-navbar">
-        <img src="../img/inpavi_logo.png" alt="Logo" class="logo" id='logoBarra'>
+        <div class="d-flex align-items-center">
+            <div class="mx-auto">
+                <img src="../img/inpavi_logo.png" alt="Logo INPAVI" class="logo" id="logoBarra">
+            </div>
+            <p class="text-center d-block ml-3 mt-3" id='sedeUsuario' style='color: white;'></p>
+        </div>
         <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav"
             aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
@@ -192,6 +197,22 @@ function permitirSoloNumeros(input) {
 document.addEventListener('DOMContentLoaded', () => {
   if(get('barraNav')) get('barraNav').innerHTML = barraNav;
   //if(get('alertas')) {get('alertas').innerHTML = `<div class="alert alert-warning alert-dismissible"><button type="button" class="btn-close" data-bs-dismiss="alert"></button><strong>¡Guarda tus cambios!</strong> El servidor se reiniciará pronto.</div>`;}
+  // Obtener sedes del backend
+  if(ruta === '/') return;
+  fetch('/sedeSesion')
+  .then(response => {
+      if (response.ok) {
+          return response.json();
+      }
+      throw new Error('Error al obtener la sede del usuario');
+  })
+  .then(dato => {
+      get('sedeUsuario').innerHTML = dato.sede;
+  })
+  .catch(error => {
+      console.error('Error al cargar la sede del usuario:', error);
+      alert('Error al cargar sede del usuario');
+  });
 });
 
 // Función para agregar un script al head

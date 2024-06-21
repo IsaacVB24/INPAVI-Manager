@@ -252,7 +252,11 @@ router.post('/login', async (req, res) => {
 
   try {
     // Buscar el usuario en la base de datos por correo
-    db.get('SELECT contraseña, status, id_rol, nombre_usuario, id_sede, id_usuario FROM usuarios WHERE correo = ?', [correo], async (err, row) => {
+    db.get(`
+      SELECT u.contraseña, u.status, u.id_rol, u.nombre_usuario, u.id_sede, u.id_usuario, s.sede
+      FROM usuarios u
+      LEFT JOIN sedes s ON u.id_sede = s.id_sede
+      WHERE u.correo = ?`, [correo], async (err, row) => {
       if (err) {
         console.error('Error al buscar usuario:', err);
         res.status(500).json({ mensaje: 'Error al buscar usuario en la base de datos' });
@@ -262,7 +266,7 @@ router.post('/login', async (req, res) => {
           const match = await bcrypt.compare(contraseña, row.contraseña);
           if (match) {
             // Establecer la sesión del usuario
-            req.session.usuario = { correo, status: row.status, id_rol: row.id_rol, nombre: row.nombre_usuario, id_sede: row.id_sede, id_usuario: row.id_usuario }; // Puedes agregar más información del usuario si lo necesitas
+            req.session.usuario = { correo, status: row.status, id_rol: row.id_rol, nombre: row.nombre_usuario, id_sede: row.id_sede, id_usuario: row.id_usuario, sede: row.sede };
             if(row.status === 0) res.status(404).json({ mensaje: 'Correo no encontrado' });
             if(row.status === 1) res.status(200).json({ mensaje: 'Inicio de sesión correcto', ruta: '/tablero' });
             if(row.status === 2) res.status(200).json({ mensaje: 'Inicio de sesión correcto', ruta: '/ingresarToken', tipoUsuario: row.status });
@@ -1613,6 +1617,22 @@ router.post('/consultaProgramas', (req, res) => {
       }
       res.status(200).json(rows);
     });
+  } else {
+    res.redirect('/');
+  }
+});
+
+router.get('/sedeSesion', (req, res) => {
+  if (req.session && req.session.usuario) {
+    let sedeEnvio;
+    if(req.session.usuario.id_rol === 2 && req.session.usuario.id_sede === 1) {
+      sedeEnvio = 'Ajusco, Atlacomulco, Tultitlán, Xola';
+    } else if(req.session.usuario.id_rol === 1) {
+      sedeEnvio = 'INPAVI México';
+    } else {
+      sedeEnvio = req.session.usuario.sede;
+    }
+    res.status(200).json({ sede: sedeEnvio });
   } else {
     res.redirect('/');
   }
