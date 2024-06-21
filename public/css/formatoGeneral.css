@@ -4,3 +4,6 @@ a {
 * {
     font-size: large;
 }
+#busqueda:hover {
+    cursor: pointer;
+}

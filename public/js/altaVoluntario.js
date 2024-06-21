@@ -177,7 +177,7 @@ function altaVoluntario(){
     const modal = new bootstrap.Modal(get('myModal'));
     const divValoracion = get('valoracion');
     let botonesSeleccionadosValoracion = 0;
-    const valoracion = [];
+    let valoracion = [];
     const nombresValoracion = [];
     divValoracion.querySelectorAll('button').forEach(boton => {
         if(boton.classList.contains('seleccionado')) {
@@ -188,8 +188,8 @@ function altaVoluntario(){
     });
     const divDerivacion = get('derivacion');
     let botonesSeleccionadosDerivacion = 0;
-    const derivacion = [];
-    const nombresDerivacion = [];
+    let derivacion = [];
+    let nombresDerivacion = [];
     const botonesDerivacion = divDerivacion.querySelectorAll('button.seleccionado');
     botonesDerivacion.forEach(boton => {
         let datoPrograma = [];
@@ -228,8 +228,8 @@ function altaVoluntario(){
             intereses.push(label.textContent.trim());
         }
     });
-    const primerosContactos = [];
-    const nombresContactos = [];
+    let primerosContactos = [];
+    let nombresContactos = [];
     const divPrimerosContactos = get('primerosContactos');
     divPrimerosContactos.querySelectorAll('button').forEach(boton => {
         if(boton.classList.contains('seleccionado')){
@@ -239,7 +239,7 @@ function altaVoluntario(){
     });
     const divInformeValoracion = get('informeValoracion');
     const cantidadInformeValoracion = divInformeValoracion.querySelectorAll('button.seleccionado');
-    const nombresInformeValoracion = [];
+    let nombresInformeValoracion = [];
     cantidadInformeValoracion.forEach(boton => {
         nombresInformeValoracion.push(boton.innerHTML);
     });
@@ -302,9 +302,9 @@ function altaVoluntario(){
         <li><p><span class="fw-bold">Voluntario interno asignado:</span> ${selectVoluntarioAsignado.options[selectVoluntarioAsignado.selectedIndex].text}</p></li>
         <li><p><span class="fw-bold">Intereses:</span> ${interesesConf}</p></li>
         <li><p><span class="fw-bold">Valoración / Participación:</span> ${valoracionConf}</p></li>
-        <li><p><span class="fw-bold">Primeros contactos:</span> ${contactosConf}</p></li>
-        <li><p><span class="fw-bold">Informe de valoración:</span> ${informeValConf}</p></li>
-        <li><p><span class="fw-bold">Derivación:</span> ${derivacionConf}</p></li>
+        <li><p><span class="fw-bold">Primeros contactos:</span> ${altaHoy ? contactosConf : '-'}</p></li>
+        <li><p><span class="fw-bold">Informe de valoración:</span> ${altaHoy ? informeValConf : '-'}</p></li>
+        <li><p><span class="fw-bold">Derivación:</span> ${altaHoy ? derivacionConf : '-'}</p></li>
         <li><p><span class="fw-bold">Observaciones:</span> ${observaciones || '-'}</p></li>
     </ul>`, modal);
     btnModal.classList.add('btn-success');
@@ -316,7 +316,7 @@ function altaVoluntario(){
             headers: {
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify({ nombre: nombres, apellidoP: apellidoP, apellidoM: apellidoM, fechaNacimiento: fechaNacimiento, identificacion: identificacion, telefono: telefono, correo: correo, ocupacion: ocupacionV, personaContacto: personaContacto, voluntarioIntAsignado: voluntarioAsignado, intereses: intereses, valoracion: valoracion, primerosContactos: primerosContactos, informeValoracion: informeValoracion, derivacion: derivacion, observaciones: observaciones })
+            body: JSON.stringify({ nombre: nombres, apellidoP: apellidoP, apellidoM: apellidoM, fechaNacimiento: fechaNacimiento, identificacion: identificacion, telefono: telefono, correo: correo, ocupacion: ocupacionV, personaContacto: personaContacto, voluntarioIntAsignado: voluntarioAsignado, intereses: intereses, valoracion: valoracion, primerosContactos: primerosContactos, informeValoracion: informeValoracion, derivacion: altaHoy ? derivacion : [], observaciones: observaciones })
         })
         .then(response => {
             return response.json().then(data => {

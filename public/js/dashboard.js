@@ -20,7 +20,17 @@ document.addEventListener('DOMContentLoaded', () => {
                 divElementosExtra.innerHTML = `
                     <div class="input-group mb-3">
                         <input type="text" class="form-control" placeholder="Ingresa una palabra relacionada a algún voluntario para buscarlo" id='criterio' autocomplete='off' style='border: 1px solid black;'>
-                        <button class="btn btn-success" type="submit" id='btn-buscar' style='border: 1px solid black'>Buscar</button>
+                        <button class="btn btn-success" type="submit" id='btn-buscar' style='border: 1px solid black; background-color: #f6f3a6; color: black;'>Buscar</button>
+                        <img src="../img/interrogacion.png" alt='Imagen de Freepik' style='height: 25px;margin-left: 3px; margin-top: 5px;' id='busqueda'>
+                    </div>
+                    <div id='toastBusqueda' class="toast hide" style='width: 100%; background-color: #f6f3a6;'>
+                        <div class="toast-header">
+                        <strong class="me-auto">Búsqueda</strong>
+                        <button type="button" class="btn-close" data-bs-dismiss="toast" id='cerrarToast'></button>
+                        </div>
+                        <div class="toast-body">
+                        <p>La o las palabras ingresadas mostrarán todas las coincidencias encontradas en todos los campos del perfil del voluntario, incluyendo el campo de observaciones.</p>
+                        </div>
                     </div>
                     <div class="table-responsive" id="tablaVoluntarios" style="border: 1px solid black">      
                         <table class="table" style="text-align: center;">
@@ -39,6 +49,16 @@ document.addEventListener('DOMContentLoaded', () => {
                             </tbody>
                         </table>
                     </div>`;
+                get('busqueda').addEventListener('click', () => {
+                    const toast = get('toastBusqueda');
+                    if(toast.classList.contains('show')) {
+                        toast.classList.add('hide');
+                        toast.classList.remove('show');
+                    } else {
+                        toast.classList.add('show');
+                        toast.classList.remove('hide');
+                    }
+                    });
                 const btnBusqueda = get('btn-buscar');
                 btnBusqueda.addEventListener('click', () => {consultarYProcesarVoluntarios(get('criterio').value, flagRespuesta, rol)});
                 get('criterio').addEventListener('keydown', (event) => {

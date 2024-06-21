@@ -11,34 +11,41 @@ document.addEventListener('DOMContentLoaded', () => {
     .then(response => {return response.json()})
     .then(programas => {
         datosProgramas.innerHTML = '';
-        if(programas.length > 4) encabezados.innerHTML += '<th>Sede</th>';
+        if(programas.length > 4) {
+            const th = crear('th');
+            th.innerHTML = 'Sede';
+            get('encabezados').insertBefore(th, get('encabezados').firstChild);
+        }
         programas.forEach((programa) => {
             const fila = crear('tr');
-
-            const nombre = crear('td');
-            nombre.innerHTML = programa.programa;
-            nombre.classList.add('align-middle');
-            fila.appendChild(nombre);
-
-            const involucrados = crear('td');
-            involucrados.innerHTML = programa.cantidadInvolucrados;
-            involucrados.classList.add('align-middle');
-            fila.appendChild(involucrados);
-
-            const fechaFin = crear('td');
-            fechaFin.innerHTML = programa.fechaFin || 'Sin expiración';
-            fechaFin.classList.add('align-middle');
-            fila.appendChild(fechaFin);
-
+            
             if(programas.length > 4) {
                 const sede = crear('td');
                 sede.innerHTML = programa.sede;
                 sede.classList.add('align-middle');
                 fila.appendChild(sede);
             }
-
+            
+            const nombre = crear('td');
+            nombre.innerHTML = programa.programa;
+            nombre.classList.add('align-middle');
+            fila.appendChild(nombre);
+        
+            const involucrados = crear('td');
+            involucrados.innerHTML = programa.cantidadInvolucrados;
+            involucrados.classList.add('align-middle');
+            fila.appendChild(involucrados);
+        
+            const fechaFin = crear('td');
+            fechaFin.innerHTML = programa.fechaFin || 'Sin expiración';
+            fechaFin.classList.add('align-middle');
+            fila.appendChild(fechaFin);
+            
             datosProgramas.appendChild(fila);
-            fila.addEventListener('click', () => {visualizarPrograma(programa)});
+            
+            fila.addEventListener('click', () => {
+                visualizarPrograma(programa)
+            });
         });
     })
     .catch(error => {

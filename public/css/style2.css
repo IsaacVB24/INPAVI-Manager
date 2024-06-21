@@ -38,6 +38,7 @@ body {
   justify-content: center;
   height: 100vh;
   text-align: center;
+  color: #374864;
   background-image: url('../img/inpavi_manager.png');
   background-size: cover;
   background-position: center center;
