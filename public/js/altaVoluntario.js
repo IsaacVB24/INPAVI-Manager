@@ -41,6 +41,7 @@ document.addEventListener('DOMContentLoaded', () => {
       })))
       .then(([programas, primerosContactos]) => {
         const nvoDiv = crear('div');
+        nvoDiv.style.paddingLeft = '20px';
         nvoDiv.id = 'nvosIntereses';
         ulIntereses.appendChild(nvoDiv);
 
@@ -72,8 +73,9 @@ document.addEventListener('DOMContentLoaded', () => {
             btnPrograma.id = programa.id;
             btnPrograma.type = 'button';
             btnPrograma.style.border = '1px solid black';
-            btnPrograma.classList.add('w-50');
-            btnPrograma.innerHTML = programa.nombre;
+            btnPrograma.classList.add('w-75');
+            btnPrograma.value = programa.nombre;
+            btnPrograma.innerHTML = `${programa.nombre} - Voluntarios: ${programa.cantidadVoluntarios}`;
             nuevoDiv.appendChild(btnPrograma);
             const clon1 = nuevoDiv.cloneNode(true);
             const clon2 = nuevoDiv.cloneNode(true);
@@ -131,10 +133,12 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         })
         .catch(error => {
+            if(get('spinner')) get('spinner').remove();
             console.error('Error al realizar la solicitud: ' + error);
         });
       })
       .catch(error => {
+        if(get('spinner')) get('spinner').remove();
         console.error('Error al cargar los datos:', error);
       });
 });
@@ -183,7 +187,7 @@ function altaVoluntario(){
         if(boton.classList.contains('seleccionado')) {
             botonesSeleccionadosValoracion += 1;
             valoracion.push(parseInt(boton.id));
-            nombresValoracion.push(boton.innerHTML);
+            nombresValoracion.push(boton.value);
         };
     });
     const divDerivacion = get('derivacion');
@@ -201,8 +205,8 @@ function altaVoluntario(){
             nombresDerivacion.push(proyecto.value.trim());
         } else {
             datoPrograma.push(parseInt(boton.id));
-            datoPrograma.push(boton.textContent);
-            nombresDerivacion.push(boton.textContent);
+            datoPrograma.push(boton.value);
+            nombresDerivacion.push(boton.value);
         }
         derivacion.push(datoPrograma);
     });
@@ -215,7 +219,7 @@ function altaVoluntario(){
     const telefono = valorDe('telefonoV');
     const correo = valorDe('correoV').trim();
     const ocupacionV = valorDe('ocupacionV').trim();
-    const personaContacto = valorDe('personaContactoV');
+    const personaContacto = valorDe('personaContactoV').trim();
     const correoValido = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/.test(correo);
     const selectVoluntarioAsignado = get('voluntarioAsignado');
     const voluntarioAsignado = selectVoluntarioAsignado.value;
@@ -302,8 +306,8 @@ function altaVoluntario(){
         <li><p><span class="fw-bold">Voluntario interno asignado:</span> ${selectVoluntarioAsignado.options[selectVoluntarioAsignado.selectedIndex].text}</p></li>
         <li><p><span class="fw-bold">Intereses:</span> ${interesesConf}</p></li>
         <li><p><span class="fw-bold">Valoración / Participación:</span> ${valoracionConf}</p></li>
-        <li><p><span class="fw-bold">Primeros contactos:</span> ${altaHoy ? contactosConf : '-'}</p></li>
-        <li><p><span class="fw-bold">Informe de valoración:</span> ${altaHoy ? informeValConf : '-'}</p></li>
+        <li><p><span class="fw-bold">Primeros contactos:</span> ${contactosConf}</p></li>
+        <li><p><span class="fw-bold">Informe de valoración:</span> ${informeValConf}</p></li>
         <li><p><span class="fw-bold">Derivación:</span> ${altaHoy ? derivacionConf : '-'}</p></li>
         <li><p><span class="fw-bold">Observaciones:</span> ${observaciones || '-'}</p></li>
     </ul>`, modal);
@@ -311,6 +315,7 @@ function altaVoluntario(){
     btnModal.classList.remove('btn-danger');
     get('cerrarModal').onclick = () => {get('myModal').style.display = 'none';};
     btnModal.onclick = () => {
+        if(!get('spinner')) get('botonesModal').innerHTML += `<div id='spinner' class="spinner-border text-success"></div>`;
         fetch('/voluntarioNuevo', {
             method: 'POST',
             headers: {
@@ -345,6 +350,7 @@ function altaVoluntario(){
             }
         })
         .catch(error => {
+            if(get('spinner')) get('spinner').remove();
             console.error('Error al intentar registrar al voluntario:', error);
             alert('Error al validar intentar registrar al voluntario');
         });

@@ -2,7 +2,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.querySelectorAll('input').forEach(input => {input.readOnly = true;});
     document.querySelectorAll('textarea').forEach(textarea => {textarea.readOnly = true; textarea.style.resize = 'none';});
     const id_voluntario = localStorage.getItem('id');
-    document.querySelectorAll('span').forEach(span => {if(span.id !== 'fecha') {span.style.backgroundColor = '#374864'; span.style.border = '1px solid black'; span.style.color = 'white'; span.style.fontWeight = 'bold';}});
+    document.querySelectorAll('span').forEach(span => {if(span.id !== 'fecha') {span.style.backgroundColor = '#6281b4'; span.style.border = '1px solid black'; span.style.color = 'white'; span.style.fontWeight = 'bold';}});
     document.querySelectorAll('textarea').forEach(textarea => {textarea.style.border = '1px solid black'; textarea.style.backgroundColor = 'white';});
     document.querySelectorAll('input').forEach(input => {input.style.border = '1px solid black'; input.style.backgroundColor = 'white';});
     document.querySelectorAll('select').forEach(select => {select.style.border = '1px solid black';});

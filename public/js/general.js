@@ -17,7 +17,7 @@ const barraNav = `
             <span class="navbar-toggler-icon"></span>
         </button>
         <div class="collapse navbar-collapse" id="navbarNav" style='padding-left: 5px;'>
-            <ul class="navbar-nav ml-auto">
+            <ul class="navbar-nav ml-auto" id='ulNavBar'>
                 <li class="nav-item">
                     <a class="nav-link" href="#">Inicio</a>
                 </li>

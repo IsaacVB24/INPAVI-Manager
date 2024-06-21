@@ -1041,7 +1041,11 @@ router.post('/obtenerVoluntariosEquipoDirecto', (req, res) => {
 
 router.get('/obtenerProgramas', (req, res) => {
   if (req.session && req.session.usuario) {
-    db.all('SELECT * FROM programas', (err, rows) => {
+    db.all(`
+      SELECT p.*, ps.cantidadInvolucrados
+      FROM programas p
+      LEFT JOIN programasSede ps ON p.id_programa = ps.id_programa
+      WHERE id_sede = ?`, [req.session.usuario.id_sede], (err, rows) => {
       if(err) {
         res.status(500).json({ mensaje: 'Error al consultar los programas sociales en la base de datos' });
       }
@@ -1049,7 +1053,8 @@ router.get('/obtenerProgramas', (req, res) => {
         // Crear un arreglo de objetos con el id y nombre del programa
         const programas = rows.map(row => ({
           id: row.id_programa,
-          nombre: row.programa
+          nombre: row.programa,
+          cantidadVoluntarios: row.cantidadInvolucrados
         }));
 
         // Enviar la respuesta en formato JSON

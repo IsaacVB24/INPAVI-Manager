@@ -11,7 +11,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.querySelectorAll('textarea').forEach(textarea => {textarea.style.border = '1px solid black';});
     document.querySelectorAll('input').forEach(input => {input.style.border = '1px solid black';});
     document.querySelectorAll('select').forEach(select => {select.style.border = '1px solid black';});
-    document.querySelectorAll('li').forEach(li => {li.style.border = '1px solid black';});
+    document.querySelectorAll('li').forEach(li => {if(li.parentElement.id !== 'ulNavBar') li.style.border = '1px solid black';});
     //localStorage.clear();
     //return;
     fetch('/infoVoluntario', {
@@ -198,8 +198,9 @@ document.addEventListener('DOMContentLoaded', () => {
                         btnPrograma.style.border = '1px solid black';
                         btnPrograma.id = programa.id;
                         btnPrograma.type = 'button';
-                        btnPrograma.classList.add('w-50');
-                        btnPrograma.innerHTML = programa.nombre;
+                        btnPrograma.classList.add('w-75');
+                        btnPrograma.value = programa.nombre;
+                        btnPrograma.innerHTML = `${programa.nombre} - Voluntarios: ${programa.cantidadVoluntarios}`;
                         nuevoDiv.appendChild(btnPrograma);
                         const clon1 = nuevoDiv.cloneNode(true);
                         const clon2 = nuevoDiv.cloneNode(true);
@@ -214,12 +215,12 @@ document.addEventListener('DOMContentLoaded', () => {
                     const botonesValoracion = divValoracion.querySelectorAll('button');
                     botonesValoracion.forEach(boton => {
                         boton.addEventListener('click', () => {botonSeleccionado(boton);});
-                        if(valoracion.includes(boton.textContent)) boton.click();
+                        if(valoracion.includes(boton.value)) boton.click();
                     });
                     const botonesDerivacion = divDerivacion.querySelectorAll('button');
                     botonesDerivacion.forEach(boton => {
                         boton.addEventListener('click', () => {botonSeleccionado(boton);});
-                        if(derivacion.includes(boton.textContent)) boton.click();
+                        if(derivacion.includes(boton.value)) boton.click();
                     });
 
                     primerosContactos.forEach(contacto => {
@@ -301,7 +302,6 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 function modificarDatosVoluntario() {
-    console.log(datosActuales);
     const nombres = get('nombres').value.trim();
     const apPat = get('apPat').value.trim();
     const apMat = get('apMat').value.trim();
@@ -330,7 +330,7 @@ function modificarDatosVoluntario() {
     const valoracionActual = [];
     const idsValoracionActual = [];
     divValoracion.querySelectorAll('div button.seleccionado').forEach(boton => {
-        valoracionActual.push(boton.textContent);
+        valoracionActual.push(boton.value);
         idsValoracionActual.push(boton.id);
     });
     const primerosContactosActuales = [];
@@ -342,7 +342,7 @@ function modificarDatosVoluntario() {
     const derivacionActual = [];
     const idsDerivacionActual = [];
     divDerivacion.querySelectorAll('div button.seleccionado').forEach(boton => {
-        derivacionActual.push(boton.textContent === 'Proyecto' ? get('nombreProyecto').value.trim() : boton.textContent);
+        derivacionActual.push(boton.textContent === 'Proyecto' ? get('nombreProyecto').value.trim() : boton.value);
         idsDerivacionActual.push(boton.textContent === 'Proyecto' ? get('nombreProyecto').name : boton.id);
     });
     const observaciones = get('observaciones').value.trim() || '-';
@@ -362,7 +362,6 @@ function modificarDatosVoluntario() {
     if(sede !== datosActuales.sede) idsModificados.push('sede');
     if(personaContacto !== datosActuales.personaContacto) idsModificados.push('personaContacto');
     if(internoAsignado !== datosActuales.voluntarioAsignado) idsModificados.push('internoAsignado');
-    console.log(interesesActuales);
     if(datosActuales.intereses !== null) {
         if(!(arreglosIguales(interesesActuales, datosActuales.intereses.split(',')))) {
             idsModificados.push('listaIntereses');
@@ -370,9 +369,9 @@ function modificarDatosVoluntario() {
     } else if(interesesActuales.length > 0) {
         idsModificados.push('listaIntereses');
     }
-    if(!(valoracionActual == datosActuales.valoracion)) idsModificados.push('valoracion');
-    if(!(primerosContactosActuales == datosActuales.primerosContactos)) idsModificados.push('primerosContactos');
-    if(!(derivacionActual == datosActuales.derivacion)) idsModificados.push('derivacion');
+    if(!(arreglosIguales(valoracionActual, datosActuales.valoracion.split(',')))) idsModificados.push('valoracion');
+    if(!(arreglosIguales(primerosContactosActuales, datosActuales.primerosContactos.split(',')))) idsModificados.push('primerosContactos');
+    if(!(arreglosIguales(derivacionActual, datosActuales.derivacion.split(',')))) idsModificados.push('derivacion');
     if(observaciones !== datosActuales.observaciones) idsModificados.push('observaciones');
 
     const seccionBotones = get(idSeccionBotonesModal);
@@ -448,6 +447,7 @@ function modificarDatosVoluntario() {
         btnModal.classList.add('btn-secondary');
         if(!get('guardarCambios')) seccionBotones.innerHTML += `<button type='button' class='btn btn-success' id='guardarCambios'>Guardar cambios</button>`;
         get('guardarCambios').addEventListener('click', () => {
+            if(!get('spinner')) get('botonesModal').innerHTML += `<div id='spinner' class='spinner-border text-success'></div>`;
             fetch('/modificarDatosVoluntario', {
                 method: 'POST',
                 headers: {
@@ -488,6 +488,7 @@ function modificarDatosVoluntario() {
                 if(data.status === 200) window.location.href = '/tablero';
             })
             .catch(error => {
+                if(get('spinner')) get('spinner').remove();
                 console.error('Error al modificar los datos del voluntario: ' + error);
                 alert('Error al modificar los datos del voluntario');
             });
