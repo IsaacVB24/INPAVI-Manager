@@ -1530,9 +1530,8 @@ router.post('/modificarDatosVoluntario', (req, res) => {
 // Ruta para dar de baja a un voluntario
 router.post('/bajaVoluntario', (req, res) => {
   if (req.session && req.session.usuario) {
-      const { idVoluntario, clave } = req.body;
+    const { idVoluntario, clave } = req.body;
     const { id_usuario } = req.session.usuario;
-    console.log(req.body);
 
     db.get('SELECT contraseña FROM usuarios WHERE id_usuario = ?', [id_usuario], async (err, row) => {
       if(err) {
@@ -1543,30 +1542,43 @@ router.post('/bajaVoluntario', (req, res) => {
       if(!row) {
         return res.status(404).json({ mensaje: 'No se localizó al usuario que da de baja' });
       } else {
-        console.log('Se encontró la contraseña');
         const match = await bcrypt.compare(clave, row.contraseña);
-        console.log(match);
-        if(match) {
-          db.serialize(() => {
-            db.run('BEGIN TRANSACTION');
+        db.all('SELECT v.id_sede, dv.id_derivacion FROM voluntarios v LEFT JOIN derivacionVoluntario dv ON v.id_voluntario = dv.id_voluntario WHERE v.id_voluntario = ?', [idVoluntario], (err, rows) => {
+          if(err) {
+            console.error(`Error al obtener la sede y la derivación del voluntario a dar de baja.`);
+            return res.status(500).json({ mensaje: 'Error al obtener la sede y la derivación del voluntario a dar de baja' });
+          }
+          if(rows) {
+            if(match) {
+              db.serialize(() => {
+                db.run('BEGIN TRANSACTION');
 
-            db.run('UPDATE voluntarios SET estado = ? WHERE id_voluntario = ?', [2, idVoluntario], (err) => {
-              if (err) {
-                return hacerRollback(500, `Error al actualizar el estado del voluntario`, res, err);
-              }
+                rows.forEach(datosDerivacion => {
+                  db.run('UPDATE programasSede SET cantidadInvolucrados = cantidadInvolucrados - 1 WHERE id_programa = ? AND id_sede = ?', [datosDerivacion.id_derivacion, datosDerivacion.id_sede], (err) => {
+                    if(err) {
+                      return hacerRollback(500, `Error al descontar un voluntario del programa con ID ${datosDerivacion.id_derivacion} de la sede con ID ${datosDerivacion.id_sede}`, res, err);
+                    }
+                  });
+                });
 
-              db.run('DELETE FROM conjuntoVoluntarios WHERE id_filaVoluntarios = ?', [idVoluntario], (err) => {
-                if(err) {
-                  return hacerRollback(500, `Error al eliminar al voluntario de la tabla general`, res, err);
-                }
+                db.run('UPDATE voluntarios SET estado = ? WHERE id_voluntario = ?', [2, idVoluntario], (err) => {
+                  if (err) {
+                    return hacerRollback(500, `Error al actualizar el estado del voluntario`, res, err);
+                  }
 
+                  db.run('DELETE FROM conjuntoVoluntarios WHERE id_filaVoluntarios = ?', [idVoluntario], (err) => {
+                    if(err) {
+                      return hacerRollback(500, `Error al eliminar al voluntario de la tabla general`, res, err);
+                    }
+                  });
+                });
                 realizarCommit(res, 200, `Se dio de baja correctamente al voluntario.`);
               });
-            });
-          });
-        } else {
-          return res.status(401).json({ status: 401, mensaje: 'Contraseña incorrecta.' });
-        }
+            } else {
+              return res.status(401).json({ status: 401, mensaje: 'Contraseña incorrecta.' });
+            }
+          }
+        });
       }
     });
   } else {
