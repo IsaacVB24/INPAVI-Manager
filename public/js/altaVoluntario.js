@@ -340,7 +340,7 @@ function altaVoluntario(){
                 btnModal.innerHTML = 'Genial';
                 mostrarModal('Voluntario registrado', 'El voluntario ha sido registrado exitosamente', modal);
                 if(get('spinner')) get('spinner').remove();
-                btnModal.addEventListener('click', () => {window.location.href = '/tablero';});
+                get(idBotonModal).onclick = () => {window.location.href = '/tablero';};
             } else if(data.status === 409) {
                 btnModal.classList.add('btn-danger');
                 btnModal.classList.remove('btn-success');

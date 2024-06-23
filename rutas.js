@@ -1590,7 +1590,7 @@ router.post('/bajaVoluntario', (req, res) => {
                         } else {
                           const correoDelegado = row.correo;
                           
-                          const fechaUTC = new Date(req.session.usuario.fechaUTC);
+                          const fechaUTC = new Date();
                           const zonaHorariaOffset = req.session.usuario.zonaHorariaOffset;
 
                           const fechaLocal = new Date(fechaUTC.getTime() - (zonaHorariaOffset * 60000));

@@ -520,12 +520,10 @@ function darDeBajaVoluntario() {
     <input type="password" class="form-control" id="contrBaja" placeholder='Ingresa tu contraseña' maxlength=30>
     </div>`, modal);
     btn.addEventListener('click', () => {
-        if(!get('spinner')) get('botonesModal').innerHTML += `<div id='spinner' class='spinner-border text-warning'></div>`;
         const inputContrBaja = get('contrBaja');
         const motivo = get('motivo').value.trim();
         if(inputContrBaja.value === '' || motivo === '') {
             alert('Se debe ingresar un motivo de baja y una contraseña');
-            modal.style.display = 'block';
         } else {
             const clave = get('contrBaja').value;
             fetch('/bajaVoluntario', {
@@ -537,11 +535,13 @@ function darDeBajaVoluntario() {
             })
             .then(response => {
                 if (!response.ok && response.status !== 401) {
+                    get('spinner').remove();
                     throw new Error('Hubo un problema con la solicitud: ' + response.status);
                 }
                 return response.json();
             })
             .then(data => {
+                if(!get('spinner') && data.status === 200) get('botonesModal').innerHTML += `<div id='spinner' class='spinner-border text-warning'></div>`;
                 alert(data.mensaje);
                 if(data.status !== 401 && data.status !== 500) window.location.href = '/tablero';
             })
