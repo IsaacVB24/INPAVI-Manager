@@ -30,18 +30,28 @@ function validarNuevaCuenta(){
     const contraseña = valorDe('pwd');
     const id_rol = roles.selectedIndex;
     const id_sede = sedes.selectedIndex;
+    get(idBotonModal).addEventListener('click', () => {modal.hide();});
 
     if(!completo) {
         mostrarModal('Formulario incompleto', 'Se deben completar todos los campos', modal);
+        return;
+    } else if(telefono.length !== 10) {
+        mostrarModal('Teléfono no válido', 'El número de teléfono del usuario debe ser de 10 dígitos.', modal);
+        return;
     } else if(!validarContraseña(contraseña)) {
         mostrarModal('Contraseña no válida', 'La contraseña debe tener al menos 8 caracteres de longitud, incluir al menos una letra mayúscula, minúscula, un número y un carácter especial (>#$_.).', modal);
+        return;
     } else if (contraseña !== valorDe('pwd2')){
         mostrarModal('Error en contraseña', 'Las contraseñas no coinciden', modal);
+        return;
     } else if(roles.selectedIndex === 0){
         mostrarModal("Error en el rol", "Se debe de seleccionar un rol.", modal);
+        return;
     } else if(sedes.selectedIndex === 0){
         mostrarModal('Error en la sede', 'Se debe de seleccionar una sede.', modal);
+        return;
     } else {
+        if(!get('spinner')) get('btn-genToken').innerHTML += `<div id='spinner' class='ml-3 spinner-border text-primary' style='height: 20px; width: 20px;'></div>`; 
         // Validar si el correo no existe actualmente
         fetch('/altaUsuario', {
             method: 'POST',
@@ -60,11 +70,14 @@ function validarNuevaCuenta(){
                 }, 5000); // 5000 milisegundos = 5 segundos
             } else if (response.status === 409) {
                 mostrarModal('Correo en uso', 'Este correo es usado para una cuenta ya creada, intente con otro o, de lo contrario, <a href="/">inicie sesión</a>.', modal);
+                get('spinner').remove();
             } else {
+                get('spinner').remove();
                 alert('Error al registrar el usuario');
             }
         })
         .catch(error => {
+            get('spinner').remove();
             console.error('Error al validar correo:', error);
             alert('Error al validar correo');
         });
@@ -105,7 +118,6 @@ async function validarToken() {
 function cargarSedesYRoles() {
     const selectSede = get(idSelectSede);
     const selectRoles = get(idSelectRol);
-    console.clear();
 
     // Obtener sedes del backend
     fetch('/obtenerSedes')
@@ -182,6 +194,10 @@ document.addEventListener('DOMContentLoaded', () => {
     if(ruta === '/crearCuenta'){
         cargarSedesYRoles();
         get('cambio').addEventListener('click', visibilidadDeContraseña);
-        get('btn-genToken').addEventListener('click', validarNuevaCuenta);
+        get('btn-genToken').addEventListener('click', () => {validarNuevaCuenta();});
     }
+    permitirSoloNombres(get('nombres'));
+    permitirSoloNombres(get('apPat'));
+    permitirSoloNombres(get('apMat'));
+    permitirSoloNumeros(get('telefono'));
 });

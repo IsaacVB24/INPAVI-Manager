@@ -179,6 +179,8 @@ function altaVoluntario(){
     btnModal.innerHTML = 'Entendido';
     //btnModal.classList.add('btn-success');
     const modal = new bootstrap.Modal(get('myModal'));
+    get(idBotonModal).addEventListener('click', () => {modal.hide();});
+    get('cerrarModal').addEventListener('click', () => {modal.hide()});
     const divValoracion = get('valoracion');
     let botonesSeleccionadosValoracion = 0;
     let valoracion = [];
@@ -336,8 +338,9 @@ function altaVoluntario(){
                 btnModal.classList.remove('btn-danger');
                 btnModal.classList.add('btn-success');
                 btnModal.innerHTML = 'Genial';
-                btnModal.onclick = () => {window.location.href = '/tablero'};
                 mostrarModal('Voluntario registrado', 'El voluntario ha sido registrado exitosamente', modal);
+                if(get('spinner')) get('spinner').remove();
+                btnModal.addEventListener('click', () => {window.location.href = '/tablero';});
             } else if(data.status === 409) {
                 btnModal.classList.add('btn-danger');
                 btnModal.classList.remove('btn-success');

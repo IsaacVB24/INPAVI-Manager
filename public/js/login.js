@@ -6,6 +6,8 @@ document.addEventListener('DOMContentLoaded', () => {
       const correo = get('correo').value;
       const contraseña = get('contraseña').value;
       if(!get('spinner')) get('iniciarSesion').innerHTML += `<div id='spinner' class='ml-3 spinner-border text-primary' style='height: 20px; width: 20px;'></div>`;
+      const fechaUTC = new Date().toISOString();
+      const zonaHorariaOffset = new Date().getTimezoneOffset();
   
       try {
         const response = await fetch('/login', {
@@ -13,7 +15,7 @@ document.addEventListener('DOMContentLoaded', () => {
           headers: {
             'Content-Type': 'application/json'
           },
-          body: JSON.stringify({ correo, contraseña })
+          body: JSON.stringify({ correo, contraseña, fechaUTC, zonaHorariaOffset })
         });
   
         const result = await response.json();
@@ -22,8 +24,10 @@ document.addEventListener('DOMContentLoaded', () => {
           const errorMessage = get('error-message');
           errorMessage.classList.remove('d-none');
           errorMessage.textContent = result.mensaje || 'Error al iniciar sesión. Por favor, intenta de nuevo.';
+          get('spinner').remove();
         } else {
           sessionStorage.setItem('sede', result.sede);
+          sessionStorage.setItem('rol', result.rol);
           if(result.tipoUsuario === 2) localStorage.setItem('correo', correo);
           window.location.href = result.ruta;
         }

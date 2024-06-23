@@ -7,7 +7,7 @@ document.addEventListener('DOMContentLoaded', () => {
     get('alertas').innerHTML = ventanaModal;
     const elementoModal = get('myModal');
     modal = new bootstrap.Modal(elementoModal);
-    document.querySelectorAll('span').forEach(span => {span.style.backgroundColor = '#d6d9d9'; span.style.border = '1px solid black'; span.style.fontWeight = 'bold';});
+    document.querySelectorAll('span').forEach(span => {span.style.backgroundColor = '#6281b4'; span.style.border = '1px solid black'; span.style.color = 'white'; span.style.fontWeight = 'bold';});
     document.querySelectorAll('textarea').forEach(textarea => {textarea.style.border = '1px solid black';});
     document.querySelectorAll('input').forEach(input => {input.style.border = '1px solid black';});
     document.querySelectorAll('select').forEach(select => {select.style.border = '1px solid black';});
@@ -512,17 +512,20 @@ function darDeBajaVoluntario() {
     btn.classList.remove('btn-danger', 'btn-info', 'btn-success');
     btn.classList.add('btn-warning');
     mostrarModal('Dar de baja voluntario', `¿Realmente deseas dar de baja a "${nombreCompleto}"?<br><br>Esto significa, si se hicieron cambios en esta pantalla de sus datos, no se realizarán, solamente se cambiará su estado de "alta" a "registrado". <br><br><div class="form-group">
+    <div class="form-group">
+        <label for="comment">Motivo de la baja: <span style='color: red;'>*</span></label>
+        <textarea class="form-control" rows="5" id="motivo" style='resize: none;'></textarea>
+    </div>
     <label for="pwd" class="fw-bold">Si confirmas esta acción, escribe la contraseña que utilizas para iniciar sesión:</label>
     <input type="password" class="form-control" id="contrBaja" placeholder='Ingresa tu contraseña' maxlength=30>
     </div>`, modal);
     btn.addEventListener('click', () => {
+        if(!get('spinner')) get('botonesModal').innerHTML += `<div id='spinner' class='spinner-border text-warning'></div>`;
         const inputContrBaja = get('contrBaja');
-        if(inputContrBaja.value === '') {
-            alert('Se debe ingresar una contraseña');
-            mostrarModal('Dar de baja voluntario', `¿Realmente deseas dar de baja a "${nombreCompleto}"?<br><br>Esto significa, si se hicieron cambios en esta pantalla de sus datos, no se realizarán, solamente se cambiará su estado de "alta" a "registrado". <br><br><div class="form-group">
-                <label for="pwd" class="fw-bold">Si confirmas esta acción, escribe la contraseña que utilizas para iniciar sesión:</label>
-                <input type="password" class="form-control" id="contrBaja" placeholder='Ingresa tu contraseña' maxlength=30>
-                </div>`, modal);
+        const motivo = get('motivo').value.trim();
+        if(inputContrBaja.value === '' || motivo === '') {
+            alert('Se debe ingresar un motivo de baja y una contraseña');
+            modal.style.display = 'block';
         } else {
             const clave = get('contrBaja').value;
             fetch('/bajaVoluntario', {
@@ -530,7 +533,7 @@ function darDeBajaVoluntario() {
                 headers: {
                     'Content-type': 'application/json'
                 },
-                body: JSON.stringify({ idVoluntario: localStorage.getItem('id'), clave: clave })
+                body: JSON.stringify({ idVoluntario: localStorage.getItem('id'), clave: clave, motivo: motivo })
             })
             .then(response => {
                 if (!response.ok && response.status !== 401) {
@@ -543,6 +546,7 @@ function darDeBajaVoluntario() {
                 if(data.status !== 401 && data.status !== 500) window.location.href = '/tablero';
             })
             .catch(error => {
+                if(get('spinner')) get('spinner').remove();
                 console.error('Error al realizar la solicitud: ' + error);
                 alert('Hubo un error al intentar dar de baja al voluntario');
             });

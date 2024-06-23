@@ -3,8 +3,8 @@ document.addEventListener('DOMContentLoaded', () => {
     document.querySelectorAll('textarea').forEach(textarea => {textarea.readOnly = true; textarea.style.resize = 'none';});
     const id_voluntario = localStorage.getItem('id');
     document.querySelectorAll('span').forEach(span => {if(span.id !== 'fecha') {span.style.backgroundColor = '#6281b4'; span.style.border = '1px solid black'; span.style.color = 'white'; span.style.fontWeight = 'bold';}});
-    document.querySelectorAll('textarea').forEach(textarea => {textarea.style.border = '1px solid black'; textarea.style.backgroundColor = 'white';});
-    document.querySelectorAll('input').forEach(input => {input.style.border = '1px solid black'; input.style.backgroundColor = 'white';});
+    document.querySelectorAll('textarea').forEach(textarea => {textarea.style.border = '1px solid black'; textarea.style.backgroundColor = '#f6f6f6';});
+    document.querySelectorAll('input').forEach(input => {input.style.border = '1px solid black'; input.style.backgroundColor = '#f6f6f6';});
     document.querySelectorAll('select').forEach(select => {select.style.border = '1px solid black';});
     //return;
     fetch('/infoVoluntario', {
@@ -49,7 +49,6 @@ document.addEventListener('DOMContentLoaded', () => {
             get('sede').value = voluntario.sede;
             get('fechaCaptacion').value = tratarFecha(voluntario.fecha_captacion);
             get('personaDeAlta').value = `${voluntario.sede_usuarioAlta} - ${voluntario.nombre_usuarioAlta} ${voluntario.apPat_usuarioAlta} ${voluntario.apMat_usuarioAlta}`;
-            console.log(voluntario);
             get('internoAsignado').value = voluntario.id_voluntarioAsignado === 0 ? 'Sin asignación' : `${voluntario.nombre_voluntarioAsignado}`;
             if(!voluntario.intereses) {
                 get('intereses').rows = 1;

@@ -1,4 +1,5 @@
 document.addEventListener('DOMContentLoaded', () => {
+    get('cerrarSesion').addEventListener('click', () => {sessionStorage.removeItem('sede');});
     localStorage.removeItem('id');
     fetch('/obtenerBotones', {
         method: 'GET',

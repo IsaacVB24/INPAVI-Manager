@@ -94,7 +94,7 @@ const verificarSesionYStatus = (req, res, next) => {
       res.redirect('/');
   }
 
-  if(!permisosPorRol[rol] || !permisosPorRol[rol].includes(ruta)) {
+  if((!permisosPorRol[rol] || !permisosPorRol[rol].includes(ruta)) && status === 1) {
     return res.status(403).json({ mensaje: 'Tu rol no está permitido a acceder a esta ruta' });
   }
   next();
@@ -248,12 +248,12 @@ router.get('/modificarcdespensas', verificarSesionYStatus, (req, res) => {
 
 // Ruta para el inicio de sesión
 router.post('/login', async (req, res) => {
-  const { correo, contraseña } = req.body;
+  const { correo, contraseña, fechaUTC, zonaHorariaOffset } = req.body;
 
   try {
     // Buscar el usuario en la base de datos por correo
     db.get(`
-      SELECT u.contraseña, u.status, u.id_rol, u.nombre_usuario, u.id_sede, u.id_usuario, s.sede
+      SELECT u.contraseña, u.status, u.id_rol, u.nombre_usuario, u.apellido_paterno, u.apellido_materno, u.id_sede, u.id_usuario, s.sede
       FROM usuarios u
       LEFT JOIN sedes s ON u.id_sede = s.id_sede
       WHERE u.correo = ?`, [correo], async (err, row) => {
@@ -274,11 +274,11 @@ router.post('/login', async (req, res) => {
               sedeEnvio = row.sede;
             }
             // Establecer la sesión del usuario
-            req.session.usuario = { correo, status: row.status, id_rol: row.id_rol, nombre: row.nombre_usuario, id_sede: row.id_sede, id_usuario: row.id_usuario, sede: row.sede };
-            if(row.status === 0) res.status(404).json({ mensaje: 'Correo no encontrado' });
-            if(row.status === 1) res.status(200).json({ mensaje: 'Inicio de sesión correcto', ruta: '/tablero', sede: sedeEnvio });
-            if(row.status === 2) res.status(200).json({ mensaje: 'En espera de que el usuario ingrese token de verificación de correo', ruta: '/ingresarToken', tipoUsuario: row.status });
-            if(row.status === 3) res.status(200).json({ mensaje: 'En espera de que un delegado apruebe la solicitud', ruta: '/verificacion' });
+            req.session.usuario = { correo, status: row.status, id_rol: row.id_rol, nombre: row.nombre_usuario, apPat: row.apellido_paterno, apMat: row.apellido_materno, id_sede: row.id_sede, id_usuario: row.id_usuario, sede: row.sede, fechaUTC: fechaUTC, zonaHorariaOffset: zonaHorariaOffset };
+            if(row.status === 0) res.status(404).json({ mensaje: 'Correo no encontrado', sede: '', rol: '' });
+            if(row.status === 1) res.status(200).json({ mensaje: 'Inicio de sesión correcto', ruta: '/tablero', sede: sedeEnvio, rol: row.id_rol });
+            if(row.status === 2) res.status(200).json({ mensaje: 'En espera de que el usuario ingrese token de verificación de correo', ruta: '/ingresarToken', tipoUsuario: row.status, sede: '', rol: '' });
+            if(row.status === 3) res.status(200).json({ mensaje: 'En espera de que un delegado apruebe la solicitud', ruta: '/verificacion', sede: '', rol: '' });
           } else {
             res.status(401).json({ mensaje: 'Contraseña incorrecta' });
           }
@@ -1530,7 +1530,7 @@ router.post('/modificarDatosVoluntario', (req, res) => {
 // Ruta para dar de baja a un voluntario
 router.post('/bajaVoluntario', (req, res) => {
   if (req.session && req.session.usuario) {
-    const { idVoluntario, clave } = req.body;
+    const { idVoluntario, clave, motivo } = req.body;
     const { id_usuario } = req.session.usuario;
 
     db.get('SELECT contraseña FROM usuarios WHERE id_usuario = ?', [id_usuario], async (err, row) => {
@@ -1543,12 +1543,17 @@ router.post('/bajaVoluntario', (req, res) => {
         return res.status(404).json({ mensaje: 'No se localizó al usuario que da de baja' });
       } else {
         const match = await bcrypt.compare(clave, row.contraseña);
-        db.all('SELECT v.id_sede, dv.id_derivacion FROM voluntarios v LEFT JOIN derivacionVoluntario dv ON v.id_voluntario = dv.id_voluntario WHERE v.id_voluntario = ?', [idVoluntario], (err, rows) => {
+        db.all('SELECT v.id_sede, dv.id_derivacion, cv.nombreCompleto, p.programa FROM voluntarios v LEFT JOIN derivacionVoluntario dv ON v.id_voluntario = dv.id_voluntario LEFT JOIN conjuntoVoluntarios cv ON v.id_voluntario = cv.id_filaVoluntarios LEFT JOIN programas p ON p.id_programa = dv.id_derivacion WHERE v.id_voluntario = ?', [idVoluntario], (err, rows) => {
           if(err) {
             console.error(`Error al obtener la sede y la derivación del voluntario a dar de baja.`);
             return res.status(500).json({ mensaje: 'Error al obtener la sede y la derivación del voluntario a dar de baja' });
           }
           if(rows) {
+            const nombreVoluntario = rows[0].nombreCompleto;
+            let programasVoluntario = [];
+            rows.forEach(fila => {
+              programasVoluntario.push(fila.programa);
+            });
             if(match) {
               db.serialize(() => {
                 db.run('BEGIN TRANSACTION');
@@ -1570,6 +1575,53 @@ router.post('/bajaVoluntario', (req, res) => {
                     if(err) {
                       return hacerRollback(500, `Error al eliminar al voluntario de la tabla general`, res, err);
                     }
+
+                    db.run('DELETE FROM derivacionVoluntario WHERE id_voluntario = ?', [idVoluntario], (err) => {
+                      if (err) {
+                        return hacerRollback(500, `Error al desvincular al voluntario de los programas de derivación`, res, err);
+                      }
+                      
+                      db.get('SELECT correo FROM usuarios WHERE id_rol = ? AND id_sede = ?', [2, req.session.usuario.id_sede], (err, row) => {
+                        if(err) {
+                          return hacerRollback(500, `Error al obtener el correo del delegado para la notificación de la baja.`, res, err);
+                        }
+                        if(!row) {
+                          return hacerRollback(403, `No se completó la operación debido a que no existe actualmente un delegado de esta sede`, res, err);
+                        } else {
+                          const correoDelegado = row.correo;
+                          
+                          const fechaUTC = new Date(req.session.usuario.fechaUTC);
+                          const zonaHorariaOffset = req.session.usuario.zonaHorariaOffset;
+
+                          const fechaLocal = new Date(fechaUTC.getTime() - (zonaHorariaOffset * 60000));
+
+                          // Obtener componentes individuales de fecha y hora
+                          const anio = fechaLocal.getFullYear();
+                          const mes = (fechaLocal.getMonth() + 1).toString().padStart(2, '0');
+                          const dia = fechaLocal.getDate().toString().padStart(2, '0');
+                          const horas = fechaLocal.getHours().toString().padStart(2, '0');
+                          const minutos = fechaLocal.getMinutes().toString().padStart(2, '0');
+
+                          // Obtener componentes individuales de la hora UTC
+                          const horasUTC = fechaUTC.getUTCHours().toString().padStart(2, '0');
+                          const minutosUTC = fechaUTC.getUTCMinutes().toString().padStart(2, '0');
+                          const horaUTC = `${horasUTC}:${minutosUTC}`;
+
+                          // Formatear la fecha y la hora
+                          const fechaFormateada = `${dia}/${mes}/${anio}`;
+                          const horaFormateada = `${horas}:${minutos}`;
+                          enviarCorreoEnTransaccion(correoDelegado, 'Baja de voluntario', `<strong>¡Alerta!</strong> Se ha dado de baja al voluntario "${nombreVoluntario}", quien tenía vinculación en los programas: ${formateoArregloParaImpresion(programasVoluntario)}. La baja se debe dado lo siguiente: <br>
+                          "${motivo}"
+                          <br><br>
+                          Datos de quien dio de baja: <br>
+                            > Nombre: ${req.session.usuario.nombre} ${req.session.usuario.apPat} ${req.session.usuario.apMat}<br>
+                            > Fecha: ${fechaFormateada}<br>
+                            > Hora: ${horaFormateada} horas (${horaUTC} horas - Tiempo UTC)<br>
+                          <br><br>
+                          Si crees que se trata de un error, <a href='${dominio}'>accede</a> al sistema para visualizar la información.`);
+                        }
+                      });
+                    });
                   });
                 });
                 realizarCommit(res, 200, `Se dio de baja correctamente al voluntario.`);
@@ -2121,6 +2173,21 @@ function enviarCorreoReestablecerContraseña(correo, token) {
   });
 }
 
+function enviarCorreoEnTransaccion(correoEnvio, asunto, mensaje, res) {
+  const mailOptions = {
+    from: correoParaEnvios,
+    to: correoEnvio,
+    subject: asunto,
+    html: mensaje
+  };
+  
+  transporter.sendMail(mailOptions, (error, info) => {
+    if(error) {
+      return hacerRollback(500, `Error al enviar el correo con asunto "${asunto}": ${info}`, res, error);
+    }
+  });
+}
+
 // Función para encriptar la contraseña
 async function encriptar(contraseña) {
   try {
@@ -2148,6 +2215,24 @@ function realizarCommit(res, codigo, mensajeExito) {
     //console.log('Se realizó commit correctamente');
     return res.status(codigo).json({ mensaje: mensajeExito });
   });
+}
+
+function formateoArregloParaImpresion(arreglo) {
+  if(arreglo.length === 0) {
+      return '-';
+  } else {
+      let total = '';
+      arreglo.forEach((elemento, indice) => {
+        if(elemento !== '') {
+          if((indice + 1) !== arreglo.length) {
+              total += (elemento + ', ');
+          } else {
+              total += elemento;
+          }
+        }
+      });
+      return total;
+  }
 }
 
 // Middleware para manejar rutas no encontradas
