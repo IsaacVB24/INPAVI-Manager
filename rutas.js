@@ -25,8 +25,8 @@ const transporter = nodemailer.createTransport({
 });
 
 const permisosPorRol = {
-  1: ['/tablero', '/datosVoluntario', '/programas', '/datosPrograma', '/entrada_inicio'],  // Rutas exclusivas del supervisor
-  2: ['/tablero', '/modificarVoluntario', '/altaVoluntario', '/datosVoluntario', '/programas', '/inactivos', '/datosPrograma', '/editarPrograma', '/entrada_inicio'],  // Rutas exlusivas del delegado
+  1: ['/tablero', '/datosVoluntario', '/programas', '/datosPrograma', '/entrada_inicio', '/principal'],  // Rutas exclusivas del supervisor
+  2: ['/tablero', '/modificarVoluntario', '/altaVoluntario', '/datosVoluntario', '/programas', '/inactivos', '/datosPrograma', '/editarPrograma', '/principal', '/entrada_inicio'],  // Rutas exlusivas del delegado
   3: ['/tablero', '/modificarVoluntario', '/altaVoluntario', '/datosVoluntario', '/inactivos'],  // Rutas exclusivas del coordinador DAS
   4: [],  // Rutas exclusivas del coordinador Entrada
   5: ['/tablero', '/altaVoluntario', '/datosVoluntario'],  // Rutas exclusivas del equipo directo DAS
@@ -288,7 +288,7 @@ router.post('/login', async (req, res) => {
             // Establecer la sesión del usuario
             req.session.usuario = { correo, status: row.status, id_rol: row.id_rol, nombre: row.nombre_usuario, apPat: row.apellido_paterno, apMat: row.apellido_materno, id_sede: row.id_sede, id_usuario: row.id_usuario, sede: row.sede, fechaUTC: fechaUTC, zonaHorariaOffset: zonaHorariaOffset };
             if(row.status === 0) res.status(404).json({ mensaje: 'Correo no encontrado', sede: '', rol: '' });
-            if(row.status === 1) res.status(200).json({ mensaje: 'Inicio de sesión correcto', ruta: '/tablero', sede: sedeEnvio, rol: row.id_rol });
+            if(row.status === 1) res.status(200).json({ mensaje: 'Inicio de sesión correcto', ruta: ((row.id_rol === 1 || row.id_rol === 2) ? '/principal' : '/tablero'), sede: sedeEnvio, rol: row.id_rol });
             if(row.status === 2) res.status(200).json({ mensaje: 'En espera de que el usuario ingrese token de verificación de correo', ruta: '/ingresarToken', tipoUsuario: row.status, sede: '', rol: '' });
             if(row.status === 3) res.status(200).json({ mensaje: 'En espera de que un delegado apruebe la solicitud', ruta: '/verificacion', sede: '', rol: '' });
           } else {

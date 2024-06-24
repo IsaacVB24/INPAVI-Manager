@@ -16,6 +16,7 @@
   <link rel="stylesheet" href="../css/style2.css">
   <script src="../js/dashboard.js" defer></script>
   <script src="../js/general.js"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css"> 
 </head>
 <body>
   <div id="barraNav"></div>
@@ -25,8 +26,13 @@
     <div class="container form-border mb-5">
         <!-- Div para los datos de usuario y cerrar sesión -->
         <div class="d-flex justify-content-between align-items-center">
-            <span class="m-3">Hola de nuevo, <span id="username"></span>. ¿Qué haremos hoy como <span id="rol"></span>?</span>
-            <a href="/logout" class="btn btn-danger" id="cerrarSesion">Cerrar sesión</a>
+          <a href="/principal" id="principal">
+            <button class="button-return">
+                <i class="bi bi-arrow-left">  Inicio</i>
+            </button>
+          </a>
+          <span class="m-3">Hola de nuevo, <span id="username"></span>. ¿Qué haremos hoy como <span id="rol"></span>?</span>
+          <a href="/logout" class="btn btn-danger" id="cerrarSesion">Cerrar sesión</a>
         </div>
         <!-- Div para botones dinámicos -->
         <div id="botonesDinamicos" style="text-align: center;"></div>

@@ -1,5 +1,8 @@
 document.addEventListener('DOMContentLoaded', () => {
     get('cerrarSesion').addEventListener('click', () => {sessionStorage.removeItem('sede');});
+    if(!(parseInt(sessionStorage.getItem('rol')) === 1 || parseInt(sessionStorage.getItem('rol')) === 2)) {
+        get('principal').remove();
+    }
     localStorage.removeItem('id');
     fetch('/obtenerBotones', {
         method: 'GET',

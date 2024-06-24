@@ -196,6 +196,13 @@ function permitirSoloNumeros(input) {
 
 document.addEventListener('DOMContentLoaded', () => {
   if(get('barraNav')) get('barraNav').innerHTML = barraNav;
+  get('logoBarra').onclick = () => {
+    if(parseInt(sessionStorage.getItem('rol')) === 1 || parseInt(sessionStorage.getItem('rol')) === 2) {
+      window.location.href = '/principal';
+    } else {
+      window.location.href = '/tablero';
+    }
+  };
   //if(get('alertas')) {get('alertas').innerHTML = `<div class="alert alert-warning alert-dismissible"><button type="button" class="btn-close" data-bs-dismiss="alert"></button><strong>¡Guarda tus cambios!</strong> El servidor se reiniciará pronto.</div>`;}
   // Obtener sedes del backend
   if(['/', '/recuperarCuenta', '/crearCuenta'].includes(ruta)) return;
