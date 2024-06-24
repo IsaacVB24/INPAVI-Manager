@@ -42,11 +42,18 @@ document.addEventListener('DOMContentLoaded', () => {
             nombre.classList.add('align-middle');
             fila.appendChild(nombre);
         
-            const involucrados = crear('td');
-            involucrados.innerHTML = programa.cantidadInvolucrados;
-            involucrados.classList.add('align-middle');
-            fila.appendChild(involucrados);
-        
+            if(fechaActual.getTime() > fechaComparar.getTime()) {
+                const fechaInicio = crear('td');
+                fechaInicio.innerHTML = `${datosProgramas.fechaInicio}`;
+                fechaInicio.classList.add('align-middle');
+                fila.appendChild(fechaInicio);
+            } else {
+                const involucrados = crear('td');
+                involucrados.innerHTML = programa.cantidadInvolucrados;
+                involucrados.classList.add('align-middle');
+                fila.appendChild(involucrados);
+            }
+
             const fechaFin = crear('td');
             fechaFin.innerHTML = programa.fechaFin || 'Sin expiración';
             fechaFin.classList.add('align-middle');
@@ -68,18 +75,28 @@ document.addEventListener('DOMContentLoaded', () => {
             img2.title = 'Editar datos de programa social';
             img2.style.height = '30px';
             img2.classList.add('m-3');
-            if(parseInt(sessionStorage.getItem('rol')) !== 1) div.appendChild(img2);
+            img2.id = `editar_programa${programa.id_programa}`;
+            //if(parseInt(sessionStorage.getItem('rol')) !== 1) div.appendChild(img2);
             acciones.appendChild(div);
-            fila.appendChild(acciones);
+            if(fechaActual.getTime() < fechaComparar.getTime()) fila.appendChild(acciones);
             
             (fechaActual.getTime() < fechaComparar.getTime()) ? datosProgramas.appendChild(fila) : datosProgramasExp.appendChild(fila);
 
-            get(`ver_sede${programa.id_sede}_programa${programa.id_programa}`).addEventListener('click', () => {
-                localStorage.setItem('idPrograma', programa.id_programa);
-                localStorage.setItem('idSede', programa.id_sede);
-                localStorage.setItem('programa', programa.programa);
-                window.location.href = '/datosPrograma';
-            });
+            if(fechaActual.getTime() < fechaComparar.getTime()) {
+                get(`ver_sede${programa.id_sede}_programa${programa.id_programa}`).onclick = () => {
+                    localStorage.setItem('idPrograma', programa.id_programa);
+                    localStorage.setItem('idSede', programa.id_sede);
+                    localStorage.setItem('programa', programa.programa);
+                    window.location.href = '/datosPrograma';
+                };
+                /*get(`editar_programa${programa.id_programa}`).onclick = () => {
+                    localStorage.setItem('idPrograma', programa.id_programa);
+                    localStorage.setItem('programa', programa.programa);
+                    localStorage.setItem('idSede', programa.id_sede);
+                    window.location.href = '/editarPrograma';
+                };*/
+            }
+            
         });
         document.querySelectorAll('th').forEach(th => {th.style.backgroundColor = fondoTh;});
         if(datosProgramasExp.querySelectorAll('tr').length === 0) {

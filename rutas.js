@@ -26,7 +26,7 @@ const transporter = nodemailer.createTransport({
 
 const permisosPorRol = {
   1: ['/tablero', '/datosVoluntario', '/programas', '/datosPrograma', '/entrada_inicio'],  // Rutas exclusivas del supervisor
-  2: ['/tablero', '/modificarVoluntario', '/altaVoluntario', '/datosVoluntario', '/programas', '/inactivos', '/datosPrograma', '/entrada_inicio'],  // Rutas exlusivas del delegado
+  2: ['/tablero', '/modificarVoluntario', '/altaVoluntario', '/datosVoluntario', '/programas', '/inactivos', '/datosPrograma', '/editarPrograma', '/entrada_inicio'],  // Rutas exlusivas del delegado
   3: ['/tablero', '/modificarVoluntario', '/altaVoluntario', '/datosVoluntario', '/inactivos'],  // Rutas exclusivas del coordinador DAS
   4: [],  // Rutas exclusivas del coordinador Entrada
   5: ['/tablero', '/altaVoluntario', '/datosVoluntario'],  // Rutas exclusivas del equipo directo DAS
@@ -184,6 +184,10 @@ router.get('/inactivos', verificarSesionYStatus, (req, res) => {
 
 router.get('/datosPrograma', verificarSesionYStatus, (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'html', 'datosPrograma.html'));
+});
+
+router.get('/editarPrograma', verificarSesionYStatus, (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'html', 'modificarPrograma.html'));
 });
 
 router.get('/principal', verificarSesionYStatus, (req, res) => {
@@ -1965,6 +1969,12 @@ router.post('/desvincularVoluntario', (req, res) => {
       }
     });
   } else {
+    res.redirect('/');
+  }
+});
+
+router.post('/modificarPrograma', (req, res) => {
+  if(req.session && req.session.usuario) {} else {
     res.redirect('/');
   }
 });
