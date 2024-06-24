@@ -11,7 +11,6 @@
     <link rel="stylesheet" href="../css/style2.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css"> 
     <script src="../bootstrap-5.3.3-dist/js/bootstrap.bundle.min.js"></script>
-    <script src="../js/crearCuenta.js"></script>
     <script src="../js/general.js"></script>
     <script src="../js/programasSociales.js"></script>
     <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
@@ -29,7 +28,7 @@
                 </button>
             </a>
             <div class="row mt-3" style="text-align: center;">
-                <div class="col-md-6">
+                <div class="col">
                     <div class="border border-3 mt-2 p-2" id="programasActivos">
                         <div class="border-bottom border-2">
                             <h4 class="fw-bold">Programas activos actualmente</h4>
@@ -37,12 +36,13 @@
                             </div>
                         </div>
                         <div class="mt-2 table-responsive">
-                            <table class="table table-hover" style="border: 1px solid black;">
+                            <table class="table table-hover" style="border: 2px solid black;">
                                 <thead>
                                     <tr id="encabezados">
                                         <th>Nombre</th>
                                         <th>Participantes</th>
                                         <th>Fecha fin</th>
+                                        <th id="acciones">Acciones</th>
                                     </tr>
                                 </thead>
                                 <tbody id="datosProgramas">
@@ -50,26 +50,35 @@
                             </table>
                         </div>
                     </div>
-                    <div class="mt-2">Programas expirados</div>
-                </div>
-                <div class="col-md-6 align-content-center">
-                    <div class="text-center">
-                        <a href="#" class="btn btn-primary" id="btn-nuevoPrograma">Crear nuevo programa social</a>
-                        <div class="card" style="width:100%" id="datosPrograma">
-                            <div class="card-body" style="border: 1px solid black;">
-                              <h4 class="card-title fw-bold" id="nombrePrograma">Entrada</h4>
-                              <p class="card-text mt-4">Descripción: <textarea type="text" id="descripcion" readonly placeholder="Descripción del programa" style="resize: none; width: 100%; padding: 5px;" rows="4"></textarea></p>
-                              <p class="card-text">Voluntarios involucrados: <input type="text" id="cantidadVoluntarios" readonly placeholder="Voluntarios involucrados"></p>
-                              <p class="card-text">Fecha inicio: <input type="date" id="fechaInicio" readonly placeholder="Fecha de inicio programa"></p>
-                              <p class="card-text">Fecha fin: <input type="date" id="fechaFin" readonly placeholder="Fecha de fin"></p>
-                              <p class="card-text">Sede: <input type="text" id="sede" readonly placeholder="Sede"></p>
-                              <a href="#" class="btn btn-primary">Modificar programa</a>
+                    
+                    <div class="border border-3 mt-2 p-2" id="programasExpirados">
+                        <div class="border-bottom border-2">
+                            <h4 class="fw-bold">Programas expirados</h4>
+                            <div>
                             </div>
+                        </div>
+                        <div class="mt-2 table-responsive">
+                            <table class="table table-hover" style="border: 2px solid black;">
+                                <thead>
+                                    <tr id="encabezadosExp">
+                                        <th>Nombre</th>
+                                        <th>Fecha inicio</th>
+                                        <th>Fecha fin</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="datosProgramasExp">
+                                </tbody>
+                            </table>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
     </main>
+    <style>
+        img:hover {
+            cursor: pointer;
+        }
+    </style>
 </body>
 </html>

@@ -25,9 +25,9 @@ const transporter = nodemailer.createTransport({
 });
 
 const permisosPorRol = {
-  1: ['/tablero', '/datosVoluntario', '/programas', '/entrada_inicio'],  // Rutas exclusivas del supervisor
-  2: ['/tablero', '/modificarVoluntario', '/altaVoluntario', '/datosVoluntario', '/programas', '/inactivos', '/entrada_inicio'],  // Rutas exlusivas del delegado
-  3: ['/tablero', '/modificarVoluntario', '/altaVoluntario', '/datosVoluntario'],  // Rutas exclusivas del coordinador DAS
+  1: ['/tablero', '/datosVoluntario', '/programas', '/datosPrograma', '/entrada_inicio'],  // Rutas exclusivas del supervisor
+  2: ['/tablero', '/modificarVoluntario', '/altaVoluntario', '/datosVoluntario', '/programas', '/inactivos', '/datosPrograma', '/entrada_inicio'],  // Rutas exlusivas del delegado
+  3: ['/tablero', '/modificarVoluntario', '/altaVoluntario', '/datosVoluntario', '/inactivos'],  // Rutas exclusivas del coordinador DAS
   4: [],  // Rutas exclusivas del coordinador Entrada
   5: ['/tablero', '/altaVoluntario', '/datosVoluntario'],  // Rutas exclusivas del equipo directo DAS
   6: []   // Rutas exclusivas del equipo directo Entrada
@@ -180,6 +180,10 @@ router.get('/enConstruccion', verificarSesionYStatus, (req, res) => {
 
 router.get('/inactivos', verificarSesionYStatus, (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'html', 'activarVoluntario.html'));
+});
+
+router.get('/datosPrograma', verificarSesionYStatus, (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'html', 'datosPrograma.html'));
 });
 
 router.get('/principal', verificarSesionYStatus, (req, res) => {
@@ -862,7 +866,8 @@ router.get('/obtenerBotones', (req, res) => {
           botones = [
             { nombre: 'Registrar a un voluntario', ruta: '/altaVoluntario', inactivo: false, tipo: 'button' },
             { nombre: 'Modificar información de un voluntario', ruta: '/modificarVoluntario', inactivo: true, tipo: 'icon' },
-            { nombre: 'Ver la información de un voluntario', ruta: '/datosVoluntario', inactivo: true, tipo: 'icon' }
+            { nombre: 'Ver la información de un voluntario', ruta: '/datosVoluntario', inactivo: true, tipo: 'icon' },
+            { nombre: 'Voluntarios prospectos', ruta: '/inactivos', inactivo: false, tipo: 'button' }
           ];
           break;
         case 4: // Coordinador Entrada
@@ -1639,7 +1644,7 @@ router.post('/bajaVoluntario', (req, res) => {
                           Datos de quien dio de baja: <br>
                             > Nombre: ${req.session.usuario.nombre} ${req.session.usuario.apPat} ${req.session.usuario.apMat}<br>
                             > Fecha: ${fechaFormateada}<br>
-                            > Hora: ${horaFormateada} horas (${horaUTC} horas - Tiempo UTC)<br>
+                            > Hora: ${horaFormateada} horas<br>
                           <br><br>
                           Si crees que se trata de un error, <a href='${dominio}'>accede</a> al sistema para visualizar la información.`);
                         }
@@ -1661,28 +1666,31 @@ router.post('/bajaVoluntario', (req, res) => {
   }
 });
 
-router.post('/consultaPrograma', verificarSesionYStatus, (req, res) => {
-  const { id_programa } = req.body;
-  const id_sede = req.body.id_sede || req.session.usuario.id_sede;
-
-  db.get(`
-    SELECT *
-      FROM programas p
-        INNER JOIN programasSede ps
-          ON ps.id_programa = p.id_programa
-        LEFT JOIN sedes s
-          ON ps.id_sede = s.id_sede
-      WHERE ps.id_sede = ? AND ps.id_programa = ?`, [id_sede, id_programa], (err, row) => {
-    if(err) {
-      console.error(`Error al consultar los datos del programa: ` + err);
-      return res.status(500).json({ mensaje:'Error al consultar los datos del programa' });
-    }
-    if(!row) {
-      return res.status(404).json({ mensaje: `No se encontró el programa buscado` });
-    }
-    console.log(row);
-    return res.status(200).json({ mensaje: row });
-  });
+router.post('/consultaPrograma', (req, res) => {
+  if(req.session && req.session.usuario) {
+    const { id_programa } = req.body;
+    const id_sede = req.body.id_sede || req.session.usuario.id_sede;
+    
+    db.get(`
+      SELECT *
+        FROM programas p
+          INNER JOIN programasSede ps
+            ON ps.id_programa = p.id_programa
+          LEFT JOIN sedes s
+            ON ps.id_sede = s.id_sede
+        WHERE ps.id_sede = ? AND p.id_programa = ?`, [id_sede, id_programa], (err, row) => {
+      if(err) {
+        console.error(`Error al consultar los datos del programa: ` + err);
+        return res.status(500).json({ mensaje:'Error al consultar los datos del programa' });
+      }
+      if(!row) {
+        return res.status(404).json({ mensaje: `No se encontró el programa buscado` });
+      }
+      return res.status(200).json({ mensaje: row });
+    });
+  } else {
+    res.redirect('/');
+  }
 });
 
 router.post('/consultaProgramas', (req, res) => {
@@ -1802,6 +1810,158 @@ router.post('/voluntariosParaAlta', (req, res) => {
         });
         const voluntariosArray = Object.values(voluntarios);
         res.status(200).json({ voluntariosArray });
+      }
+    });
+  } else {
+    res.redirect('/');
+  }
+});
+
+router.post('/voluntariosEnPrograma', (req, res) => {
+  if(req.session && req.session.usuario) {
+    const { id_programa, id_sede } = req.body;
+
+    db.all(`
+      SELECT dv.*, p.programa, cv.nombreCompleto, v.fecha_alta
+      FROM derivacionVoluntario dv
+      LEFT JOIN programas p
+        ON p.id_programa = dv.id_derivacion
+      LEFT JOIN conjuntoVoluntarios cv
+        ON cv.id_filaVoluntarios = dv.id_voluntario
+      LEFT JOIN voluntarios v
+        ON v.id_voluntario = dv.id_voluntario
+      WHERE p.id_programa = ? AND cv.id_sede = ?
+    `, [id_programa, id_sede], (err, rows) => {
+      if(err) {
+        return res.status(500).json({ mensaje: 'Error al consultar los voluntarios asociados al programa social' })
+      }
+      const voluntarios = [];
+      if(!rows) {
+        res.status(200).json(voluntarios);
+      } else {
+        rows.forEach(row => {
+          voluntarios.push(row);
+        });
+        res.status(200).json(voluntarios);
+      }
+    }
+    );
+  } else {
+    res.redirect('/');
+  }
+});
+
+router.post('/compararContra', (req, res) => {
+  if(req.session && req.session.usuario) {
+    const { contra } = req.body;
+    
+    db.get('SELECT contraseña from usuarios WHERE id_usuario = ?', [req.session.usuario.id_usuario], async (err, row) => {
+      if(err) {
+        console.error('Error al obtener la contraseña del usuario para compararla:', err);
+        return res.status(500).json({ mensaje: 'Error al obtener la contraseña del usuario para compararla' });
+      }
+      const match = await bcrypt.compare(contra, row.contraseña);
+      if(match) {
+        res.status(200).json({ mensaje: 'Contraseña correcta' });
+      } else {
+        res.status(403).json({ mensaje: 'Contraseña incorrecta' });
+      }
+    });
+  } else {
+    res.redirect('/');
+  }
+});
+
+router.post('/desvincularVoluntario', (req, res) => {
+  if(req.session && req.session.usuario) {
+    const { id_voluntario, id_programa, id_sede, motivo } = req.body;
+
+    db.get('SELECT p.programa, cv.nombreCompleto FROM derivacionVoluntario dv LEFT JOIN programas p ON p.id_programa = dv.id_derivacion LEFT JOIN conjuntoVoluntarios cv ON cv.id_filaVoluntarios = dv.id_voluntario WHERE dv.id_voluntario = ? AND p.id_programa = ?', [id_voluntario, id_programa], (err, row) => {
+      if(err) {
+        console.error(`Error al buscar si el voluntario existe: ${err}`);
+        return res.status(500).json({ mensaje: 'Error al buscar si el voluntario existe' })
+      }
+      if(!row) {
+        return res.status(404).json({ mensaje: 'El voluntario buscado no existe' });
+      } else {
+        const programaActual = row.programa;
+        const nombreVoluntario = row.nombreCompleto;
+        db.serialize(() => {
+          db.run('BEGIN TRANSACTION');
+          
+          db.run('DELETE FROM derivacionVoluntario WHERE id_voluntario = ? AND id_derivacion = ?', [id_voluntario, id_programa], (err) => {
+            if(err) {
+              return hacerRollback(500, `Error al desvincular al voluntario con el programa`, res, err);
+            }
+          });
+
+          db.run('UPDATE programasSede SET cantidadInvolucrados = cantidadInvolucrados - 1 WHERE id_programa = ? AND id_sede = ?', [id_programa, id_sede], (err) => {
+            if(err) return hacerRollback(500, `Error al actualizar la cantidad de voluntarios asociados al programa`, res, err);
+          });
+          
+          const programas = [];
+          db.all('SELECT dv.id_derivacion, p.programa FROM derivacionVoluntario dv LEFT JOIN programas p ON p.id_programa = dv.id_derivacion WHERE id_voluntario = ?', [id_voluntario], (err, rows) => {
+            if(err) {
+              return hacerRollback(500, `Error al comprobar si el voluntario aún está asociado a algunos programas sociales`, res, err);
+            }
+            if(!rows) {
+              db.run('DELETE FROM conjuntoVoluntarios WHERE id_filaVoluntarios = ?', [id_voluntario], (err) => {
+                if(err) {
+                  return hacerRollback(500, `Error al eliminar al voluntario de la tabla general`, res, err);
+                }
+              });
+            } else {
+              rows.forEach(row => {
+                programas.push(row.programa);
+              });
+            }
+          });
+
+          db.get('SELECT correo FROM usuarios WHERE id_sede = ? AND id_rol = ?', [id_sede, 2], (err, row) => {
+            if(err) {
+              return hacerRollback(500, `Error al obtener el correo del delegado para el envío de notificación de desvinculación`, res, err);
+            }
+            const correoDelegado = row.correo;
+            
+            const fechaUTC = new Date();
+            const zonaHorariaOffset = req.session.usuario.zonaHorariaOffset;
+
+            const fechaLocal = new Date(fechaUTC.getTime() - (zonaHorariaOffset * 60000));
+
+            // Obtener componentes individuales de fecha y hora
+            const anio = fechaLocal.getFullYear();
+            const mes = (fechaLocal.getMonth() + 1).toString().padStart(2, '0');
+            const dia = fechaLocal.getDate().toString().padStart(2, '0');
+            const horas = fechaLocal.getHours().toString().padStart(2, '0');
+            const minutos = fechaLocal.getMinutes().toString().padStart(2, '0');
+
+            // Obtener componentes individuales de la hora UTC
+            const horasUTC = fechaUTC.getUTCHours().toString().padStart(2, '0');
+            const minutosUTC = fechaUTC.getUTCMinutes().toString().padStart(2, '0');
+
+            // Formatear la fecha y la hora
+            const fechaFormateada = `${dia}/${mes}/${anio}`;
+            const horaFormateada = `${horas}:${minutos}`;
+
+            enviarCorreoEnTransaccion(correoDelegado, 'Desvinculación de voluntario', `<strong>¡Alerta!</strong> Se ha desvinculado al voluntario "${nombreVoluntario}" del programa "${programaActual}", quien tenía vinculación en los programas: ${programas.length !== 0 ?formateoArregloParaImpresion(programas) : 'solo pertenecía a un programa social (por lo que se le dará de baja)'}. El motivo de la desvinculación es el siguiente: <br>
+            "${motivo}"
+            <br><br>
+            Datos de quien desvinculó al voluntario:<br>
+              > Nombre: ${req.session.usuario.nombre} ${req.session.usuario.apPat} ${req.session.usuario.apMat}<br>
+              > Fecha: ${fechaFormateada}<br>
+              > Hora: ${horaFormateada} horas<br>
+            <br><br>
+            Si crees que se trata de un error, <a href='${dominio}'>accede</a> al sistema para visualizar la información.`, res);
+          });
+          
+          db.run('UPDATE voluntarios SET estado = ? WHERE id_voluntario = ?', [2, id_voluntario], (err) => {
+            if(err) {
+              return hacerRollback(500, `Error al actualizar el estado del voluntario ya que solo tenía un programa de derivación`, res, err);
+            }
+          });
+
+          realizarCommit(res, 200, 'Se desvinculó correctamente al voluntario del programa')
+        });
       }
     });
   } else {
