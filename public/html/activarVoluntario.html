@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Voluntarios prospectos</title>
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link href="https://fonts.googleapis.com/css?family=Karla:400,700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/dashboard.css">
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css">
+  <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+  <script src="../bootstrap-5.3.3-dist/js/bootstrap.bundle.min.js"></script>
+  <link href="../bootstrap-5.3.3-dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.7.2/font/bootstrap-icons.min.css">
+  <link rel="stylesheet" href="../css/formatoGeneral.css">
+  <link rel="stylesheet" href="../css/style1.css">
+  <link rel="stylesheet" href="../css/style2.css">
+  <script src="../js/general.js"></script>
+  <script src="../js/activarVoluntario.js"></script>
+</head>
+<body>
+    <div id="barraNav"></div>
+    <div id="alertas"></div>
+    <main class="d-flex align-items-center m-2 min-vh-100 py-3 py-md-0">
+        <div class="container form-border mt-5 mb-5">
+            <h4 class="mb-3 text-center">Voluntarios prospectos</h4>
+            <div>
+                <div class="p-2">
+                    <a href="/tablero">
+                        <button class="button-return">
+                            <i class="bi bi-arrow-left">  Regresar</i>
+                        </button>
+                    </a>
+                    <div class="mt-4">
+                        <div class="input-group mb-3">
+                            <input type="text" class="form-control" placeholder="Ingresa una palabra relacionada a algún voluntario para buscarlo" id='criterio' autocomplete='off' style='border: 1px solid black;'>
+                            <button class="btn btn-success" type="submit" id='btn-buscar' style='border: 1px solid black; background-color: #f6f3a6; color: black;'>Buscar</button>
+                            <img src="../img/interrogacion.png" alt='Imagen de Freepik' style='height: 25px;margin-left: 3px; margin-top: 5px;' id='busqueda'>
+                        </div>
+                        <div id='toastBusqueda' class="toast hide" style='width: 100%; background-color: #f6f3a6;'>
+                            <div class="toast-header">
+                            <strong class="me-auto">Búsqueda</strong>
+                            <button type="button" class="btn-close" data-bs-dismiss="toast" id='cerrarToast'></button>
+                            </div>
+                            <div class="toast-body">
+                            <p>La o las palabras ingresadas mostrarán todas las coincidencias encontradas en todos los campos de la tabla, incluyendo el campo de observaciones.</p>
+                            </div>
+                        </div>
+                        <div class="table-responsive text-center">
+                            <table class="table" style="border: 2px solid black;">
+                                <thead>
+                                    <tr id="encabezadosRegistrados">
+                                        <th>Nombre completo</th>
+                                        <th>Ocupación</th>
+                                        <th>Intereses</th>
+                                        <th>Valoración</th>
+                                        <th>Persona que dio de alta</th>
+                                        <th id="sedeTabla" style="display: none;">Sede</th>
+                                        <th>Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="contenidoTablaRegistrados"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+</body>
+</html>

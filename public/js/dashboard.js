@@ -59,7 +59,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         toast.classList.add('show');
                         toast.classList.remove('hide');
                     }
-                    });
+                });
                 const btnBusqueda = get('btn-buscar');
                 btnBusqueda.addEventListener('click', () => {consultarYProcesarVoluntarios(get('criterio').value, flagRespuesta, rol)});
                 get('criterio').addEventListener('keydown', (event) => {
@@ -217,8 +217,6 @@ function consultarYProcesarVoluntarios (busqueda, flagRespuesta, rol){
                 const nvoDiv = crear('div');
                 nvoDiv.style.width = '100%';
                 nvoDiv.style.padding = '5px';
-                nvoDiv.style.border = '0px solid black';
-                nvoDiv.style.borderRadius = '5px';
                 nvoDiv.style.backgroundColor = 'white';
                 nvoDiv.appendChild(nvoIcono);
                 nvoTd.appendChild(nvoDiv);
@@ -227,7 +225,7 @@ function consultarYProcesarVoluntarios (busqueda, flagRespuesta, rol){
                     let ruta = '';
                     localStorage.setItem('id', informacion.id_voluntario);
                     flagRespuesta.botones.forEach(boton => {
-                        if (boton.nombre === 'Ver la información de un voluntario') ruta = boton.ruta;
+                        if (boton.nombre === 'Ver la información de un voluntario') {localStorage.setItem('anterior', '/tablero'); ruta = boton.ruta;}
                     });
                     window.location = ruta;
                 });
@@ -244,7 +242,6 @@ function consultarYProcesarVoluntarios (busqueda, flagRespuesta, rol){
                 const nvoTd = crear('td');
                 nvoTd.style.height = '30px';
                 nvoTd.classList.add('align-middle');
-                nvoTd.style.border = 'none';
                 nvoTd.style.padding = '3px';
                 const nvoIcono = crear('img');
                 nvoIcono.src = '../img/editar.png';
@@ -254,8 +251,6 @@ function consultarYProcesarVoluntarios (busqueda, flagRespuesta, rol){
                 const nvoDiv = crear('div');
                 nvoDiv.style.width = '100%';
                 nvoDiv.style.padding = '5px';
-                nvoDiv.style.border = '0px solid black';
-                nvoDiv.style.borderRadius = '5px';
                 nvoDiv.style.backgroundColor = 'white';
                 nvoDiv.appendChild(nvoIcono);
                 nvoTd.appendChild(nvoDiv);

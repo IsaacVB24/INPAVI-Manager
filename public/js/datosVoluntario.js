@@ -1,4 +1,5 @@
 document.addEventListener('DOMContentLoaded', () => {
+    get('regresar').onclick = () => {window.location.href = localStorage.getItem('anterior');};
     document.querySelectorAll('input').forEach(input => {input.readOnly = true;});
     document.querySelectorAll('textarea').forEach(textarea => {textarea.readOnly = true; textarea.style.resize = 'none';});
     const id_voluntario = localStorage.getItem('id');

@@ -26,7 +26,7 @@ const transporter = nodemailer.createTransport({
 
 const permisosPorRol = {
   1: ['/tablero', '/datosVoluntario', '/programas', '/entrada_inicio'],  // Rutas exclusivas del supervisor
-  2: ['/tablero', '/modificarVoluntario', '/altaVoluntario', '/datosVoluntario', '/programas', '/entrada_inicio'],  // Rutas exlusivas del delegado
+  2: ['/tablero', '/modificarVoluntario', '/altaVoluntario', '/datosVoluntario', '/programas', '/inactivos', '/entrada_inicio'],  // Rutas exlusivas del delegado
   3: ['/tablero', '/modificarVoluntario', '/altaVoluntario', '/datosVoluntario'],  // Rutas exclusivas del coordinador DAS
   4: [],  // Rutas exclusivas del coordinador Entrada
   5: ['/tablero', '/altaVoluntario', '/datosVoluntario'],  // Rutas exclusivas del equipo directo DAS
@@ -176,6 +176,10 @@ router.get('/programas', verificarSesionYStatus, (req, res) => {
 
 router.get('/enConstruccion', verificarSesionYStatus, (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'html', 'sitioEnConstruccion.html'));
+});
+
+router.get('/inactivos', verificarSesionYStatus, (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'html', 'activarVoluntario.html'));
 });
 
 router.get('/principal', verificarSesionYStatus, (req, res) => {
@@ -850,7 +854,8 @@ router.get('/obtenerBotones', (req, res) => {
             { nombre: 'Registrar a un voluntario', ruta: '/altaVoluntario', inactivo: false, tipo: 'button' },
             { nombre: 'Explorar programas', ruta: '/programas', inactivo: false, tipo: 'button' },
             { nombre: 'Modificar información de un voluntario', ruta: '/modificarVoluntario', inactivo: true, tipo: 'icon' },
-            { nombre: 'Ver la información de un voluntario', ruta: '/datosVoluntario', inactivo: true, tipo: 'icon' }
+            { nombre: 'Ver la información de un voluntario', ruta: '/datosVoluntario', inactivo: true, tipo: 'icon' },
+            { nombre: 'Voluntarios prospectos', ruta: '/inactivos', inactivo: false, tipo: 'button' }
           ];
           break;
         case 3: // Coordinador DAS
@@ -1474,36 +1479,54 @@ router.post('/modificarDatosVoluntario', (req, res) => {
           if (derivacion.length === 0) {
             return hacerRollback(400, `Se debe seleccionar al menos un programa de derivación para el voluntario`, res, 'Derivación incompleta');
           } else {
+            db.run('UPDATE voluntarios SET estado = ? WHERE id_voluntario = ?', [1, id_voluntario], (err) => {
+              if(err) {
+                return hacerRollback(500, `Error al actualizar el estado del voluntario`, res, err);
+              }
 
-              db.run('DELETE FROM derivacionVoluntario WHERE id_voluntario = ?', [id_voluntario], (err) => {
-                if (err) {
-                  return hacerRollback(500, `Error al eliminar los programas de derivación anteriores del voluntario`, res, err);
+              db.get('SELECT 1 FROM conjuntoVoluntarios WHERE id_filaVoluntarios = ?', [id_voluntario], (err, row) => {
+                if(err) {
+                  return hacerRollback(500, `Error al comprobar si el voluntario ya está en la tabla general de voluntarios`, res, err);
                 }
-
-                programasViejos.forEach(idViejo => {
-                  db.run('UPDATE programasSede SET cantidadInvolucrados = cantidadInvolucrados - 1 WHERE id_programa = ? AND id_sede = ?', [idViejo.id_derivacion, id_sedeActual], (err) => {
-                    if (err) {
-                      return hacerRollback(500, `Error al descontar un voluntario para el programa con ID "${idViejo.id_derivacion}" de la sede con ID "${id_sedeActual}"`, res, err);
+                if(!row) {
+                  db.run('INSERT INTO conjuntoVoluntarios (nombreCompleto, id_sede, tipoPersona, id_filaVoluntarios) VALUES (?, ?, ?, ?)', [`${nombreVoluntario} ${apPatActual} ${apMatActual}`, id_sedeActual, 1, id_voluntario], (err) => {
+                    if(err) {
+                      return hacerRollback(500, `Error al asociar al voluntario a la tabla general de voluntarios activos`, res, err);
                     }
-
-                    
                   });
+                }
+              });
+            });
+
+            db.run('DELETE FROM derivacionVoluntario WHERE id_voluntario = ?', [id_voluntario], (err) => {
+              if (err) {
+                return hacerRollback(500, `Error al eliminar los programas de derivación anteriores del voluntario`, res, err);
+              }
+
+              programasViejos.forEach(idViejo => {
+                db.run('UPDATE programasSede SET cantidadInvolucrados = cantidadInvolucrados - 1 WHERE id_programa = ? AND id_sede = ?', [idViejo.id_derivacion, id_sedeActual], (err) => {
+                  if (err) {
+                    return hacerRollback(500, `Error al descontar un voluntario para el programa con ID "${idViejo.id_derivacion}" de la sede con ID "${id_sedeActual}"`, res, err);
+                  }
+
+                  
                 });
-                
-                derivacion.forEach((id_programa) => {
-                  db.run('INSERT INTO derivacionVoluntario (id_voluntario, id_derivacion) VALUES (?, ?)', [id_voluntario, id_programa], (err) => {
+              });
+              
+              derivacion.forEach((id_programa) => {
+                db.run('INSERT INTO derivacionVoluntario (id_voluntario, id_derivacion) VALUES (?, ?)', [id_voluntario, id_programa], (err) => {
+                  if (err) {
+                    return hacerRollback(500, `Error al asociar el programa con ID "${id_programa}" con el voluntario "${nombreVoluntario}"`, res, err);
+                  }
+                  
+                  db.run('UPDATE programasSede SET cantidadInvolucrados = cantidadInvolucrados + 1 WHERE id_programa = ? AND id_sede = ?', [id_programa, id_sede || id_sedeActual], (err) => {
                     if (err) {
-                      return hacerRollback(500, `Error al asociar el programa con ID "${id_programa}" con el voluntario "${nombreVoluntario}"`, res, err);
+                      return hacerRollback(500, `Error al aumentar un voluntario para el programa con ID "${id_programa}" de la sede con ID "${id_sede}"`, res, err);
                     }
-                    
-                    db.run('UPDATE programasSede SET cantidadInvolucrados = cantidadInvolucrados + 1 WHERE id_programa = ? AND id_sede = ?', [id_programa, id_sede || id_sedeActual], (err) => {
-                      if (err) {
-                        return hacerRollback(500, `Error al aumentar un voluntario para el programa con ID "${id_programa}" de la sede con ID "${id_sede}"`, res, err);
-                      }
-                    });
                   });
                 });
               });
+            });
           }
         }
 
@@ -1693,6 +1716,93 @@ router.post('/consultaProgramas', (req, res) => {
         return res.status(404).json({ mensaje: 'No se encontraron programas sociales para esta sede' });
       }
       res.status(200).json(rows);
+    });
+  } else {
+    res.redirect('/');
+  }
+});
+
+router.post('/voluntariosParaAlta', (req, res) => {
+  if (req.session && req.session.usuario) {
+    const { criterioBusqueda } = req.body;
+    const id_sedeConsulta = (req.session.usuario.id_sede === 1 && req.session.usuario.id_rol === 2) ? 'cdmx' : req.session.usuario.id_sede;
+    const parametros = [];
+    let consulta = `
+    SELECT 
+      v.id_voluntario,
+      v.nombre_v,
+      v.apellido_paterno_v,
+      v.apellido_materno_v,
+      v.ocupacion, v.observaciones,
+      GROUP_CONCAT(DISTINCT iv.interes) AS intereses,
+      GROUP_CONCAT(DISTINCT p.programa) AS programas,
+      u.nombre_usuario,
+      u.apellido_paterno,
+      u.apellido_materno,
+      sua.sede as sedeUsuarioAlta,
+      sv.sede as sedeVoluntario
+    FROM voluntarios v
+    LEFT JOIN interesesVoluntario iv ON v.id_voluntario = iv.id_voluntario
+    LEFT JOIN valoracionVoluntario vv ON v.id_voluntario = vv.id_voluntario
+    LEFT JOIN programas p ON vv.id_valoracion = p.id_programa
+    LEFT JOIN usuarios u ON v.id_usuarioQueDaDeAlta = u.id_usuario
+    LEFT JOIN sedes sua ON u.id_sede = sua.id_sede
+    LEFT JOIN sedes sv ON v.id_sede = sv.id_sede
+    WHERE v.estado != 1 `;
+
+    if (id_sedeConsulta === 'cdmx') {
+      consulta += 'AND v.id_sede IN (1, 2, 3, 4) ';
+    } else {
+      consulta += 'AND v.id_sede = ? ';
+      parametros.push(id_sedeConsulta);
+    }
+
+    if (criterioBusqueda) {
+      consulta += `AND (v.nombre_v LIKE ? OR v.apellido_paterno_v LIKE ? OR v.apellido_materno_v LIKE ? OR v.ocupacion LIKE ? OR v.observaciones LIKE ? OR iv.interes LIKE ? OR p.programa LIKE ? OR u.nombre_usuario LIKE ? OR u.apellido_paterno LIKE ? OR u.apellido_materno LIKE ? OR sua.sede LIKE ? OR sv.sede LIKE ?) `;
+      const busquedaParam = `%${criterioBusqueda}%`;
+      for (let i = 0; i < 12; i++) {
+        parametros.push(busquedaParam);
+      }
+
+      const separadas = criterioBusqueda.split(' ');
+      if (separadas.length === 2) {
+        consulta += `OR ((v.nombre_v LIKE ? AND v.apellido_paterno_v LIKE ?) OR (u.nombre_usuario LIKE ? AND u.apellido_paterno LIKE ?)) `;
+        parametros.push(`%${separadas[0]}%`, `%${separadas[1]}%`, `%${separadas[0]}%`, `%${separadas[1]}%`);
+      }
+      if (separadas.length === 3) {
+        consulta += `OR ((v.nombre_v LIKE ? AND v.apellido_paterno_v LIKE ? AND v.apellido_materno_v LIKE ?) OR (u.nombre_usuario LIKE ? AND u.apellido_paterno LIKE ? AND u.apellido_materno LIKE ?)) `;
+        parametros.push(`%${separadas[0]}%`, `%${separadas[1]}%`, `%${separadas[2]}%`, `%${separadas[0]}%`, `%${separadas[1]}%`, `%${separadas[2]}%`);
+      }
+    }
+    consulta += 'GROUP BY v.id_voluntario';
+
+    db.all(consulta, parametros, (err, rows) => {
+      if (err) {
+        console.error(`Error al obtener los voluntarios que solo están registrados: ${err}`);
+        return res.status(500).json({ mensaje: 'Error al obtener los voluntarios que solo están registrados' });
+      }
+      if (!rows.length) {
+        return res.status(200).json({ voluntariosArray: [] });
+      } else {
+        const voluntarios = {};
+
+        rows.forEach(row => {
+          if (!voluntarios[row.id_voluntario]) {
+            voluntarios[row.id_voluntario] = {
+              id_voluntario: row.id_voluntario,
+              nombreVoluntario: `${row.nombre_v} ${row.apellido_paterno_v} ${row.apellido_materno_v}`,
+              ocupacion: row.ocupacion,
+              observaciones: row.observaciones,
+              usuarioDeAlta: `${row.sedeUsuarioAlta} - ${row.nombre_usuario} ${row.apellido_paterno} ${row.apellido_materno}`,
+              sedeVoluntario: (req.session.usuario.id_rol === 2 && req.session.usuario.id_sede === 2) ? row.sedeVoluntario : null,
+              intereses: row.intereses,
+              valoracion: row.programas
+            };
+          }
+        });
+        const voluntariosArray = Object.values(voluntarios);
+        res.status(200).json({ voluntariosArray });
+      }
     });
   } else {
     res.redirect('/');
