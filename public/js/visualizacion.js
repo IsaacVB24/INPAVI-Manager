@@ -3,9 +3,9 @@ function visualizarDatos() {
   fetch("/obtener_datos_despensas")
       .then(response => response.json())
       .then(data => {
-          let tablaHtml = "<table class='table'><thead><tr><th>Categoría</th><th>Descripción</th><th>Cantidad de productos</th></tr></thead><tbody>";
+          let tablaHtml = "<table class='table'><thead><tr><th>Categoría</th><th>Descripción</th><th>Cantidad de productos totales</th><th>Cantidad de productos seleccionados por despensa</th><th>Productos seeccionados</th><th>Peso de despensa</th></tr></thead><tbody>";
           data.forEach(item => {
-              tablaHtml += `<tr><td>${item.nombre_categoria}</td><td>${item.descripcion_despensa}</td><td>${item.cantidad_prod_despensa}</td></tr>`;
+              tablaHtml += `<tr><td>${item.Categoria}</td><td>${item.Descripcion}</td><td>${item.cantidad_prod_despensa}</td><td>${item.cantidad_prod_selec}</td><td>${item.Productos_asociados}</td><td>${item.Peso_despensa}</td></tr>`;
           });
           tablaHtml += "</tbody></table>";
 
@@ -16,7 +16,7 @@ function visualizarDatos() {
                       <i class="bi bi-arrow-left"></i> Regresar
                   </button>
                   <button type="button" id="botonRegistrar" class="btn-primary">
-                      <i class="bi bi-emoji-smile-fill"></i> Registrar
+                      <i class="bi bi-emoji-smile-fill"></i> Registrar más categorías
                   </button>
               </div>
           `;
@@ -35,66 +35,46 @@ function visualizarDatos() {
       .catch(error => console.error("Error:", error));
 }
 
+
 function visualizarDatosDespensas() {
-    fetch("/obtener_despensas")
+    fetch("/obtener_datos_despensas2")
         .then(response => response.json())
         .then(data => {
-            if (data.length === 0) {
-                document.getElementById("tablaDatos").innerHTML = "<p>No hay datos disponibles</p>";
-                return;
-            }
-
-            let tablaHtml = "<table class='table'><thead><tr><th>Categoría</th><th>Cantidad de despensas</th><th>Fecha de registro</th></tr></thead><tbody>";
-
-            const obtenerNombreCategoria = async (categoriaId) => {
-                const response = await fetch(`/obtenerNombreCategoria/${categoriaId}`);
-                if (!response.ok) {
-                    throw new Error('Error al obtener el nombre de la categoría');
-                }
-                const categoria = await response.json();
-                return categoria.nombre_categoria;
-            };
-
-            const promises = data.map(item => {
-                return obtenerNombreCategoria(item.categoria_despensa_id)
-                    .then(nombreCategoria => {
-                        tablaHtml += `<tr><td>${nombreCategoria}</td><td>${item.cantidad_despensas}</td><td>${item.fecha_registro}</td></tr>`;
-                    })
-                    .catch(error => {
-                        console.error("Error al obtener nombre de categoría:", error);
-                        tablaHtml += `<tr><td>Error</td><td>${item.cantidad_despensas}</td><td>${item.fecha_registro}</td></tr>`;
-                    });
+            let tablaHtml = "<table class='table'><thead><tr><th>Categoría</th><th>Descripción</th><th>Cantidad de despensas</th></tr></thead><tbody>";
+            data.forEach(item => {
+                tablaHtml += `<tr><td>${item.Categoria}</td><td>${item.Descripcion}</td><td>${item.cantidad_despensas}</td></tr>`;
+            });
+            tablaHtml += "</tbody></table>";
+  
+            // Añadir los botones al final de la tabla
+            tablaHtml += `
+                <div class="mt-3">
+                    <button id="botonRegresar" class="button-return" onclick="history.back()">
+                        <i class="bi bi-arrow-left"></i> Regresar
+                    </button>
+                    <button type="button" id="botonRegistrar" class="btn btn-primary">
+                        <i class="bi bi-emoji-smile-fill"></i> Registrar más despensas
+                    </button>
+                </div>
+            `;
+  
+            document.getElementById("tablaDatos").innerHTML = tablaHtml;
+  
+            // Agregar evento al botón Registrar más despensas
+            document.getElementById("botonRegistrar").addEventListener("click", function() {
+                window.location.href = "../html/altadespensas.html";
             });
 
-            Promise.all(promises)
-                .then(() => {
-                    tablaHtml += "</tbody></table>";
-
-                    document.getElementById("tablaDatos").innerHTML = tablaHtml;
-
-                    const buttonsHtml = `
-                        <div class="mt-3">
-                            <button id="botonRegresar" class="button-return" onclick="history.back()">
-                                <i class="bi bi-arrow-left"></i> Regresar
-                            </button>
-                            <button type="button" id="botonRegistrar" class="btn-primary">
-                                <i class="bi bi-emoji-smile-fill"></i> Registrar
-                            </button>
-                        </div>
-                    `;
-                    document.getElementById("tablaDatos").insertAdjacentHTML('beforeend', buttonsHtml);
-
-                    document.getElementById("botonRegistrar").addEventListener("click", function() {
-                        window.location.href = "/altacatdespensas";
-                    });
-                    document.getElementById("botonRegresar").addEventListener("click", function() {
-                        window.location.href = "/index_entrada";
-                    });
-                })
-                .catch(error => console.error("Error al obtener nombres de categoría:", error));
+            // Agregar evento al botón Regresar
+            document.getElementById("botonRegresar").addEventListener("click", function() {
+                window.location.href = "/index_entrada";
+            });
+  
         })
-        .catch(error => console.error("Error al obtener despensas:", error));
+        .catch(error => console.error("Error:", error));
 }
+
+
 
 function visualizarDatosCategorias() {
     fetch('/visualizarproductosstock')
@@ -132,5 +112,58 @@ function visualizarDatosCategorias() {
         .catch(error => console.error('Error al obtener categorías de productos:', error));
 }
 
-// Llamar a la función al cargar la página
-document.addEventListener('DOMContentLoaded', visualizarDatosCategorias);
+// visualizacion.js
+
+// Función para cargar los datos de los productos al cargar la página
+function visualizarDatosProductos() {
+    fetch("/obtener_productos")
+        .then(response => response.json())
+        .then(data => {
+            // Obtener referencia a la tabla de productos en el HTML
+            const tablaProductos = document.getElementById("tablaDatos");
+
+            // Verificar si hay datos para mostrar
+            if (data.length === 0) {
+                tablaProductos.innerHTML = "<p>No hay datos disponibles</p>";
+                return;
+            }
+
+            // Construir la tabla dinámicamente
+            let tablaHtml = "<table class='table'><thead><tr><th>Nombre del Producto</th><th>Cantidad</th><th>Fecha de Caducidad</th><th>Unidad de Medida</th><th>Cantidad Unidad</th></tr></thead><tbody>";
+
+            data.forEach(producto => {
+                tablaHtml += `
+                    <tr>
+                        <td>${producto.nombre_producto}</td>
+                        <td>${producto.cantidad}</td>
+                        <td>${producto.fecha_caducidad}</td>
+                        <td>${producto.unidad_medida}</td>
+                        <td>${producto.cantidad_unidad}</td>
+                    </tr>
+                `;
+            });
+
+            tablaHtml += "</tbody></table>";
+
+            tablaHtml += `
+            <div class="mt-3">
+                <button id="botonRegresar" class="button-return" onclick="history.back()">
+                    <i class="bi bi-arrow-left"></i> Regresar
+                </button>
+                <button type="button" id="botonRegistrar" class="btn btn-primary">
+                    <i class="bi bi-emoji-smile-fill"></i> Registrar más productos
+                </button>
+            </div>
+        `;
+
+            // Insertar la tabla generada en el contenedor
+            tablaProductos.innerHTML = tablaHtml;
+
+            // Asignar la acción de redirección al botón Registrar más productos
+            const botonRegistrar = document.getElementById("botonRegistrar");
+            botonRegistrar.addEventListener("click", function() {
+                window.location.href = "../html/altacatproductos.html";
+            });
+        })
+        .catch(error => console.error("Error al obtener los productos:", error));
+}

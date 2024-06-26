@@ -3,112 +3,211 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Registro Categorias despensas</title>
+  <title>Eliminar productos de inventario</title>
   <link href="https://fonts.googleapis.com/css?family=Karla:400,700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.materialdesignicons.com/4.8.95/css/materialdesignicons.min.css">
   <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css">
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css"> <!-- Bootstrap Icons -->
   <link rel="stylesheet" href="../css/style2.css">
-  <script src="../bootstrap-5.3.3-dist/js/bootstrap.bundle.min.js"></script>
 </head>
-<body>
-  <nav class="navbar navbar-expand-lg navbar-dark main-navbar">
-    <a class="navbar-brand" href="#">
-      <img src="../img/inpavi_logo.png" alt="Logo" class="logo">
-    </a>
-    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-      <span class="navbar-toggler-icon"></span>
-    </button>
-    <div class="collapse navbar-collapse" id="navbarNav">
-      <ul class="navbar-nav ml-auto">
-        <li class="nav-item">
-          <a class="nav-link" href="#">Inicio</a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link" href="#">Acerca de</a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link" href="#">Servicios</a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link" href="#">Contacto</a>
-        </li>
-      </ul>
-    </div>
+<body onload="obtenerYMostrarProductos(document.getElementById('nombre_categoria'))">
+    <!-- Barra de navegación principal -->
+    <nav class="navbar navbar-expand-lg navbar-dark main-navbar">
+      <a class="navbar-brand" href="#">
+          <img src="../img/inpavi_logo.png" alt="Logo" class="logo">
+      </a>
+      <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav"
+          aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+          <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarNav">
+          <ul class="navbar-nav ml-auto">
+              <li class="nav-item">
+                  <a class="nav-link" href="#">Inicio</a>
+              </li>
+              <li class="nav-item">
+                  <a class="nav-link" href="#">Acerca de</a>
+              </li>
+              <li class="nav-item">
+                  <a class="nav-link" href="#">Servicios</a>
+              </li>
+              <li class="nav-item">
+                  <a class="nav-link" href="#">Contacto</a>
+              </li>
+          </ul>
+      </div>
   </nav>
 
-  <div class="row main-content">
-    <div class="container mt-5">
-      <div class="form-border">
-        <form id="registro_cat_despensas" action="/eliminarproductos" method="post">
-          <h2 class="mb-4">Eliminar productos</h2>
-          <div id="mensajePopup" class="alert alert-success alert-dismissible fade show" role="alert" style="display: none;"></div>
-          <div class="form-row">
-            <div class="form-group col-md-4">
-              <label for="nombre_prod">Nombre del producto:</label>
-              <select class="form-control" id="nombre_prod" name="id_categ_prod" required>
-                <option value=""></option>
-              </select>
-            </div>
+  <br>
+  <div class="row main-content">     
+      <div class="container mt-5">
+          <div class="form-border"> 
+              <h2 class="mb-4">Eliminar productos de inventario</h2>
+              <form id="eliminar_prod">
+                  <div class="form-row">
+                      <div class="form-group col-md-4">
+                          <label for="nombre_categoria">Producto a eliminar</label>
+                          <select class="form-control" id="nombre_categoria" name="nombre_producto" required>
+                              <!-- Options se llenarán dinámicamente con JavaScript -->
+                          </select>
+                      </div>
+                      <div class="form-group col-md-4">
+                        <label for="cantidadproductosactuales">Cantidad de productos actuales:</label>
+                        <input type="text" class="form-control" id="cantidadproductosactuales" name="cantidadproductosactuales" readonly>
+                      </div>
+                      <div class="form-group col-md-4">
+                        <label for="cantidadproductoseliminar">Cantidad de productos a eliminar</label>
+                        <input type="text" class="form-control" id="cantidadproductoseliminar" name="cantidad_eliminar">
+                      </div>
+                  </div>
+                  <button class="button-return" onclick="history.back()">
+                      <i class="bi bi-arrow-left" id="botonRegresar">  Regresar</i> 
+                  </button>
+                  <button id="botonEliminar" class="btn-primary"  onclick="confirmarEliminacion()">
+                      <i class="bi bi-trash">  Eliminar</i>
+                  </button>
+                  <button id="button" class="btn-primary">
+                    <i class="bi bi-emoji-smile-fill">Inicio</i>
+                </button>
+              </form>
           </div>
-          <br><br>
-          <button class="button-return" type="button" onclick="history.back()">
-            <i class="bi bi-arrow-left"> Regresar</i>
-          </button>
-          <button type="submit" id="botonEliminar" class="btn-primary">
-            <i class="bi bi-trash"> Eliminar</i>
-          </button>
-        </form>
       </div>
-    </div>
   </div>
 
-  <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+  <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
   <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
   <script>
-    document.addEventListener('DOMContentLoaded', function() {
-      fetch('/productos')
+      document.getElementById("eliminar_prod").addEventListener("submit", function(event) {
+          event.preventDefault(); // Evitar que se envíe el formulario de forma tradicional
+          console.log("Formulario enviado");
+          const formData = new FormData(this); // Obtener los datos del formulario
+
+          // Convertir los datos del formulario a una cadena de consulta URL-encoded
+          const urlEncodedFormData = new URLSearchParams(formData);
+
+          fetch("/eliminar_prod", {
+              method: "POST",
+              headers: {
+                  'Content-Type': 'application/x-www-form-urlencoded' // Configurar el tipo de contenido
+              },
+              body: urlEncodedFormData // Enviar los datos del formulario en formato URL-encoded
+          })
+          .then(response => response.json()) // Convertir la respuesta a JSON
+          .then(data => {
+              // Mostrar el mensaje al usuario
+              alert(data.mensaje);
+              // Si la categoría se eliminó correctamente, redirigir
+              if (data.mensaje.includes("correctamente")) {
+                  window.location.href = "/entrada_inicio";
+              }
+          })
+          .catch(error => console.error("Error:", error));
+      });
+
+      // Función para obtener y mostrar productos en el select
+      function obtenerYMostrarProductos(selectorProductos) {
+    fetch('/obtenerproductos')
+        .then(response => {
+            if (response.ok) {
+                return response.json(); // Convertir la respuesta a JSON
+            }
+            throw new Error('Error al obtener los productos. Estado de respuesta: ' + response.status);
+        })
+        .then(data => {
+            console.log('Productos obtenidos:', data); // Verificar los datos obtenidos
+
+            // Limpiar el select de opciones existentes
+            selectorProductos.innerHTML = '';
+
+            // Crear opciones para cada nombre de producto recibido
+            data.forEach(nombreProducto => {
+                const option = document.createElement('option');
+                option.value = nombreProducto;
+                option.textContent = nombreProducto;
+                selectorProductos.appendChild(option);
+            });
+
+            // Inicializar Select2 si es necesario
+            // Aquí puedes incluir código adicional para manejar eventos u otros ajustes
+
+            // Disparar el evento change inicialmente para actualizar la cantidad
+            selectorProductos.dispatchEvent(new Event('change'));
+
+        })
+        .catch(error => {
+            console.error('Error al cargar los productos:', error);
+            alert('Error al cargar los productos: ' + error.message);
+        });
+
+    // Agregar listener para el evento change del select
+    selectorProductos.addEventListener('change', function () {
+        const selectedProduct = selectorProductos.value;
+
+        // Llamar a la ruta para obtener la cantidad del producto seleccionado
+        fetch(`/obtenercantidad?producto=${encodeURIComponent(selectedProduct)}`)
+            .then(response => {
+                if (response.ok) {
+                    return response.json();
+                }
+                throw new Error('Error al obtener la cantidad del producto. Estado de respuesta: ' + response.status);
+            })
+            .then(data => {
+                // Actualizar el campo de cantidad de productos actuales
+                const cantidadProductosActualesInput = document.getElementById('cantidadproductosactuales');
+                cantidadProductosActualesInput.value = data.cantidad;
+            })
+            .catch(error => {
+                console.error('Error al obtener la cantidad del producto:', error);
+                alert('Error al obtener la cantidad del producto: ' + error.message);
+            });
+    });
+}
+
+function confirmarEliminacion() {
+    const cantidadEliminar = parseInt(document.getElementById('cantidadproductoseliminar').value, 10);
+    const cantidadActual = parseInt(document.getElementById('cantidadproductosactuales').value, 10);
+    const producto = document.getElementById('nombre_categoria').value;
+    
+    if (cantidadEliminar <= 0) {
+        alert('La cantidad a eliminar debe ser mayor que cero.');
+        return;
+    }
+    
+    if (cantidadEliminar > cantidadActual) {
+        alert('No puedes eliminar más de la cantidad actual disponible.');
+        return;
+    }
+    
+    if (confirm(`¿Estás seguro que deseas eliminar ${cantidadEliminar} unidades del producto "${producto}"?`)) {
+        // Si confirma, enviar la solicitud al servidor
+        enviarSolicitudEliminar();
+    } else {
+        // Si no confirma, no hacer nada (quedarse en la página)
+    }
+}
+
+
+    function enviarSolicitudEliminar() {
+        const formData = new FormData(document.getElementById('eliminar_prod'));
+        const urlEncodedFormData = new URLSearchParams(formData);
+
+        fetch("/eliminar_cantidad", {
+            method: "POST",
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded'
+            },
+            body: urlEncodedFormData
+        })
         .then(response => response.json())
         .then(data => {
-          const select = document.getElementById('nombre_prod');
-          data.productos.forEach(producto => {
-            const option = document.createElement('option');
-            option.value = producto.id_categ_prod;
-            option.text = producto.nombre_categor_prod;
-            select.appendChild(option);
-          });
+            alert(data.mensaje);
+            if (data.mensaje.includes("correctamente")) {
+                window.location.href = "/entrada_inicio";
+            }
         })
-        .catch(error => console.error('Error:', error));
-    });
-
-    document.getElementById("registro_cat_despensas").addEventListener("submit", function(event) {
-      event.preventDefault(); // Evitar que se envíe el formulario de forma tradicional
-      const productoId = document.getElementById('nombre_prod').value;
-
-      if (!productoId) {
-        alert('Por favor, seleccione un producto para eliminar.');
-        return;
-      }
-
-      fetch(`/eliminarproductos/${productoId}`, {
-        method: "DELETE"
-      })
-      .then(response => response.json())
-      .then(data => {
-        // Mostrar el mensaje al usuario
-        alert(data.mensaje);
-        // Si el producto se eliminó correctamente, limpiar el formulario
-        if (data.success) {
-          const select = document.getElementById('nombre_prod');
-          select.remove(select.selectedIndex);
-
-          window.location.href = "/entrada_inicio";
-
-        }
-      })
-      .catch(error => console.error("Error:", error));
-    });
+        .catch(error => console.error("Error:", error));
+    }
   </script>
 </body>
 </html>

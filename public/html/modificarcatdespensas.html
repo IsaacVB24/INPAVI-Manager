@@ -1,136 +1,224 @@
 <!DOCTYPE html>
-
-<html lang="en">
+<html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Registro beneficiarios</title>
-  <link href="https://fonts.googleapis.com/css?family=Karla:400,700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdn.materialdesignicons.com/4.8.95/css/materialdesignicons.min.css">
-  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css">
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css"> <!-- Bootstrap Icons -->
-  <link rel="stylesheet" href="../css/style2.css">
-  <script src="../bootstrap-5.3.3-dist/js/bootstrap.bundle.min.js"></script>
-  <script src="../js/registro_categorias.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registro de Despensas</title>
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    <link href="https://fonts.googleapis.com/css?family=Karla:400,700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css"> <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="../css/style2.css">
+    <script src="../js/registro_categorias.js"></script>
 </head>
 <body onload="obtenerCategoriasDespensas()">
   <nav class="navbar navbar-expand-lg navbar-dark main-navbar">
     <a class="navbar-brand" href="#">
-        <img src="../img/inpavi_logo.png" alt="Logo" class="logo">
+      <img src="../img/inpavi_logo.png" alt="Logo" class="logo">
     </a>
     <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav"
-        aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-        <span class="navbar-toggler-icon"></span>
+            aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
     </button>
     <div class="collapse navbar-collapse" id="navbarNav">
-        <ul class="navbar-nav ml-auto">
-            <li class="nav-item">
-                <a class="nav-link" href="#">Inicio</a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link" href="#">Acerca de</a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link" href="#">Servicios</a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link" href="#">Contacto</a>
-            </li>
-        </ul>
+      <ul class="navbar-nav ml-auto">
+        <li class="nav-item">
+          <a class="nav-link" href="#">Inicio</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="#">Acerca de</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="#">Servicios</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="#">Contacto</a>
+        </li>
+      </ul>
     </div>
-</nav>
-
-  <br>
-  <div class="row main-content">
+  </nav>
+  <div class="row main-content">     
     <div class="container mt-5">
-      <div class="form-border">
-    <h2 class="mb-4">Modificar cantidad de  despensas</h2>
-    <form id="modificar_despensas">
-        <div class="form-row">
-            <div class="form-group col-md-4">
-              <br>
-              <select class="form-control" id="nombre_categoria" name="nombre_categoria" required>
-              <option value="">Categoría de despensa</option>   </select>
+        <div class="form-border"> 
+          <form id="modificar_cat_despensa">
+              <div id="camposCategorias">
+                <h2 class="mb-4">Modificación de categorías</h2>
+                <b><i><h6 class="mb-4">Llena sólo los campos que deseas modificar</h6></i></b>
+                  <div class="form-row">
+                    <div class="form-group col-md-4">
+                      <br>
+                      <label for="nombre_categoria">Selecciona la categoría a modificar</label>
+                          <select class="form-control" id="nombre_categoria" name="nombre_categoria">
+                            <option value="">Categoría de despensa</option>
+                          </select>
+                        </div>
+                      <div class="form-group col-md-4">
+                        <br>
+                          <label for="nombre_categoria_1">Cambia el nombre de la categoría</label>
+                          <input type="text" class="form-control" id="nombre_categoria_1" name="nombre_categoria_1" placeholder="Nombre Categoría">
+                      </div>
+                      <div class="form-group col-md-4">
+                        <br>
+                          <label for="cantidad_prod_despensa_1">Cambia la cantidad de productos</label>
+                          <input type="number" class="form-control" id="cantidad_prod_despensa_1" name="cantidad_prod_despensa_1" placeholder="Cantidad de productos de la despensa" >
+                      </div>
+                      <div class="form-group col-md-4">
+                          <label for="descripcion_despensa_1">Cambia la descripción de la despensa</label>
+                          <textarea class="form-control" id="descripcion_despensa_1" name="descripcion_despensa_1" placeholder="Descripción de la despensa"></textarea>
+                      </div>
+                      <div class="form-group col-md-4">
+                          <label for="peso_despensa_1">Cambia el peso de la despensa</label>
+                          <input type="number" class="form-control" id="peso_despensa_1" name="peso_despensa_1" placeholder="Peso de la despensa" >
+                      </div>
+                      <div class="form-group col-md-4">
+                          <label for="nombre_producto_1">Cambia los productos para la despensa:</label>
+                          <select id="nombre_producto_1" name="nombre_producto_1" multiple class="form-control">
+                              <!-- Opciones se añadirán dinámicamente -->
+                          </select>
+                      </div>
+                      <div class="form-group col-md-4">
+                          <label>Opciones seleccionadas:</label>
+                          <div id="selectedItems_1" class="form-control selected-items" style="height: auto;">Ninguna opción seleccionada</div>
+                      </div>
+                  </div>
+              </div>
+    <br><br>
+              <!-- Botón de registro -->
+             
+            <button class="button-return" onclick="history.back()">
+                <i class="bi bi-arrow-left">  Regresar</i> 
+            </button>
+            <button type="submit" id="botonRegistrar" class="btn btn-primary">
+                <i class="bi bi-emoji-smile-fill">  Registrar</i></button>
+          </form>
+        </div>
+      </div>
+      <!-- Modal de confirmación -->
+      <div class="modal fade" id="confirmacion-modal" tabindex="-1" role="dialog" aria-labelledby="confirmacionModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="confirmacionModalLabel">Confirmación de Modificación</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <p id="mensaje-confirmacion"></p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-primary" id="confirmar-modificacion">Confirmar</button>
+                </div>
             </div>
-          <div class="form-group col-md-4">
-              <label for="cantidad_prod_despensa">Cantidad de productos de las despensa</label>
-              <input type="text" class="form-control" id="cantidad_prod_despensa" name="cantidad_prod_despensa" placeholder="Cantidad de productos de las despensa">
-          </div>
-       </div>
-  <!-- Botón de registro -->
+        </div>
+      </div>
+    </div>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js"></script>
+    <script>
+ $(document).ready(function() {
+    // Función para obtener y mostrar productos
+    function obtenerProductos(selectorProductos) {
+        fetch('/obtenerproductos')
+            .then(response => {
+                if (response.ok) {
+                    return response.json(); // Convertir la respuesta a JSON
+                }
+                throw new Error('Error al obtener los productos. Estado de respuesta: ' + response.status);
+            })
+            .then(data => {
+                console.log('Productos obtenidos:', data); // Verificar los datos obtenidos
 
-    <button class="button-return" onclick="history.back()">
-        <i class="bi bi-arrow-left">  Regresar</i> 
-    </button>
-    <button type="submit" id="botonRegistrar" class="btn-primary">
-        <i class="bi bi-emoji-smile-fill">  Modificar</i></button>
-    </form>
-</div>
-</div>
-</div>
+                // Limpiar el select de opciones existentes
+                selectorProductos.empty();
 
-<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
-<script src="../js/Despensas.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
-<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
-<script>
-  document.getElementById("modificar_despensas").addEventListener("submit", function(event) {
-    event.preventDefault(); // Evitar que se envíe el formulario de forma tradicional
-    console.log("Formulario enviado");
-    const formData = new FormData(this); // Obtener los datos del formulario
+                // Crear opciones para cada nombre de producto recibido
+                data.forEach(nombreProducto => {
+                    selectorProductos.append(`<option value="${nombreProducto}">${nombreProducto}</option>`);
+                });
 
-    // Convertir los datos del formulario a una cadena de consulta URL-encoded
-    const urlEncodedFormData = new URLSearchParams(formData);
+                // Inicializar Select2
+                selectorProductos.select2({
+                    width: '100%'
+                });
 
-    fetch("/modificar_despensa", {
-      method: "POST",
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded' // Configurar el tipo de contenido
-      },
-      body: urlEncodedFormData // Enviar los datos del formulario en formato URL-encoded
-    })
-    .then(response => response.json()) // Convertir la respuesta a JSON
-    .then(data => {
-      // Mostrar el mensaje al usuario
-      alert(data.mensaje);
-      // Si la categoría se registró correctamente, limpiar el formulario
-      if (data.mensaje.includes("correctamente")) {
-        document.getElementById("descripcion_despensa").value = "";
-        document.getElementById("cantidad_prod_despensa").value = "";
-              // Redirigir a la página de entrada_inicio
-        window.location.href = "/entrada_inicio";
-      }
-    })
-    .catch(error => console.error("Error:", error));
-  });
-  </script>
-<script>
-  document.addEventListener("DOMContentLoaded", function () {
-      // Deshabilitar los campos de entrada de texto al cargar la página
-      document.getElementById("descripcion_despensa").disabled = true;
-      document.getElementById("cantidad_prod_despensa").disabled = true;
-javascript
+                // Escuchar cambios en el select y actualizar visualización de selecciones
+                selectorProductos.on('change', function() {
+                    const selectedOptions = $(this).find('option:selected');
+                    const selectedValues = selectedOptions.map(function() {
+                        return $(this).text();
+                    }).get();
+                    $(this).closest('.form-row').find('.selected-items').html(selectedValues.length > 0 ? selectedValues.join('<br>') : 'Ninguna opción seleccionada');
+                });
 
-  document.querySelectorAll('input[name="campo_modificar"]').forEach((radio) => {
-radio.addEventListener("change", function () {
-    if (document.getElementById("checkbox_descripcion").checked && document.getElementById("checkbox_cantidad").checked) {
-        document.getElementById("descripcion_despensa").disabled = false;
-        document.getElementById("cantidad_prod_despensa").disabled = false;
-    } else if (document.getElementById("checkbox_descripcion").checked) {
-        document.getElementById("descripcion_despensa").disabled = false;
-        document.getElementById("cantidad_prod_despensa").disabled = true;
-    } else if (document.getElementById("checkbox_cantidad").checked) {
-        document.getElementById("descripcion_despensa").disabled = true;
-        document.getElementById("cantidad_prod_despensa").disabled = false;
-    } else {
-        document.getElementById("descripcion_despensa").disabled = true;
-        document.getElementById("cantidad_prod_despensa").disabled = true;
+            })
+            .catch(error => {
+                console.error('Error al cargar los productos:', error);
+                alert('Error al cargar los productos: ' + error.message);
+            });
     }
-});
-});
 
+    // Llamar a la función al cargar la página
+    obtenerProductos($('#nombre_producto_1')); // Para el primer select
+
+    // Mostrar modal de confirmación al enviar el formulario
+    $("#modificar_cat_despensa").submit(function(event) {
+        event.preventDefault(); // Evitar que se envíe el formulario de forma tradicional
+
+        // Construir mensaje de confirmación
+        const cambios = [];
+        const formData = new FormData(this);
+        formData.forEach((value, key) => {
+            if (value && key !== "nombre_categoria") {
+                cambios.push(`${key.replace(/_/g, ' ')}: ${value}`);
+            }
+        });
+
+        if (cambios.length === 0) {
+            alert("No se han realizado cambios.");
+            return;
+        }
+
+        const mensaje = `Los cambios que modificarás son:<br>${cambios.join('<br>')}<br>¿Seguro que deseas modificar?`;
+        $("#mensaje-confirmacion").html(mensaje);
+        $("#confirmacion-modal").modal('show'); // Mostrar el modal
+    });
+
+    // Confirmar la modificación
+    $("#confirmar-modificacion").click(function() {
+        const formData = new FormData($("#modificar_cat_despensa")[0]);
+
+        fetch("/modificar_cat_despensa", {
+            method: "POST",
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded' // Configurar el tipo de contenido
+            },
+            body: new URLSearchParams(formData) // Enviar los datos del formulario en formato URL-encoded
+        })
+        .then(response => response.json()) // Convertir la respuesta a JSON
+        .then(data => {
+            // Mostrar el mensaje al usuario
+            alert(data.mensaje);
+            // Si la categoría se registró correctamente, limpiar el formulario y redirigir
+            if (data.mensaje.includes("correctamente")) {
+                document.getElementById("modificar_cat_despensa").reset();
+                // Redirigir a la página de entrada_inicio después de mostrar el mensaje
+                window.location.href = "/entrada_inicio";
+            }
+        })
+        .catch(error => console.error("Error:", error));
+
+        $("#confirmacion-modal").modal('hide');
+    });
+
+    // Cerrar modal si se cancela
+    $("#confirmacion-modal").on('hidden.bs.modal', function() {
+        // Limpiar mensaje de confirmación
+        $("#mensaje-confirmacion").html('');
+    });
 });
 </script>
-
 </body>
 </html>

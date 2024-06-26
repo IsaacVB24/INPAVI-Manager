@@ -302,27 +302,22 @@ db.serialize(() => {
   )`)
 
   db.run(`
-    CREATE TABLE IF NOT EXISTS CategoriaDespensa (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      nombre_categoria TEXT NOT NULL,
-      descripcion_despensa TEXT,
-      cantidad_prod_despensa INTEGER NOT NULL
-    )
-  `);
-
-  db.run(`
     CREATE TABLE IF NOT EXISTS Despensas (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        categoria_despensa_id INTEGER NOT NULL,
-        cantidad_despensas INTEGER NOT NULL,
-        fecha_registro TIMESTAMP DEFAULT CURRENT_TIMESTAMP, 
-        FOREIGN KEY (categoria_despensa_id) REFERENCES CategoriaDespensa(id)
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      categoria_despensa_id INTEGER NOT NULL,
+      cantidad_despensas INTEGER NOT NULL,
+      fecha_registro TIMESTAMP DEFAULT CURRENT_TIMESTAMP, 
+      FOREIGN KEY (categoria_despensa_id) REFERENCES categoriasdespensas(id)
     )
   `);
 
-  db.run(`CREATE TABLE IF NOT EXISTS categoria_productos (
-    id_categ_prod INTEGER PRIMARY KEY AUTOINCREMENT,
-    nombre_categor_prod TEXT NOT NULL
+  db.run(`CREATE TABLE IF NOT EXISTS productos (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    nombre_producto TEXT NOT NULL,
+    cantidad INTEGER NOT NULL,
+    fecha_caducidad TEXT NOT NULL,
+    unidad_medida TEXT NOT NULL,
+    cantidad_unidad INTEGER NOT NULL
   )`);
 
   db.run(`CREATE TABLE IF NOT EXISTS entregas (
@@ -330,6 +325,75 @@ db.serialize(() => {
     fecha_entrega TEXT NOT NULL,
     descripcion_entrega TEXT NOT NULL
   )`);
+
+  db.run(`CREATE TABLE IF NOT EXISTS beneficiarios (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    nombre_solicitante TEXT NOT NULL,
+    apellido_paterno_solicitante TEXT NOT NULL,
+    apellido_materno_solicitante TEXT NOT NULL,
+    lugar_naciemiento_sol TEXT NOT NULL,
+    fecha_nacimiento_sol DATE NOT NULL,
+    edad_sol INTEGER NOT NULL,
+    Nacionalidad_sol TEXT NOT NULL,
+    Sexo_sol TEXT NOT NULL,
+    ocupacion_sol TEXT NOT NULL,
+    Situacion_lab_sol TEXT NOT NULL,
+    Nivel_estudios_sol TEXT NOT NULL,
+    Calle_solicitante TEXT NOT NULL,
+    Numero_calle_soliciatante INTEGER NOT NULL,
+    Colonia_solicitante TEXT NOT NULL,
+    Delegacion_solicitante TEXT NOT NULL,
+    cp_sol TEXT NOT NULL,
+    Localidad_sol TEXT NOT NULL,
+    tel_casa_sol TEXT NOT NULL,
+    Celular_Sol TEXT NOT NULL,
+    email_Sol TEXT NOT NULL
+  )`);
+
+  db.run(`
+    CREATE TABLE IF NOT EXISTS beneficiario_conyuge (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    id_beneficiario INTEGER,  -- Esta columna almacenará el id del beneficiario solicitante
+    nombre TEXT,
+    apellido_paterno TEXT,
+    apellido_materno TEXT,
+    fecha_nacimiento TEXT,
+    estado_civil TEXT,
+    ocupacion TEXT,
+    nivel_estudios TEXT,
+    UNIQUE(id_beneficiario, nombre, apellido_paterno, apellido_materno, fecha_nacimiento)
+  )`);
+
+  db.run(`CREATE TABLE IF NOT EXISTS beneficiarios_familiares (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    id_solicitante INTEGER NOT NULL,
+    nombre TEXT NOT NULL,
+    apellido_paterno TEXT NOT NULL,
+    apellido_materno TEXT NOT NULL,
+    fecha_nacimiento DATE NOT NULL,
+    edad INTEGER NOT NULL,
+    situacion_laboral TEXT NOT NULL,
+    nivel_estudios TEXT NOT NULL,
+    FOREIGN KEY (id_solicitante) REFERENCES beneficiarios_solicitantes(id)
+  )`);
+
+  db.run(`
+    CREATE TABLE IF NOT EXISTS categoriasdespensas (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        nombre_categoria TEXT NOT NULL UNIQUE,
+        descripcion_despensa TEXT,
+        cantidad_prod_despensa INTEGER,
+        peso_despensa REAL
+  )`);
+
+  db.run(`
+    CREATE TABLE IF NOT EXISTS productosCategorias (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        categoria_id INTEGER,
+        nombre_producto TEXT,
+        FOREIGN KEY (categoria_id) REFERENCES categoriasdespensas(id)
+    )
+`);
 });
 
 /* En sqlite3 las fechas se guardan como texto pero se pueden formatear la consulta con strftime('%d-%m-%Y %H:%M:%S', atributo en la BD). la fecha de captación se almacenará de forma automática */

@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Registro beneficiarios</title>
+  <link href="https://fonts.googleapis.com/css?family=Karla:400,700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.materialdesignicons.com/4.8.95/css/materialdesignicons.min.css">
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css"> <!-- Bootstrap Icons -->
+  <link rel="stylesheet" href="../css/style2.css">
+  <script src="../bootstrap-5.3.3-dist/js/bootstrap.bundle.min.js"></script>
+  <script src="/js/crearCuenta.js"></script>
+  <script src="/js/general.js"></script>
+</head>
+<body>
+  <nav class="navbar navbar-expand-lg navbar-dark main-navbar">
+    <a class="navbar-brand" href="#">
+        <img src="../img/inpavi_logo.png" alt="Logo" class="logo">
+    </a>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav"
+        aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav ml-auto">
+            <li class="nav-item">
+                <a class="nav-link" href="#">Inicio</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="#">Acerca de</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="#">Servicios</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="#">Contacto</a>
+            </li>
+        </ul>
+    </div>
+</nav>
+      <br>
+      <div class="row main-content">
+        <div class="container mt-5">
+          <div class="form-border">
+        <h2 class="mb-4">Registro beneficiarios</h2>
+        <form id="alta_bene_sol" action="/AltaBeneSol" method="post">
+            <div class="form-row">
+                <div class="form-group col-md-4">
+                    <label for="nombre_solicitante">Nombre del Solicitante</label>
+                    <input type="text" class="form-control" id="nombre_solicitante" name="nombre_solicitante" placeholder="Nombre Solicitante" required>
+                </div>
+                <div class="form-group col-md-4">
+                    <label for="apellido_paterno_solicitante"></label>
+                    <input type="text" class="form-control" id="apellido_paterno_solicitante" name="apellido_paterno_solicitante" placeholder="Apellido Paterno Solicitante" required>
+                </div>
+                <div class="form-group col-md-4">
+                    <label for="apellido_materno_solicitante"></label>
+                    <input type="text" class="form-control" id="apellido_materno_solicitante" name="apellido_materno_solicitante" placeholder="Apellido Materno Solicitante" required> 
+                </div>
+            </div>
+            <br><br>
+            <div class="form-row">
+                <!-- Tabla de lugares -->
+                <div class="form-group col-md-4">  
+                    <label for="lugar_naciemiento_sol">Datos Generales del Solicitante</label>
+                    <input type="text" class="form-control" id="lugar_naciemiento_sol" name="lugar_naciemiento_sol" placeholder="Lugar de naciemiento del Solicitante" required>
+                </div>
+                <div class="form-group col-md-4">
+                  <label for="fecha_nacimiento_sol"></label>
+                    <input type="date" class="form-control" id="fecha_nacimiento_sol" name="fecha_nacimiento_sol" placeholder="Fecha de naciemiento del Solicitante" required>
+                </div>
+                <div class="form-group col-md-4">
+                    <label for="edad_sol"></label>
+                      <input type="number" class="form-control" id="edad_sol" name="edad_sol" placeholder="edad del Solicitante" required>
+                  </div>
+                  <div class="form-group col-md-4">
+                    <label for="Nacionalidad_sol"></label>
+                      <input type="text" class="form-control" id="Nacionalidad_sol" name="Nacionalidad_sol" placeholder="Nacionalidad del Solicitante" required>
+                  </div>    
+                  <div class="form-group col-md-4">
+                    <label for="Sexo_sol"></label>
+                      <input type="text" class="form-control" id="Sexo_sol" name="Sexo_sol" placeholder="Sexo del Solicitante" required>
+                  </div>
+                  <div class="form-group col-md-4">
+                    <label for="ocupacion_sol"></label>
+                      <input type="text" class="form-control" id="ocupacion_sol" name="ocupacion_sol" placeholder="Ocupación del Solicitante" required>
+                  </div>       
+                  <div class="form-group col-md-4">
+                    <label for="Situacion_lab_sol"></label>
+                      <input type="text" class="form-control" id="Situacion_lab_sol" name="Situacion_lab_sol" placeholder="Situación Laboral del Solicitante" required>
+                  </div>
+                  <div class="form-group col-md-4">
+                    <label for="Nivel_estudios_sol"></label>
+                      <input type="text" class="form-control" id="Nivel_estudios_sol" name="Nivel_estudios_sol" placeholder="Nivel de estudios del Solicitante" required>
+                  </div>             
+            </div>
+            <br><br>
+            <div class="form-row">
+                <div class="form-group col-md-4">
+                    <label for="Calle Solicitante">Dirección del Solicitante</label>
+                    <input type="text" class="form-control" id="Calle_solicitante" name="Calle_solicitante" placeholder="Calle Solicitante" required>
+                </div>
+                <div class="form-group col-md-4">
+                    <label for="Numero_calle_soliciatante"></label>
+                    <input type="number" class="form-control" id="Numero_calle_soliciatante" name="Numero_calle_soliciatante" placeholder="Numero" required>
+                </div>
+                <!-- Tabla de Colonias -->
+                <div class="form-group col-md-4">
+                    <label for="Delegacion_solicitante"></label>
+                    <input type="text" class="form-control" id="Colonia_solicitante" name="Colonia_solicitante" placeholder="Colonia" required>
+                </div>
+                 <!-- Tabla de municiapios -->
+                <div class="form-group col-md-4">
+                    <label for="Delegacion_solicitante"></label>
+                    <input type="text" class="form-control" id="Delegacion_solicitante" name="Delegacion_solicitante" placeholder="Delegación" required>
+                </div>
+                <div class="form-group col-md-4">
+                    <label for="cp_solicitante"></label>
+                    <input type="text" class="form-control" id="cp_sol" name="cp_sol" placeholder="Código Postal" required>
+                </div>
+                <div class="form-group col-md-4">
+                    <label for="Localidad_solicitante"></label>
+                    <input type="text" class="form-control" id="Localidad_sol" name="Localidad_sol" placeholder="Localidad" required>
+                </div>
+            </div>
+            <br><br>
+            <div class="form-row">
+                <div class="form-group col-md-4">
+                    <label for="tel_casa_sol">Contacto del solicitante</label>
+                    <input type="phone" class="form-control" id="tel_casa_sol" name="tel_casa_sol" placeholder="Teléfono de casa de Solicitante" required>
+                </div>
+                <div class="form-group col-md-4">
+                    <label for="cel_sol"></label>
+                    <input type="phone" class="form-control" id="Celular_Sol" name="Celular_Sol" placeholder="Celular del Solicitante" required>
+                </div>
+                <div class="form-group col-md-4">
+                    <label for="email_sol"></label>
+                    <input type="email" class="form-control" id="email_Sol" name="email_Sol" placeholder="Correo del Solicitante" required>
+                </div>
+            </div>
+            <br><br>
+            <button type="submit" id="botonRegistrar" class="btn-primary">
+              <i class="bi bi-emoji-smile-fill"> <b>Registrar</b></i>
+            </button>
+        </form>
+    </div>
+    </div>
+   </div>
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    
+    <script type="module">
+      import { mostrarMensaje } from './public/js/mensajes.js';
+
+      document.getElementById('alta_bene_sol').addEventListener('submit', function(event) {
+          event.preventDefault();
+          const formData = new FormData(this);
+          const data = {};
+          formData.forEach((value, key) => { data[key] = value });
+
+          fetch('/AltaBeneSol', {
+              method: 'POST',
+              headers: {
+                  'Content-Type': 'application/json'
+              },
+              body: JSON.stringify(data)
+          })
+          .then(response => response.json())
+          .then(data => {
+              if (data.error) {
+                  mostrarMensaje('error', data.error);
+              } else {
+                  mostrarMensaje('exito', data.message);
+              }
+          })
+          .catch(error => {
+              console.error('Error:', error);
+              mostrarMensaje('error', 'Error interno del servidor');
+          });
+      });
+  </script>
+<script>
+    document.getElementById('alta_bene_sol').addEventListener('submit', async function(event) {
+      event.preventDefault();
+
+      const formData = new FormData(event.target);
+      const data = Object.fromEntries(formData);
+
+      try {
+        const response = await fetch('/AltaBeneSol', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(data)
+        });
+
+        const result = await response.json();
+        console.log('Resultado de la respuesta:', result);
+
+        if (response.ok) {
+          alert(result.message);
+          window.location.href = '/alta_bene_conyuge';
+        } else {
+          alert(result.error);
+        }
+      } catch (error) {
+        console.error('Error:', error);
+        alert('Error al enviar el formulario');
+      }
+    });
+  </script>
+</body>
+</html>

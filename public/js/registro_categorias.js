@@ -2,7 +2,7 @@
 function obtenerCategoriasDespensas() {
   const selectCat = document.getElementById('nombre_categoria');
   
-  fetch('/obtenerCategoriasDespensas') // Cambiar a la ruta correcta
+  fetch('/obtenerCategoriasDespensas') 
     .then(response => {
       if (response.ok) {
         return response.json(); // Convertir la respuesta a JSON
@@ -66,5 +66,43 @@ function obtenerCategoriasDespensas() {
         .catch(error => console.error("Error:", error));
     });
 
+// Función para obtener y mostrar productos en un select
+function obtenerYMostrarProductos(selectorProductos) {
+  fetch('/obtenerproductos')
+    .then(response => {
+      if (response.ok) {
+        return response.json(); // Convertir la respuesta a JSON
+      }
+      throw new Error('Error al obtener los productos. Estado de respuesta: ' + response.status);
+    })
+    .then(data => {
+      console.log('Productos obtenidos:', data); // Verificar los datos obtenidos
 
+      // Limpiar el select de opciones existentes
+      selectorProductos.empty();
 
+      // Crear opciones para cada nombre de producto recibido
+      data.forEach(nombreProducto => {
+        selectorProductos.append(`<option value="${nombreProducto}">${nombreProducto}</option>`);
+      });
+
+      // Inicializar Select2
+      selectorProductos.select2({
+        width: '100%'
+      });
+
+      // Escuchar cambios en el select y actualizar visualización de selecciones
+      selectorProductos.on('change', function() {
+        const selectedOptions = $(this).find('option:selected');
+        const selectedValues = selectedOptions.map(function() {
+          return $(this).text();
+        }).get();
+        $(this).closest('.form-row').find('.selected-items').html(selectedValues.length > 0 ? selectedValues.join('<br>') : 'Ninguna opción seleccionada');
+      });
+
+    })
+    .catch(error => {
+      console.error('Error al cargar los productos:', error);
+      alert('Error al cargar los productos: ' + error.message);
+    });
+}

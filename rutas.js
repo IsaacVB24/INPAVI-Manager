@@ -93,10 +93,10 @@ const verificarSesionYStatus = (req, res, next) => {
       // Cualquier otro estado desconocido
       res.redirect('/');
   }
-
+/*
   if((!permisosPorRol[rol] || !permisosPorRol[rol].includes(ruta)) && status === 1) {
     return res.status(403).json({ mensaje: 'Tu rol no está permitido a acceder a esta ruta' });
-  }
+  }*/
   next();
 };
 
@@ -2214,7 +2214,7 @@ router.post('/modificar_despensa', (req, res) => {
 });
 
 router.get('/obtener_datos_despensas', (req, res) => {
-  db.all('SELECT * FROM CategoriaDespensa', (err, rows) => {
+  db.all('SELECT * FROM CategoriasDespensas', (err, rows) => {
       if (err) {
           console.error(err.message);
           res.status(500).json({ error: 'Error al obtener datos de la base de datos' });
@@ -2429,6 +2429,612 @@ console.log(req.body);
               }
           });
       });
+  });
+});
+
+router.get('/modificarcdespensas', verificarSesionYStatus, (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'html', 'modificarcdespensas.html'));
+});
+
+// Ruta para modificar la cantidad de despensas
+router.post('/modificar_despensa', (req, res) => {
+  const { nombre_categoria, nueva_c_desp } = req.body;
+
+  // Validar que los datos recibidos sean correctos
+  if (!nombre_categoria || !nueva_c_desp) {
+    return res.status(400).json({ mensaje: 'Todos los campos son requeridos.' });
+  }
+
+  // Obtener el ID de la categoría de despensa por su nombre
+  const selectCategoriaSql = 'SELECT id FROM categoriasdespensas WHERE nombre_categoria = ?';
+
+  db.get(selectCategoriaSql, [nombre_categoria], (err, rowCategoria) => {
+    if (err) {
+      console.error('Error al consultar la base de datos:', err);
+      return res.status(500).json({ mensaje: 'Error al consultar la base de datos.' });
+    }
+
+    if (!rowCategoria) {
+      return res.status(404).json({ mensaje: 'No se encontró la categoría de despensa especificada.' });
+    }
+
+    const categoriaId = rowCategoria.id;
+
+    // Actualizar la cantidad de despensas
+    const updateSql = 'UPDATE Despensas SET cantidad_despensas = ? WHERE categoria_despensa_id = ?';
+
+    db.run(updateSql, [nueva_c_desp, categoriaId], function(err) {
+      if (err) {
+        console.error('Error al actualizar la base de datos:', err);
+        return res.status(500).json({ mensaje: 'Error al actualizar la base de datos.' });
+      }
+
+      res.status(200).json({ mensaje: 'Se modificó la cantidad de despensas correctamente.' });
+    });
+  });
+});
+
+
+// Ruta para modificar despensa
+router.post('/modificar_cat_despensa', (req, res) => {
+  const { nombre_categoria, nombre_categoria_1, cantidad_prod_despensa_1, descripcion_despensa_1, peso_despensa_1, nombre_producto_1 } = req.body;
+console.log(req.body);
+  // Comenzar una transacción
+  db.serialize(() => {
+    // Actualizar la tabla categoriasdespensas
+    if (nombre_categoria_1 || cantidad_prod_despensa_1 || descripcion_despensa_1 || peso_despensa_1) {
+      let updateQuery = 'UPDATE categoriasdespensas SET ';
+      const params = [];
+
+      if (nombre_categoria_1) {
+        updateQuery += 'nombre_categoria = ?, ';
+        params.push(nombre_categoria_1);
+      }
+      if (cantidad_prod_despensa_1) {
+        updateQuery += 'cantidad_prod_despensa = ?, ';
+        params.push(cantidad_prod_despensa_1);
+      }
+      if (descripcion_despensa_1) {
+        updateQuery += 'descripcion_despensa = ?, ';
+        params.push(descripcion_despensa_1);
+      }
+      if (peso_despensa_1) {
+        updateQuery += 'peso_despensa = ?, ';
+        params.push(peso_despensa_1);
+      }
+
+      // Quitar la última coma y espacio
+      updateQuery = updateQuery.slice(0, -2);
+
+      updateQuery += ' WHERE nombre_categoria = ?';
+      params.push(nombre_categoria);
+
+      // Ejecutar la consulta para actualizar categoriasdespensas
+      db.run(updateQuery, params, function(err) {
+        if (err) {
+          res.status(500).json({ error: err.message });
+          return;
+        }
+
+        // Actualizar la tabla productosCategorias si hay nombre_producto_1
+        if (nombre_producto_1) {
+          // Obtener el ID de la categoría modificada
+          db.get('SELECT id FROM categoriasdespensas WHERE nombre_categoria = ?', [nombre_categoria_1], (err, row) => {
+            if (err) {
+              res.status(500).json({ error: err.message });
+              return;
+            }
+
+            if (!row) {
+              res.status(404).json({ error: 'Categoría no encontrada' });
+              return;
+            }
+
+            const categoria_id = row.id;
+
+            // Eliminar los productos asociados a la categoría
+            db.run('DELETE FROM productosCategorias WHERE categoria_id = ?', [categoria_id], err => {
+              if (err) {
+                res.status(500).json({ error: err.message });
+                return;
+              }
+
+              // Insertar los nuevos productos
+              const insertPromises = nombre_producto_1.map(nombreProducto => {
+                return new Promise((resolve, reject) => {
+                  db.run('INSERT INTO productosCategorias (categoria_id, nombre_producto) VALUES (?, ?)', [categoria_id, nombreProducto], function(err) {
+                    if (err) {
+                      reject(err);
+                    } else {
+                      resolve(this.lastID);
+                    }
+                  });
+                });
+              });
+
+              Promise.all(insertPromises)
+                .then(() => {
+                  res.json({ mensaje: 'Categoría y productos modificados correctamente' });
+                })
+                .catch(err => {
+                  res.status(500).json({ error: err.message });
+                });
+            });
+          });
+        } else {
+          // Si no hay productos nuevos, solo responder que la categoría se modificó
+          res.json({ mensaje: 'Categoría modificada correctamente' });
+        }
+      });
+    } else if (nombre_producto_1) {
+      // Si solo se van a modificar productos sin cambiar datos de categoriasdespensas
+      // Obtener el ID de la categoría
+      db.get('SELECT id FROM categoriasdespensas WHERE nombre_categoria = ?', [nombre_categoria], (err, row) => {
+        if (err) {
+          res.status(500).json({ error: err.message });
+          return;
+        }
+
+        if (!row) {
+          res.status(404).json({ error: 'Categoría no encontrada' });
+          return;
+        }
+
+        const categoria_id = row.id;
+
+        // Eliminar los productos actuales de la categoría
+        db.run('DELETE FROM productosCategorias WHERE categoria_id = ?', [categoria_id], err => {
+          if (err) {
+            res.status(500).json({ error: err.message });
+            return;
+          }
+
+          // Insertar los nuevos productos
+          const insertPromises = nombre_producto_1.map(nombreProducto => {
+            return new Promise((resolve, reject) => {
+              db.run('INSERT INTO productosCategorias (categoria_id, nombre_producto) VALUES (?, ?)', [categoria_id, nombreProducto], function(err) {
+                if (err) {
+                  reject(err);
+                } else {
+                  resolve(this.lastID);
+                }
+              });
+            });
+          });
+
+          Promise.all(insertPromises)
+            .then(() => {
+              res.json({ mensaje: 'Productos de la categoría modificados correctamente' });
+            })
+            .catch(err => {
+              res.status(500).json({ error: err.message });
+            });
+        });
+      });
+    } else {
+      // Si no se especificaron campos para modificar
+      res.status(400).json({ error: 'No se especificaron campos para modificar' });
+    }
+  });
+});
+
+
+// Ruta para obtener la cantidad de despensas de una categoría
+router.get('/AltaBeneSol', verificarSesionYStatus, (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'html', 'alta_bene_sol.html'));
+});
+
+router.post('/AltaBeneSol', (req, res) => {
+  const {
+    nombre_solicitante,
+    apellido_paterno_solicitante,
+    apellido_materno_solicitante,
+    lugar_naciemiento_sol,
+    fecha_nacimiento_sol,
+    edad_sol,
+    Nacionalidad_sol,
+    Sexo_sol,
+    ocupacion_sol,
+    Situacion_lab_sol,
+    Nivel_estudios_sol,
+    Calle_solicitante,
+    Numero_calle_soliciatante,
+    Colonia_solicitante,
+    Delegacion_solicitante,
+    cp_sol,
+    Localidad_sol,
+    tel_casa_sol,
+    Celular_Sol,
+    email_Sol
+  } = req.body;
+
+  console.log('Datos recibidos:', req.body);
+
+  // Validaciones adicionales
+  if (!nombre_solicitante || !apellido_paterno_solicitante || !apellido_materno_solicitante) {
+    console.error('Faltan campos requeridos');
+    return res.status(400).json({ error: 'Nombre y apellidos del solicitante son requeridos' });
+  }
+
+  // Verificar si el solicitante ya existe
+  db.get(
+    `SELECT * FROM beneficiarios WHERE nombre_solicitante = ? AND apellido_paterno_solicitante = ? AND apellido_materno_solicitante = ?`,
+    [nombre_solicitante, apellido_paterno_solicitante, apellido_materno_solicitante],
+    (err, row) => {
+      if (err) {
+        console.error('Error en la consulta de la base de datos:', err);
+        return res.status(500).json({ error: 'Error interno del servidor' });
+      }
+
+      if (row) {
+        console.log('El solicitante ya existe');
+        return res.status(400).json({ error: 'El solicitante ya existe' });
+      }
+
+      // Insertar nuevo solicitante
+      db.run(`INSERT INTO beneficiarios (
+        nombre_solicitante,
+        apellido_paterno_solicitante,
+        apellido_materno_solicitante,
+        lugar_naciemiento_sol,
+        fecha_nacimiento_sol,
+        edad_sol,
+        Nacionalidad_sol,
+        Sexo_sol,
+        ocupacion_sol,
+        Situacion_lab_sol,
+        Nivel_estudios_sol,
+        Calle_solicitante,
+        Numero_calle_soliciatante,
+        Colonia_solicitante,
+        Delegacion_solicitante,
+        cp_sol,
+        Localidad_sol,
+        tel_casa_sol,
+        Celular_Sol,
+        email_Sol
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`, [
+        nombre_solicitante,
+        apellido_paterno_solicitante,
+        apellido_materno_solicitante,
+        lugar_naciemiento_sol,
+        fecha_nacimiento_sol,
+        edad_sol,
+        Nacionalidad_sol,
+        Sexo_sol,
+        ocupacion_sol,
+        Situacion_lab_sol,
+        Nivel_estudios_sol,
+        Calle_solicitante,
+        Numero_calle_soliciatante,
+        Colonia_solicitante,
+        Delegacion_solicitante,
+        cp_sol,
+        Localidad_sol,
+        tel_casa_sol,
+        Celular_Sol,
+        email_Sol
+      ], (err) => {
+        if (err) {
+          console.error('Error al insertar el solicitante:', err);
+          return res.status(500).json({ error: 'Error al insertar el solicitante' });
+        }
+        console.log('Solicitante registrado exitosamente');
+        res.json({ success: true, message: 'Solicitante registrado exitosamente' });
+      });
+    }
+  );
+});
+
+router.get('/alta_bene_conyuge', verificarSesionYStatus, (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'html', 'alta_bene_conyuge.html'));
+});
+
+
+// Ruta para manejar la obtención de opciones de selects
+router.get('/options', (req, res) => {
+  // Opciones para el select de Estado Civil
+  const estadosCiviles = [
+    { value: 'Casado(a)', label: 'Casado(a)' },
+    { value: 'Soltero(a)', label: 'Soltero(a)' },
+    { value: 'Divorciado(a)', label: 'Divorciado(a)' },
+    { value: 'Viudo(a)', label: 'Viudo(a)' },
+    { value: 'Concubinato', label: 'Concubinato' }
+  ];
+
+  // Opciones para el select de Nivel de Estudios
+  const nivelesEstudios = [
+    { value: 'Básico', label: 'Básico' },
+    { value: 'Medio Superior', label: 'Medio Superior' },
+    { value: 'Superior', label: 'Superior' }
+  ];
+
+  res.json({ estadosCiviles, nivelesEstudios });
+});
+
+// Ruta para manejar la inserción de datos del formulario
+router.post('/AltaBeneConyuge', (req, res) => {
+  const {
+    nombre_Conyuge,
+    apellido_paterno_Conyuge,
+    apellido_materno_Conyuge,
+    fecha_nacimiento_conyuge,
+    Estado_civil_conyuge,
+    Ocupacion_conyuge,
+    Nivel_estudios_conyuge
+  } = req.body;
+
+  // Validar que la fecha de nacimiento no sea en el año 2024
+  const fechaNacimientoDate = new Date(fecha_nacimiento_conyuge);
+  if (fechaNacimientoDate.getFullYear() === 2024) {
+    return res.status(400).json({ error: 'La fecha de nacimiento no puede ser en el año 2024.' });
+  }
+
+  // Validar que no exista un registro previo con los mismos datos personales
+  const sql = `SELECT COUNT(*) AS count FROM beneficiario_conyuge
+               WHERE nombre = ? AND apellido_paterno = ? AND apellido_materno = ? AND fecha_nacimiento = ?`;
+  db.get(sql, [nombre_Conyuge, apellido_paterno_Conyuge, apellido_materno_Conyuge, fecha_nacimiento_conyuge], (err, row) => {
+    if (err) {
+      console.error('Error al consultar la base de datos:', err.message);
+      return res.status(500).json({ error: 'Error interno del servidor' });
+    }
+
+    if (row.count > 0) {
+      return res.status(400).json({ error: 'Ya existe un registro con estos datos personales.' });
+    }
+
+    // Insertar datos en la base de datos si pasa todas las validaciones
+    const insertSql = `INSERT INTO beneficiario_conyuge (
+        nombre, 
+        apellido_paterno, 
+        apellido_materno, 
+        fecha_nacimiento, 
+        estado_civil, 
+        ocupacion, 
+        nivel_estudios
+      ) VALUES (?, ?, ?, ?, ?, ?, ?)`;
+
+    db.run(insertSql, [
+      nombre_Conyuge,
+      apellido_paterno_Conyuge,
+      apellido_materno_Conyuge,
+      fecha_nacimiento_conyuge,
+      Estado_civil_conyuge,
+      Ocupacion_conyuge,
+      Nivel_estudios_conyuge
+    ], function (err) {
+      if (err) {
+        console.error('Error al insertar en la tabla beneficiario_conyuge:', err.message);
+        res.status(500).json({ error: 'Error interno del servidor' });
+      } else {
+        console.log(`Registro insertado con ID: ${this.lastID}`);
+        res.json({ message: 'Datos del cónyuge registrados correctamente.' });
+      }
+    });
+  });
+});
+
+router.get('/alta_bene_familiar', verificarSesionYStatus, (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'html', 'alta_bene_familiar.html'));
+});
+
+router.post('/AltaBeneFamiliar', (req, res) => {
+  const {
+      id_solicitante,
+      nombre_fam,
+      apellido_paterno_fam,
+      apellido_materno_fam,
+      fecha_nacimiento_fam,
+      situacion_laboral_fam,
+      nivel_estudios_fam
+  } = req.body;
+
+  // Validación de la fecha de nacimiento (no puede ser este año)
+  const today = new Date();
+  const birthDate = new Date(fecha_nacimiento_fam);
+  if (birthDate.getFullYear() === today.getFullYear()) {
+      return res.status(400).json({ error: 'La fecha de nacimiento no puede ser este año.' });
+  }
+
+  const edad = calculateAge(birthDate); // Calcular la edad desde la fecha de nacimiento
+
+  // Insertar datos en la tabla beneficiarios_familiares
+  const insertSql = `INSERT INTO beneficiarios_familiares 
+                     (id_solicitante, nombre, apellido_paterno, apellido_materno, fecha_nacimiento, edad, situacion_laboral, nivel_estudios)
+                     VALUES (?, ?, ?, ?, ?, ?, ?, ?)`;
+  db.run(insertSql, [
+      id_solicitante,
+      nombre_fam,
+      apellido_paterno_fam,
+      apellido_materno_fam,
+      fecha_nacimiento_fam,
+      edad,
+      situacion_laboral_fam,
+      nivel_estudios_fam
+  ], function(err) {
+      if (err) {
+          console.error('Error al insertar datos:', err.message);
+          res.status(500).json({ error: 'Error interno del servidor' });
+      } else {
+          console.log(`Familiar ${this.lastID} insertado correctamente.`);
+          res.status(200).json({ message: 'Familiar registrado exitosamente' });
+      }
+
+      closeConnection(db); // Cerrar la conexión después de ejecutar la operación
+  });
+});
+
+// Ruta para obtener las opciones de Situación Laboral y Nivel de Estudios
+router.get('/opciones', (req, res) => {
+  // Definir las opciones disponibles (pueden provenir de una base de datos, archivo JSON, etc.)
+  const opcionesSituacionLaboral = ['Empleado', 'Desempleado', 'Estudiante', 'Otro'];
+  const opcionesNivelEstudios = ['Básico', 'Medio Superior', 'Superior', 'Posgrado'];
+
+  // Enviar las opciones como respuesta
+  res.json({
+      situacionLaboral: opcionesSituacionLaboral,
+      nivelEstudios: opcionesNivelEstudios
+  });
+});
+
+const situacionLaboralOptions = [
+  { value: 'Empleado(a)', label: 'Empleado(a)' },
+  { value: 'Desempleado(a)', label: 'Desempleado(a)' },
+  { value: 'Estudiante(a)', label: 'Estudiante(a)' },
+  { value: 'Otro', label: 'Otro' }
+];
+
+// Mock de opciones para el select de Nivel de Estudios
+const nivelEstudiosOptions = [
+  { value: 'Básico', label: 'Básico' },
+  { value: 'Medio Superior', label: 'Medio Superior' },
+  { value: 'Superior', label: 'Superior' }
+];
+
+// Ruta para obtener las opciones de Situación Laboral y Nivel de Estudios
+router.get('/opciones', (req, res) => {
+  res.json({
+    situacionLaboral: situacionLaboralOptions,
+    nivelEstudios: nivelEstudiosOptions
+  });
+});
+
+// Ruta para procesar el formulario de alta de beneficiario familiar
+router.post('/AltaBeneFamiliar', (req, res) => {
+  const {
+    nombre_fam,
+    apellido_paterno_fam,
+    apellido_materno_fam,
+    fecha_nacimiento_fam,
+    situacion_laboral_fam,
+    nivel_estudios_fam
+  } = req.body;
+
+  // Validación de la fecha de nacimiento (no puede ser este año)
+  const today = new Date();
+  const birthDate = new Date(fecha_nacimiento_fam);
+  if (birthDate.getFullYear() === today.getFullYear()) {
+    return res.status(400).json({ error: 'La fecha de nacimiento no puede ser este año.' });
+  }
+
+  const edad = calculateAge(birthDate); // Calcular la edad desde la fecha de nacimiento
+
+  // Simulación de inserción en la base de datos
+  // Aquí deberías conectar a tu base de datos MySQL y realizar la inserción real
+
+  // Simulación de respuesta exitosa
+  setTimeout(() => {
+    res.status(200).json({ message: 'Familiar registrado exitosamente' });
+  }, 1000); // Simulando un retardo de 1 segundo para la inserción
+});
+
+// Función para calcular la edad a partir de la fecha de nacimiento
+function calculateAge(birthDate) {
+  const today = new Date();
+  const diff = today - birthDate;
+  const ageDate = new Date(diff);
+  return Math.abs(ageDate.getUTCFullYear() - 1970);
+}
+
+router.get('/alta_bene_trabajador_s', verificarSesionYStatus, (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'html', 'alta_bene_trabajador_s.html'));
+});
+
+router.get('/obtener_productos', (req, res) => {
+  db.all('SELECT * FROM productos', (err, rows) => {
+      if (err) {
+          console.error(err.message);
+          res.status(500).json({ error: 'Error al obtener datos de la base de datos' });
+      } else {
+          console.log(rows); // Verifica los datos obtenidos
+          res.json(rows); // Enviar los datos como JSON al cliente
+      }
+  });
+});
+
+//obtener productos
+router.get('/obtenerproductos', (req, res) => {
+  db.all('SELECT id, nombre_producto FROM productos;', (err, rows) => {
+    if(err) {
+      res.status(500).json({ mensaje: 'No se pudieron consultar los productos' });
+    } else {
+      const productos = [];
+      rows.forEach(row => {
+        productos.push(row.nombre_producto);
+      });
+      res.status(200).json(productos);
+    }
+  });
+});
+
+
+router.post('/eliminar_cantidad', (req, res) => {
+  const { nombre_producto, cantidad_eliminar } = req.body;
+
+  // Verificar si se proporcionaron nombre_producto y cantidad_eliminar
+  if (!nombre_producto || !cantidad_eliminar) {
+    return res.status(400).json({ error: 'Nombre de producto y cantidad a eliminar son requeridos' });
+  }
+
+  // Validar que la cantidad a eliminar sea un número positivo
+  if (cantidad_eliminar <= 0) {
+    return res.status(400).json({ error: 'La cantidad a eliminar debe ser mayor que cero' });
+  }
+
+  // Consultar la cantidad actual del producto
+  db.get('SELECT cantidad FROM productos WHERE nombre_producto = ?', nombre_producto, (err, row) => {
+    if (err) {
+      console.error('Error al consultar cantidad del producto:', err);
+      return res.status(500).json({ error: 'Error al eliminar cantidad del producto' });
+    }
+
+    // Si no se encuentra el producto
+    if (!row) {
+      return res.status(404).json({ error: 'Producto no encontrado' });
+    }
+
+    const cantidadActual = row.cantidad;
+console.log(cantidadActual);
+    // Validar si hay suficiente cantidad para eliminar
+    if (cantidadActual === 0) {
+      return res.status(400).json({ error: 'No hay productos disponibles para eliminar' });
+    }
+
+    if (cantidad_eliminar > cantidadActual) {
+      return res.status(400).json({ error: 'No hay suficiente cantidad para eliminar' });
+    }
+
+    // Calcular la nueva cantidad después de la eliminación
+    const nuevaCantidad = cantidadActual - cantidad_eliminar;
+
+    // Actualizar la cantidad del producto en la base de datos
+    db.run('UPDATE productos SET cantidad = ? WHERE nombre_producto = ?', [nuevaCantidad, nombre_producto], function(err) {
+      if (err) {
+        console.error('Error al actualizar la cantidad del producto:', err);
+        res.status(500).json({ error: 'Error al eliminar cantidad del producto' });
+      } else {
+        console.log(`Se eliminaron ${cantidad_eliminar} unidades del producto: ${nombre_producto}`);
+        res.json({ mensaje: `Se eliminaron ${cantidad_eliminar} unidades del producto: ${nombre_producto}`, nuevaCantidad });
+      }
+    });
+  });
+});
+
+
+// Ruta para obtener la cantidad de un producto específico
+router.get('/obtenercantidad', (req, res) => {
+  const { producto } = req.query;
+  db.get('SELECT cantidad FROM productos WHERE nombre_producto = ?', [producto], (err, row) => {
+      if (err) {
+          console.error('Error al obtener la cantidad:', err.message);
+          res.status(500).json({ error: 'Error interno del servidor' });
+      } else {
+          if (row) {
+              res.json({ cantidad: row.cantidad });
+          } else {
+              res.status(404).json({ error: 'Producto no encontrado' });
+          }
+      }
   });
 });
 

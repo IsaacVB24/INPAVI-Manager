@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Registro beneficiarios</title>
+  <link href="https://fonts.googleapis.com/css?family=Karla:400,700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.materialdesignicons.com/4.8.95/css/materialdesignicons.min.css">
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css">
+  <link rel="stylesheet" href="../css/style2.css">
+  <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+  <script src="/js/general.js"></script>
+</head>
+<body>
+  <nav class="navbar navbar-expand-lg">
+    <a class="navbar-brand" href="#">Integración Para La Vida</a>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarNav">
+      <ul class="navbar-nav ml-auto">
+        <li class="nav-item">
+          <a class="nav-link" href="#">Inicio</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="#">Acerca de</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="#">Servicios</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="#">Contacto</a>
+        </li>
+      </ul>
+    </div>
+  </nav>
+  <br>
+  <div class="row main-content">
+    <div class="container mt-5">
+      <div class="form-border">
+        <h2 class="mb-4">Registro beneficiarios. Datos del Conyuge</h2>
+        <form id="alta_bene_conyu"  onsubmit="return validateForm()">
+          <div class="form-row">
+            <div class="form-group col-md-4">
+              <label for="nombre_Conyuge">Nombre del Conyuge</label>
+              <input type="text" class="form-control" id="nombre_Conyuge" name="nombre_Conyuge" placeholder="Nombre Conyuge" required>
+            </div>
+            <div class="form-group col-md-4">
+              <label for="apellido_paterno_Conyuge">Apellido Paterno</label>
+              <input type="text" class="form-control" id="apellido_paterno_Conyuge" name="apellido_paterno_Conyuge" placeholder="Apellido Paterno Conyuge" required>
+            </div>
+            <div class="form-group col-md-4">
+              <label for="apellido_materno_Conyuge">Apellido Materno</label>
+              <input type="text" class="form-control" id="apellido_materno_Conyuge" name="apellido_materno_Conyuge" placeholder="Apellido Materno Conyuge" required> 
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group col-md-4">
+              <label for="fecha_nacimiento_conyuge">Fecha de Nacimiento</label>
+              <input type="date" class="form-control" id="fecha_nacimiento_conyuge" name="fecha_nacimiento_conyuge" placeholder="Fecha de nacimiento del Conyuge" required>
+            </div>
+            <div class="form-group col-md-4">
+              <label for="Estado_civil_conyuge">Estado Civil</label>
+              <select class="form-control" id="Estado_civil_conyuge" name="Estado_civil_conyuge" required>
+                <!-- Options will be dynamically added here -->
+              </select>
+            </div>
+            <div class="form-group col-md-4">
+              <label for="Ocupacion_conyuge">Ocupación</label>
+              <input type="text" class="form-control" id="Ocupacion_conyuge" name="Ocupacion_conyuge" placeholder="Ocupación del Conyuge" required>
+            </div>
+            <div class="form-group col-md-4">
+              <label for="Nivel_estudios_conyuge">Nivel de Estudios</label>
+              <select class="form-control" id="Nivel_estudios_conyuge" name="Nivel_estudios_conyuge" required>
+                <!-- Options will be dynamically added here -->
+              </select>
+            </div>
+          </div>
+          <button type="submit"  class="btn btn-block login-btn mb-4"><a href="../html/entrada_inicio.html">Siguiente</a></button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Función para cargar las opciones de los selects desde el servidor
+    async function loadSelectOptions() {
+      try {
+        const response = await fetch('/options');
+        const data = await response.json();
+        
+        // Llenar el select de Estado Civil
+        const estadoCivilSelect = document.getElementById('Estado_civil_conyuge');
+        data.estadosCiviles.forEach(option => {
+          const optionElement = document.createElement('option');
+          optionElement.value = option.value;
+          optionElement.textContent = option.label;
+          estadoCivilSelect.appendChild(optionElement);
+        });
+
+        // Llenar el select de Nivel de Estudios
+        const nivelEstudiosSelect = document.getElementById('Nivel_estudios_conyuge');
+        data.nivelesEstudios.forEach(option => {
+          const optionElement = document.createElement('option');
+          optionElement.value = option.value;
+          optionElement.textContent = option.label;
+          nivelEstudiosSelect.appendChild(optionElement);
+        });
+      } catch (error) {
+        console.error('Error al cargar las opciones de los selects:', error);
+      }
+    }
+
+    // Validación básica del formulario
+    function validateForm() {
+      const fechaNacimiento = document.getElementById('fecha_nacimiento_conyuge').value;
+      const fechaNacimientoDate = new Date(fechaNacimiento);
+      const currentYear = new Date().getFullYear();
+
+      if (fechaNacimientoDate.getFullYear() === 2024) {
+        alert('La fecha de nacimiento no puede ser en el año 2024.');
+        return false;
+      }
+
+      return true;
+    }
+
+    // Cargar las opciones de los selects al cargar la página
+    document.addEventListener('DOMContentLoaded', () => {
+      loadSelectOptions();
+    });
+  </script>
+  <script>
+    document.getElementById('alta_bene_conyu').addEventListener('submit', async function(event) {
+      event.preventDefault();
+
+      const formData = new FormData(event.target);
+      const data = Object.fromEntries(formData);
+
+      try {
+        const response = await fetch('/AltaBeneConyuge', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(data)
+        });
+
+        const result = await response.json();
+        console.log('Resultado de la respuesta:', result);
+
+        if (response.ok) {
+          alert(result.message);
+          window.location.href = '/entrada_inicio';
+        } else {
+          alert(result.error);
+        }
+      } catch (error) {
+        console.error('Error:', error);
+        alert('Error al enviar el formulario');
+      }
+    });
+  </script>
+</body>
+</html>

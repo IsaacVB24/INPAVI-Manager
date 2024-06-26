@@ -53,8 +53,8 @@
             </select>
           </div>
           <div class="form-group col-md-4">
-            <label for="cantidad_prod_despensa">Cantidad de productos de las despensa</label>
-            <input type="text" class="form-control" id="cantidad_prod_despensa" name="cantidad_prod_despensa" placeholder="Cantidad de productos de las despensa">
+            <label for="cantidad_prod_despensa"> Nueva cantidad de despensas</label>
+            <input type="text" class="form-control" id="nueva_c_desp" name="nueva_c_desp" placeholder="Escribe aquí">
           </div>
           <div class="form-group col-md-4">
             <label for="cantidad_despensas_categoria">Cantidad de despensas en esta categoría</label>
@@ -108,52 +108,27 @@
     .catch(error => console.error("Error:", error));
   });
 
-  // Evento de cambio del select para actualizar la cantidad de despensas
   document.getElementById('nombre_categoria').addEventListener('change', function() {
-      const categoriaId = this.value;
+    const nombreCategoria = this.value;
 
-      if (categoriaId) {
-        fetch(`/cantidad_despensas?categoriaId=${categoriaId}`)
-          .then(response => {
-            if (response.ok) {
-              return response.json(); // Convertir la respuesta a JSON
-            }
-            throw new Error('Error al obtener la cantidad de despensas. Estado de respuesta: ' + response.status);
-          })
-          .then(data => {
-            document.getElementById('cantidad_despensas_categoria').value = data.cantidad_despensas;
-          })
-          .catch(error => {
-            console.error('Error al obtener la cantidad de despensas:', error);
-            alert('Error al obtener la cantidad de despensas: ' + error.message);
-          });
-      } else {
-        document.getElementById('cantidad_despensas_categoria').value = '';
-      }
-    });
-
-  document.addEventListener("DOMContentLoaded", function () {
-    // Deshabilitar los campos de entrada de texto al cargar la página
-    document.getElementById("descripcion_despensa").disabled = true;
-    document.getElementById("cantidad_prod_despensa").disabled = true;
-
-    document.querySelectorAll('input[name="campo_modificar"]').forEach((radio) => {
-      radio.addEventListener("change", function () {
-        if (document.getElementById("checkbox_descripcion").checked && document.getElementById("checkbox_cantidad").checked) {
-          document.getElementById("descripcion_despensa").disabled = false;
-          document.getElementById("cantidad_prod_despensa").disabled = false;
-        } else if (document.getElementById("checkbox_descripcion").checked) {
-          document.getElementById("descripcion_despensa").disabled = false;
-          document.getElementById("cantidad_prod_despensa").disabled = true;
-        } else if (document.getElementById("checkbox_cantidad").checked) {
-          document.getElementById("descripcion_despensa").disabled = true;
-          document.getElementById("cantidad_prod_despensa").disabled = false;
-        } else {
-          document.getElementById("descripcion_despensa").disabled = true;
-          document.getElementById("cantidad_prod_despensa").disabled = true;
-        }
-      });
-    });
+    if (nombreCategoria) {
+      fetch(`/cantidad_despensas?nombre_categoria=${nombreCategoria}`)
+        .then(response => {
+          if (response.ok) {
+            return response.json(); // Convertir la respuesta a JSON
+          }
+          throw new Error('Error al obtener la cantidad de despensas. Estado de respuesta: ' + response.status);
+        })
+        .then(data => {
+          document.getElementById('cantidad_despensas_categoria').value = data.cantidad_despensas;
+        })
+        .catch(error => {
+          console.error('Error al obtener la cantidad de despensas:', error);
+          alert('Error al obtener la cantidad de despensas: ' + error.message);
+        });
+    } else {
+      document.getElementById('cantidad_despensas_categoria').value = '';
+    }
   });
 </script>
 

@@ -41,147 +41,129 @@
   <div class="row main-content">
     <div class="container mt-5">
       <div class="form-border">
-        <form id="registro_cat_despensas" action="/altacatdespensas" method="post">
-        <h2 class="mb-4">Registro de productos</h2>
-        
-        
-        <!-- Div para mostrar el mensaje -->
-        <div id="mensajePopup" class="alert alert-success alert-dismissible fade show" role="alert" style="display: none;">
-          <!-- Aquí se mostrará el mensaje -->
-        </div>
-        
+        <form id="registro_cat_despensas" action="/altacatprod" method="post">
+          <h2 class="mb-4">Registro de productos</h2>
+          <!-- Div para mostrar el mensaje -->
+          <div id="mensajePopup" class="alert alert-success alert-dismissible fade show" role="alert" style="display: none;">
+            <!-- Aquí se mostrará el mensaje -->
+          </div>
           <div class="form-row">
             <div class="form-group col-md-4">
-              <label for="nombre_categoria">Nombre del producto</label>
-              <input type="text" class="form-control" id="nombre_categoria:1" name="nombre_categoria_1" placeholder="Escríbelo aquí" required>
+              <label for="nombre_producto">Nombre del producto</label>
+              <input type="text" class="form-control" id="nombre_producto" name="nombre_producto" placeholder="Escríbelo aquí" required>
             </div>
 
             <div class="form-group col-md-4">
-              <label for="nombre_categoria">Cantidad de productos</label>
-              <input type="number" class="form-control" id="nombre_categoria:1" name="nombre_categoria_1" placeholder="Escríbelo aquí" required>
+              <label for="cantidad">Cantidad de productos</label>
+              <input type="number" class="form-control" id="cantidad" name="cantidad" placeholder="Escríbelo aquí" required>
+            </div>
+        
+            <div class="form-group col-md-4">
+              <label for="fecha_caducidad">Fecha de caducidad:</label>
+              <input type="month" class="form-control" id="fecha_caducidad" name="fecha_caducidad" placeholder="Nombre Categoria" required>
             </div>
           </div>
-        <div class="form-row">
-          <div class="form-group col-md-4">
-            <label for="nombre_categoria">Unidad de medida del producto:</label> <br>
-            <div>
-            <input type="radio" id="huey" name="drone" value="huey" checked />
-            <label for="huey">Gramos</label></div>
-            <div>
-            <input type="radio" id="huey" name="drone" value="huey" checked />
-            <label for="huey">Kilogramos</label></div>
-            <div>
-            <input type="radio" id="huey" name="drone" value="huey" checked />
-            <label for="huey">Litros</label></div>
-            <div>
-            <input type="radio" id="huey" name="drone" value="huey" checked />
-            <label for="huey">Piezas</label></div>
-            <input type="radio" id="huey" name="drone" value="huey" checked />
-            <label for="huey">Otro</label>
-          </div> 
-          <div class="form-group col-md-4">
-            <label for="nombre_categoria">Cantidad de unidad de medida</label>
-            <input type="number" class="form-control" id="nombre_categoria:1" name="nombre_categoria_1" placeholder="Escríbelo aquí" required>
-          </div>
-        </div>
-   
-          <!-- Botón para agregar más detalles -->
 
-          <!-- Contenedor para los campos adicionales -->
-          <div id="camposExtras" style="display: none;">
-            <!-- Aquí se replicarán los campos adicionales -->
+          <div class="form-row">
+            <div class="form-group col-md-4">
+              <label>Unidad de medida del producto:</label> <br>
+              <div>
+                <input type="radio" id="gr" name="unidad_medida" value="gr" checked>
+                <label for="gr">Gramos</label>
+              </div>
+              <div>
+                <input type="radio" id="kg" name="unidad_medida" value="kg">
+                <label for="kg">Kilogramos</label>
+              </div>
+              <div>
+                <input type="radio" id="lt" name="unidad_medida" value="lt">
+                <label for="lt">Litros</label>
+              </div>
+              <div>
+                <input type="radio" id="ml" name="unidad_medida" value="ml">
+                <label for="ml">Mililitros</label>
+              </div>
+              <div>
+                <input type="radio" id="pzas" name="unidad_medida" value="pzas">
+                <label for="pzas">Piezas</label>
+              </div>
+              <div>
+                <input type="radio" id="otro" name="unidad_medida" value="otro">
+                <label for="otro">Otro</label>
+              </div>
+            </div>
+
+            <div class="form-group col-md-4">
+              <label for="cantidad_unidad">Cantidad de unidad de medida</label>
+              <input type="number" class="form-control" id="cantidad_unidad" name="cantidad_unidad" placeholder="Escríbelo aquí" required>
+            </div>
           </div>
-          <!-- Fin del contenedor para los campos adicionales -->
-      
-          <button type="button" class="btn btn-link btn-toggle" id="toggleCampos">
-            <label for="toggleCampos">Agregar más productos</label>
-            <i class="bi bi-plus"></i> <!-- Icono de más -->
+          
+          <button class="button-return" onclick="history.back()"> 
+            <i class="bi bi-arrow-left"></i> Regresar
           </button>
-<br><br>
-          <!-- Botón de registro -->
-         
-        <button class="button-return" onclick="history.back()">
-            <i class="bi bi-arrow-left">  Regresar</i> 
-        </button>
-        <button type="submit" id="botonRegistrar" class="btn-primary">
-            <i class="bi bi-emoji-smile-fill">  Registrar</i></button>
+       
+          <button type="submit" id="botonRegistrar" class="btn btn-primary">
+            <i class="bi bi-emoji-smile-fill"></i> Registrar
+          </button>
         </form>
       </div>
-      </div>
     </div>
-  </div>     
-<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
-<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
-<script>
-    // JavaScript para agregar campos adicionales dinámicamente
-    var contador = 1; // Inicializamos el contador
-    
-    document.getElementById("toggleCampos").addEventListener("click", function() {
-      var camposExtras = document.getElementById("camposExtras");
-    
-      // Verificar si el contador ha alcanzado el límite de 10
-      if (contador >= 10) {
-        alert("El número máximo de categorías a registrar es 10");
-        return; // Salir de la función si se alcanza el límite
-      }
-    
-      // Incrementar el contador
-      contador++;
-    
-      // Crear un conjunto nuevo de campos adicionales con identificadores únicos
-      var div = document.createElement("div");
-      div.className = "form-row";
-      div.innerHTML = `
-    
-            <div class="form-group col-md-4">
-              <label for="nombre_categoria">Nombre de la categoria</label>
-              <input type="text" class="form-control" id="nombre_categoria:1" name="nombre_categoria_1" placeholder="Escríbelo aquí" required>
-            </div>
-          </div>
-      `;
-    
-      // Agregar el conjunto de campos adicionales al contenedor
-      camposExtras.appendChild(div);
-    
-      // Mostrar los campos extras si están ocultos
-      camposExtras.style.display = "block";
-    });
-    </script>
-<script>
+  </div>
+
+  <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+  <script>
     document.getElementById("registro_cat_despensas").addEventListener("submit", function(event) {
-  event.preventDefault(); // Evitar que se envíe el formulario de forma tradicional
-  console.log("Formulario enviado");
-  const formData = new FormData(this); // Obtener los datos del formulario
+      event.preventDefault(); // Evitar que se envíe el formulario de forma tradicional
+      console.log("Formulario enviado");
 
-  // Convertir los datos del formulario a una cadena de consulta URL-encoded
-  const urlEncodedFormData = new URLSearchParams(formData);
+      const formData = new FormData(this); // Obtener los datos del formulario
 
-  fetch("/altacatprod", {
-    method: "POST",
-    headers: {
-      'Content-Type': 'application/x-www-form-urlencoded' // Configurar el tipo de contenido
-    },
-    body: urlEncodedFormData // Enviar los datos del formulario en formato URL-encoded
-  })
-  .then(response => response.json()) // Convertir la respuesta a JSON
-  .then(data => {
-    // Mostrar el mensaje al usuario
-    alert(data.mensaje);
-    // Si la categoría se registró correctamente, limpiar el formulario
-    if (data.mensaje.includes("correct")) {
-      // Limpiar el formulario completo
-      document.getElementById("registro_cat_despensas").reset();
-      // Redirigir a la página de entrada_inicio
-      window.location.href = "/entrada_inicio";
-    }
-  })
-  .catch(error => console.error("Error:", error));
-});
+      // Convertir los datos del formulario a una cadena de consulta URL-encoded
+      const urlEncodedFormData = new URLSearchParams(formData);
 
-</script>
-      
-
+      fetch("/altacatprod", {
+        method: "POST",
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded' // Configurar el tipo de contenido
+        },
+        body: urlEncodedFormData // Enviar los datos del formulario en formato URL-encoded
+      })
+      .then(response => response.json()) // Convertir la respuesta a JSON
+      .then(data => {
+        // Mostrar el mensaje al usuario
+        if (data.mensaje.includes("ya existe")) {
+          if (confirm(data.mensaje)) {
+            // Si el usuario acepta, enviar una solicitud para actualizar la cantidad
+            fetch("/updatecatprod", {
+              method: "POST",
+              headers: {
+                'Content-Type': 'application/x-www-form-urlencoded' // Configurar el tipo de contenido
+              },
+              body: urlEncodedFormData // Enviar los datos del formulario en formato URL-encoded
+            })
+            .then(response => response.json())
+            .then(data => {
+              alert(data.mensaje);
+              if (data.mensaje.includes("correctamente")) {
+                document.getElementById("registro_cat_despensas").reset();
+                window.location.href = "/entrada_inicio";
+              }
+            })
+            .catch(error => console.error("Error:", error));
+          }
+        } else {
+          alert(data.mensaje);
+          if (data.mensaje.includes("correctamente")) {
+            document.getElementById("registro_cat_despensas").reset();
+            window.location.href = "/entrada_inicio";
+          }
+        }
+      })
+      .catch(error => console.error("Error:", error));
+    });
+  </script>
 </body>
 </html>
-
