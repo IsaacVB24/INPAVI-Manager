@@ -6,7 +6,7 @@ sudo apt update
 # Instalar Node.js y npm
 sudo apt install nodejs
 sudo apt install npm
-sudo npm install -g express
+sudo npm install express
 sudo apt install npm
 sudo npm install pm2 -g
 sudo apt install sqlite3
