@@ -29,7 +29,8 @@ document.addEventListener('DOMContentLoaded', () => {
     // URL de las solicitudes
     const urls = [
         '/obtenerProgramas',
-        '/obtenerPrimerosContactos'
+        '/obtenerPrimerosContactos',
+        '/sedesCDMXyMetro'
     ];
 
     // Realizar las solicitudes con Promise.all
@@ -39,7 +40,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         throw new Error(`Error al obtener datos desde ${url}`);
       })))
-      .then(([programas, primerosContactos]) => {
+      .then(([programas, primerosContactos, sedes]) => {
         const nvoDiv = crear('div');
         nvoDiv.style.paddingLeft = '20px';
         nvoDiv.id = 'nvosIntereses';
@@ -109,6 +110,21 @@ document.addEventListener('DOMContentLoaded', () => {
         botonesPrimerosContactos.forEach(boton => {
             boton.addEventListener('click', () => {botonSeleccionado(boton);});
         });
+
+        // Procesar sedes
+        const sedeVol = get('sedeVol');
+        sedes.forEach((sede, indice) => {
+            const datos = sede.split(':');
+            const nombre = datos[0];
+            const id = datos[1];
+            const option = crear('option');
+            option.id = id;
+            option.value = indice + 1;
+            option.textContent = nombre;
+            if(parseInt(id) === 1) option.selected = true;
+            sedeVol.appendChild(option);
+        });
+        if(parseInt(sessionStorage.getItem('rol')) !== 2) get('divSedeVol').remove();
         
         fetch('/obtenerNombreVoluntarios', {
             method: 'POST',
@@ -222,6 +238,7 @@ function altaVoluntario(){
     const correo = valorDe('correoV').trim();
     const ocupacionV = valorDe('ocupacionV').trim();
     const personaContacto = valorDe('personaContactoV').trim();
+    let idSedeVol = null;
     const correoValido = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/.test(correo);
     const selectVoluntarioAsignado = get('voluntarioAsignado');
     const voluntarioAsignado = selectVoluntarioAsignado.value;
@@ -250,6 +267,7 @@ function altaVoluntario(){
         nombresInformeValoracion.push(boton.innerHTML);
     });
     const observaciones = valorDe('comment').trim();
+    if(get('divSedeVol')) idSedeVol = get('sedeVol').options[get('sedeVol').selectedIndex].id;
     
     if(!nombres || !apellidoP || !apellidoM || !fechaNacimiento || !identificacion || !telefono || !correo || !ocupacionV || botonesSeleccionadosValoracion === 0) {
         mostrarModal('Campos incompletos', 'Se deben completar todos los campos marcados con <span>*</span>.', modal);
@@ -305,6 +323,7 @@ function altaVoluntario(){
         <li><p><span class="fw-bold">Correo electrónico:</span> ${correo}</p></li>
         <li><p><span class="fw-bold">Ocupación:</span> ${ocupacionV}</p></li>
         <li><p><span class="fw-bold">Persona de contacto:</span> ${personaContacto || '-'}</p></li>
+        ${get('divSedeVol') ? `<li><p><span class="fw-bold">Sede asignada:</span> ${get('sedeVol').options[get('sedeVol').selectedIndex].textContent}</p></li>` : ''}
         <li><p><span class="fw-bold">Voluntario interno asignado:</span> ${selectVoluntarioAsignado.options[selectVoluntarioAsignado.selectedIndex].text}</p></li>
         <li><p><span class="fw-bold">Intereses:</span> ${interesesConf}</p></li>
         <li><p><span class="fw-bold">Valoración / Participación:</span> ${valoracionConf}</p></li>
@@ -323,7 +342,7 @@ function altaVoluntario(){
             headers: {
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify({ nombre: nombres, apellidoP: apellidoP, apellidoM: apellidoM, fechaNacimiento: fechaNacimiento, identificacion: identificacion, telefono: telefono, correo: correo, ocupacion: ocupacionV, personaContacto: personaContacto, voluntarioIntAsignado: voluntarioAsignado, intereses: intereses, valoracion: valoracion, primerosContactos: primerosContactos, informeValoracion: informeValoracion, derivacion: altaHoy ? derivacion : [], observaciones: observaciones })
+            body: JSON.stringify({ nombre: nombres, apellidoP: apellidoP, apellidoM: apellidoM, fechaNacimiento: fechaNacimiento, identificacion: identificacion, telefono: telefono, correo: correo, ocupacion: ocupacionV, personaContacto: personaContacto, voluntarioIntAsignado: voluntarioAsignado, intereses: intereses, valoracion: valoracion, primerosContactos: primerosContactos, informeValoracion: informeValoracion, derivacion: altaHoy ? derivacion : [], observaciones: observaciones, idSede: idSedeVol })
         })
         .then(response => {
             return response.json().then(data => {

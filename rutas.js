@@ -289,7 +289,7 @@ router.post('/login', async (req, res) => {
             // Establecer la sesión del usuario
             req.session.usuario = { correo, status: row.status, id_rol: row.id_rol, nombre: row.nombre_usuario, apPat: row.apellido_paterno, apMat: row.apellido_materno, id_sede: row.id_sede, id_usuario: row.id_usuario, sede: row.sede, fechaUTC: fechaUTC, zonaHorariaOffset: zonaHorariaOffset };
             if(row.status === 0) res.status(404).json({ mensaje: 'Correo no encontrado', sede: '', rol: '' });
-            if(row.status === 1) res.status(200).json({ mensaje: 'Inicio de sesión correcto', ruta: ((row.id_rol === 1 || row.id_rol === 2) ? '/principal' : '/tablero'), sede: sedeEnvio, rol: row.id_rol });
+            if(row.status === 1) res.status(200).json({ mensaje: 'Inicio de sesión correcto', ruta: ((row.id_rol === 1 || row.id_rol === 2) ? '/principal' : '/tablero'), id_sede: row.id_sede, sede: sedeEnvio, rol: row.id_rol });
             if(row.status === 2) res.status(200).json({ mensaje: 'En espera de que el usuario ingrese token de verificación de correo', ruta: '/ingresarToken', tipoUsuario: row.status, sede: '', rol: '' });
             if(row.status === 3) res.status(200).json({ mensaje: 'En espera de que un delegado apruebe la solicitud', ruta: '/verificacion', sede: '', rol: '' });
           } else {
@@ -1106,8 +1106,9 @@ router.get('/obtenerPrimerosContactos', (req,res) => {
 
 router.post('/voluntarioNuevo', (req, res) => {
   if (req.session && req.session.usuario) {
-    const { id_sede, id_usuario } = req.session.usuario;
+    const { id_usuario } = req.session.usuario;
     const { nombre, apellidoP, apellidoM, fechaNacimiento, identificacion, telefono, correo, ocupacion, personaContacto, voluntarioIntAsignado, intereses, valoracion, primerosContactos, informeValoracion, derivacion, observaciones } = req.body;
+    const id_sede = req.body.idSede || req.session.usuario.id_sede;
     
     const fechaActual = new Date();
     const year = fechaActual.getUTCFullYear();
@@ -1969,6 +1970,14 @@ router.post('/desvincularVoluntario', (req, res) => {
         });
       }
     });
+  } else {
+    res.redirect('/');
+  }
+});
+
+router.get('/sedesCDMXyMetro', (req, res) => {
+  if (req.session && req.session.usuario) {
+    res.json(['Ajusco:3', 'Atlacomulco:4', 'Tultitlán:2', 'Xola:1']);
   } else {
     res.redirect('/');
   }

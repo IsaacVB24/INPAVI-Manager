@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', () => {
-    get('cerrarSesion').addEventListener('click', () => {sessionStorage.removeItem('sede');});
+    get('cerrarSesion').addEventListener('click', () => {sessionStorage.clear(); localStorage.clear();});
     if(!(parseInt(sessionStorage.getItem('rol')) === 1 || parseInt(sessionStorage.getItem('rol')) === 2)) {
         get('principal').remove();
     }

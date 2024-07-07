@@ -28,6 +28,7 @@ document.addEventListener('DOMContentLoaded', () => {
         } else {
           sessionStorage.setItem('sede', result.sede);
           sessionStorage.setItem('rol', result.rol);
+          sessionStorage.setItem('idSede', result.id_sede);
           if(result.tipoUsuario === 2) localStorage.setItem('correo', correo);
           window.location.href = result.ruta;
         }
