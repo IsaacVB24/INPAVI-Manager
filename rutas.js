@@ -1880,7 +1880,8 @@ router.post('/compararContra', (req, res) => {
 
 router.post('/desvincularVoluntario', (req, res) => {
   if(req.session && req.session.usuario) {
-    const { id_voluntario, id_programa, id_sede, motivo } = req.body;
+    const { id_voluntario, id_programa, motivo } = req.body;
+    let id_sede = req.body.id_sede;
 
     db.get('SELECT p.programa, cv.nombreCompleto FROM derivacionVoluntario dv LEFT JOIN programas p ON p.id_programa = dv.id_derivacion LEFT JOIN conjuntoVoluntarios cv ON cv.id_filaVoluntarios = dv.id_voluntario WHERE dv.id_voluntario = ? AND p.id_programa = ?', [id_voluntario, id_programa], (err, row) => {
       if(err) {
@@ -1923,6 +1924,8 @@ router.post('/desvincularVoluntario', (req, res) => {
             }
           });
 
+          idDelegadoCDMX = [1, 2, 3, 4];
+          if(idDelegadoCDMX.includes(id_sede)) id_sede = 1;
           db.get('SELECT correo FROM usuarios WHERE id_sede = ? AND id_rol = ?', [id_sede, 2], (err, row) => {
             if(err) {
               return hacerRollback(500, `Error al obtener el correo del delegado para el envío de notificación de desvinculación`, res, err);
