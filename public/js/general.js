@@ -1,3 +1,9 @@
+/*!
+    * Autor: Isaac Victoria Benavides
+    * Fecha: Julio 2024
+    * Descripción: Archivo necesario en todos los HTML ya que contiene funciones personalizadas que se ocupan en otros archivos .js
+*/
+
 const ruta = window.location.pathname;
 const ventanaModal = '<div class="modal" id="myModal" style="display=block;"><div class="modal-dialog"><div class="modal-content"><div class="modal-header"><h4 class="modal-title" id="hModal">Header de modal dinámico</h4><button type="button" class="btn-close" data-bs-dismiss="modal" id="cerrarModal"></button></div><div class="modal-body" id="bModal">Cuerpo del modal dinámico..</div><div class="modal-footer" id="botonesModal"><button type="button" class="btn btn-danger" data-bs-dismiss="modal" id="btnModal">Contenido botón</button></div></div></div></div>';
 const idHModal = 'hModal';

@@ -1,3 +1,8 @@
+/*!
+    * Autor: Isaac Victoria Benavides
+    * Fecha: Julio 2024
+*/
+
 const mensajeCorreoIncorrecto = '<div class="alert alert-danger alert-dismissible fade show"><button type="button" class="btn-close" data-bs-dismiss="alert"></button><strong>¡Correo no encontrado!</strong> Verifica que esté escrito correctamente o <a href="/crearCuenta">crea una cuenta</a>.</div>';
 const mensajeCorreoEncontrado = '<div class="alert alert-success alert-dismissible fade show"><button type="button" class="btn-close" data-bs-dismiss="alert"></button><strong>¡Correo encontrado!</strong> Revisa tu bandeja de entrada y proporciona el código que te fue enviado.</div>';
 

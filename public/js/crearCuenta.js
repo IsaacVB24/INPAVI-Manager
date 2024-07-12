@@ -1,3 +1,8 @@
+/*!
+    * Autor: Isaac Victoria Benavides
+    * Fecha: Julio 2024
+*/
+
 const nombreForm = "formCrearCuenta";
 const formConDatos = 'datosTrasValidacion';
 

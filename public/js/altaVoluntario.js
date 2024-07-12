@@ -1,3 +1,8 @@
+/*!
+    * Autor: Isaac Victoria Benavides
+    * Fecha: Julio 2024
+*/
+
 const colorFondoBotonSeleccionado = 'rgb(123, 168, 133)';
 
 document.addEventListener('DOMContentLoaded', () => {

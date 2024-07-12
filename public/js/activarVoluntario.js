@@ -1,3 +1,8 @@
+/*!
+    * Autor: Isaac Victoria Benavides
+    * Fecha: Julio 2024
+*/
+
 let programas;
 document.addEventListener('DOMContentLoaded', () => {
     get('alertas').innerHTML = ventanaModal;

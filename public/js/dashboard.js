@@ -1,3 +1,8 @@
+/*!
+    * Autor: Isaac Victoria Benavides
+    * Fecha: Julio 2024
+*/
+
 document.addEventListener('DOMContentLoaded', () => {
     get('cerrarSesion').addEventListener('click', () => {sessionStorage.clear(); localStorage.clear();});
     if(!(parseInt(sessionStorage.getItem('rol')) === 1 || parseInt(sessionStorage.getItem('rol')) === 2)) {

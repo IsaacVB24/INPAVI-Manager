@@ -1,4 +1,10 @@
+/*!
+    * Autor: Isaac Victoria Benavides
+    * Fecha: Julio 2024
+*/
+
 const fondoTh = '#dcd8d8';
+
 document.addEventListener('DOMContentLoaded', () => {
     get('tituloVisualizar').innerHTML += `"${localStorage.getItem('programa')}"`;
     const contenidoPrograma = get('contenidoPrograma');

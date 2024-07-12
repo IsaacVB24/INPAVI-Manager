@@ -1,3 +1,8 @@
+/*!
+    * Autor: Isaac Victoria Benavides
+    * Fecha: Julio 2024
+*/
+
 document.addEventListener('DOMContentLoaded', () => {
     const loginForm = get('loginForm');
     loginForm.addEventListener('submit', async (e) => {

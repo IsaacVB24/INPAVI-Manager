@@ -1,3 +1,8 @@
+/*!
+    * Autor: Isaac Victoria Benavides
+    * Fecha: Julio 2024
+*/
+
 document.addEventListener('DOMContentLoaded', () => {
     get('regresar').onclick = () => {window.location.href = localStorage.getItem('anterior');};
     document.querySelectorAll('input').forEach(input => {input.readOnly = true;});

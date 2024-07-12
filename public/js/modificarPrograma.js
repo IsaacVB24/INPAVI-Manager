@@ -1,3 +1,8 @@
+/*!
+    * Autor: Isaac Victoria Benavides
+    * Fecha: Julio 2024
+*/
+
 document.addEventListener('DOMContentLoaded', () => {
     const id_programa = localStorage.getItem('idPrograma');
     const id_sede = localStorage.getItem('idSede');

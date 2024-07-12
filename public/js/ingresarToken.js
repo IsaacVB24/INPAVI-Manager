@@ -1,3 +1,8 @@
+/*!
+    * Autor: Isaac Victoria Benavides
+    * Fecha: Julio 2024
+*/
+
 document.addEventListener('DOMContentLoaded', () => {
     const correo = localStorage.getItem('correo');
     if(!correo) window.location.href = '/recursoNoEncontrado';
